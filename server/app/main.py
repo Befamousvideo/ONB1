@@ -174,6 +174,16 @@ class RequestUpdate(BaseModel):
     message: str
 
 
+class EstimateDraft(BaseModel):
+    id: UUID
+    request_id: UUID
+    min_total_cents: int
+    max_total_cents: int
+    currency: str
+    status: str
+    line_items: List[Dict[str, Any]]
+
+
 def get_conn():
     database_url = os.getenv("DATABASE_URL")
     if not database_url:
@@ -622,6 +632,66 @@ def post_request_update(request_id: UUID, thread_ts: str, message: str) -> None:
         },
     )
 
+
+def load_estimate_template(conn, request_type: str) -> Dict[str, Any]:
+    name_map = {
+        "bug": "Bug Fix",
+        "change": "Change Request",
+        "new": "New Feature",
+    }
+    template_name = name_map.get(request_type.lower(), "Change Request")
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT id, name, line_items, min_total_cents, max_total_cents
+              FROM estimate_templates
+             WHERE name = %s
+             LIMIT 1
+            """,
+            (template_name,),
+        )
+        row = cur.fetchone()
+    if not row:
+        return {
+            "name": template_name,
+            "line_items": [],
+            "min_total_cents": 0,
+            "max_total_cents": 0,
+        }
+    return row
+
+
+def create_draft_estimate(conn, request_id: UUID, request_type: str) -> Dict[str, Any]:
+    template = load_estimate_template(conn, request_type)
+    min_total = int(template.get("min_total_cents") or 0)
+    max_total = int(template.get("max_total_cents") or 0)
+    currency = "USD"
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            INSERT INTO estimates (request_id, amount_cents, currency, status)
+            VALUES (%s, %s, %s, %s)
+            RETURNING id
+            """,
+            (request_id, max_total, currency, "draft"),
+        )
+        estimate_id = cur.fetchone()["id"]
+        cur.execute(
+            """
+            INSERT INTO audit_logs (event_type, conversation_id, metadata)
+            VALUES (%s, %s, %s)
+            """,
+            ("estimate_draft_created", None, json.dumps({"estimate_id": str(estimate_id), "request_id": str(request_id)})),
+        )
+    return {
+        "id": estimate_id,
+        "request_id": request_id,
+        "min_total_cents": min_total,
+        "max_total_cents": max_total,
+        "currency": currency,
+        "status": "draft",
+        "line_items": template.get("line_items") or [],
+    }
 
 def extract_integration_mentions(description: str) -> List[str]:
     if not description:
@@ -1118,6 +1188,7 @@ def create_request(payload: ClientRequestCreate, request: Request):
                     "attachments": len(payload.attachments or []),
                 },
             )
+            estimate = create_draft_estimate(conn, request_id, payload.request_type)
         client_message = None
         if addon["addon_flag"]:
             client_message = "This may be outside scope; we'll confirm with an estimate."
@@ -1127,7 +1198,24 @@ def create_request(payload: ClientRequestCreate, request: Request):
             "addon_flag": addon["addon_flag"],
             "addon_rationale": addon["addon_rationale"],
             "client_message": client_message,
+            "estimate": estimate,
         }
+
+
+@app.get("/admin/estimates")
+def list_estimates_admin():
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT e.id, e.request_id, e.amount_cents, e.currency, e.status, e.created_at
+                  FROM estimates e
+                 ORDER BY e.created_at DESC
+                 LIMIT 50
+                """
+            )
+            rows = cur.fetchall()
+    return {"items": rows}
 
 
 @app.post("/api/requests/{id}/updates")

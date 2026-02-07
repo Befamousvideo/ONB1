@@ -35,8 +35,9 @@ Provide a clear, evolving specification for the ONB1 system before implementatio
 - `auth_codes`: id, account_id, email, code_hash, expires_at, used_at, attempts, created_at
 - `auth_sessions`: id, account_id, token, expires_at, created_at
 - `audit_logs`: id, event_type, conversation_id, metadata, created_at
-- `requests`: id, project_id, requester_contact_id, title, description, status, request_type, impact, urgency, slack_channel, slack_ts, created_at, updated_at
+- `requests`: id, project_id, requester_contact_id, title, description, status, request_type, impact, urgency, slack_channel, slack_ts, addon_flag, addon_rationale, created_at, updated_at
 - `estimates`: id, request_id, amount_cents, currency, status, expires_at, created_at, updated_at
+- `estimate_templates`: id, name, description, line_items, min_total_cents, max_total_cents, created_at
 - `invoices`: id, project_id, estimate_id, amount_cents, currency, status, due_date, paid_at, created_at, updated_at
 - `approvals`: id, estimate_id, approver_contact_id, status, approved_at, created_at
 
@@ -126,6 +127,18 @@ Slack:
 Data:
 - Requests are stored in `requests` with type/impact/urgency and Slack thread metadata.
 - Attachments are stored in `attachments` and linked to the request.
+- Draft estimates are created per request using templates (status `draft`).
+
+## Estimate Workflow
+States:
+- `draft` → internal only, created automatically on request intake.
+- `sent` → ready to share with client.
+- `approved` → client accepts.
+- `rejected` → client declines.
+
+Templates:
+- Stored in `estimate_templates` with line items and min/max range.
+- Draft estimates are generated from the template that matches `request_type`.
 
 Add-on detection rules:
 - `request_type=new` → add-on likely.
@@ -161,3 +174,4 @@ PII handling:
 - 2026-02-07: Added client OTP auth and client request intake with Slack threading.
 - 2026-02-07: Added client request flow with Slack threads and request-linked attachments.
 - 2026-02-07: Added add-on detection and rationale for client requests.
+- 2026-02-07: Added estimate templates and draft estimate generation for requests.

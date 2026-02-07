@@ -468,12 +468,39 @@ components:
         client_message:
           type: string
           nullable: true
+        estimate:
+          $ref: '#/components/schemas/EstimateDraft'
     RequestUpdate:
       type: object
       required: [message]
       properties:
         message:
           type: string
+    EstimateDraft:
+      type: object
+      required: [id, request_id, min_total_cents, max_total_cents, currency, status, line_items]
+      properties:
+        id:
+          type: string
+          format: uuid
+        request_id:
+          type: string
+          format: uuid
+        min_total_cents:
+          type: integer
+          format: int64
+        max_total_cents:
+          type: integer
+          format: int64
+        currency:
+          type: string
+        status:
+          type: string
+        line_items:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
     SlackHandoffRequest:
       type: object
       required: [conversation_id, channel, text]
@@ -491,3 +518,20 @@ components:
       properties:
         status:
           type: string
+  /admin/estimates:
+    get:
+      summary: Admin list of estimates (internal)
+      operationId: listEstimatesAdmin
+      responses:
+        '200':
+          description: Estimates
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: true
