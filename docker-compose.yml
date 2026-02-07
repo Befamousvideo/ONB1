@@ -1,0 +1,17 @@
+﻿version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: onb1-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-onb1}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-onb1_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-onb1}
+    ports:
+      - "5432:5432"
+    volumes:
+      - onb1_pgdata:/var/lib/postgresql/data
+
+volumes:
+  onb1_pgdata:

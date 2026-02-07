@@ -41,4 +41,4 @@ Provide a clear, evolving specification for the ONB1 system before implementatio
 - Architectural decisions are recorded in `docs/decisions.md`.
 
 ## Changelog
-- (empty)
+- 2026-02-07: Added local Postgres dev environment (Docker Compose), migration/seed scripts, and db README steps.
