@@ -1,6 +1,8 @@
 ﻿from datetime import datetime, timezone
 import json
 import os
+import time
+import urllib.request
 from typing import Optional, Dict, Any
 from uuid import UUID, uuid4
 
@@ -152,7 +154,8 @@ def fetch_conversation(conn, conversation_id: UUID) -> dict:
         cur.execute(
             """
             SELECT id, account_id, contact_id, channel, subject, mode, state,
-                   normalized_fields, summary, ended_at, created_at
+                   normalized_fields, summary, ended_at, created_at,
+                   slack_posted_at, slack_post_id
               FROM conversations
              WHERE id = %s
             """,
@@ -181,6 +184,140 @@ def to_conversation_model(row: dict) -> Conversation:
         ended_at=row.get("ended_at"),
         created_at=row["created_at"],
     )
+
+
+def build_slack_payload(conversation_id: UUID, normalized: Dict[str, Any]) -> dict:
+    admin_base = os.getenv("ADMIN_BASE_URL", "http://localhost:8000")
+    admin_link = f"{admin_base.rstrip('/')}/conversations/{conversation_id}"
+    slack_channel = os.getenv("SLACK_CHANNEL")
+
+    full_name = normalized.get("full_name") or "Unknown"
+    email = normalized.get("email") or ""
+    business_name = normalized.get("business_name") or "Unknown"
+
+    needs = normalized.get("needs_summary")
+    urgency = normalized.get("urgency")
+    budget_band = normalized.get("budget_band")
+    preferred_channel = normalized.get("preferred_contact_channel")
+    preferred_times = normalized.get("preferred_times")
+    summary = normalized.get("summary")
+
+    bullets = []
+    if needs:
+        bullets.append(f"• Needs: {needs}")
+    if urgency:
+        bullets.append(f"• Urgency: {urgency}")
+    if budget_band:
+        bullets.append(f"• Budget: {budget_band}")
+    if summary:
+        bullets.append(f"• Summary: {summary}")
+
+    contact_line = f"*Contact:* {full_name}"
+    if email:
+        contact_line += f" ({email})"
+
+    fields_lines = []
+    if preferred_channel:
+        fields_lines.append(f"*Preferred Channel:* {preferred_channel}")
+    if preferred_times:
+        fields_lines.append(f"*Preferred Times:* {preferred_times}")
+
+    blocks = [
+        {"type": "header", "text": {"type": "plain_text", "text": "Prospect Intake"}},
+        {"type": "section", "text": {"type": "mrkdwn", "text": contact_line}},
+        {"type": "section", "text": {"type": "mrkdwn", "text": f"*Company:* {business_name}"}},
+    ]
+
+    if bullets:
+        blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": "\n".join(bullets)}})
+
+    if fields_lines:
+        blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": "\n".join(fields_lines)}})
+
+    blocks.append(
+        {
+            "type": "section",
+            "text": {"type": "mrkdwn", "text": f"*Admin:* {admin_link}"},
+        }
+    )
+
+    payload = {
+        "text": "Prospect Intake",
+        "blocks": blocks,
+    }
+    if slack_channel:
+        payload["channel"] = slack_channel
+    return payload
+
+
+def send_slack_webhook(payload: dict) -> None:
+    webhook_url = os.getenv("SLACK_WEBHOOK_URL")
+    if not webhook_url:
+        raise HTTPException(status_code=500, detail="SLACK_WEBHOOK_URL is not set")
+
+    data = json.dumps(payload).encode("utf-8")
+    req = urllib.request.Request(
+        webhook_url,
+        data=data,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+
+    last_error = None
+    for attempt in range(3):
+        try:
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                body = resp.read().decode("utf-8")
+                if resp.status >= 200 and resp.status < 300 and body.strip() == "ok":
+                    return
+                last_error = f"Slack webhook error: {resp.status} {body}"
+        except Exception as exc:  # pragma: no cover - network errors
+            last_error = str(exc)
+        time.sleep(2 ** attempt)
+
+    raise HTTPException(status_code=502, detail=f"Slack webhook failed: {last_error}")
+
+
+def maybe_post_slack(conn, conversation_id: UUID, normalized: Dict[str, Any]) -> None:
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            UPDATE conversations
+               SET slack_post_id = %s
+             WHERE id = %s
+               AND slack_posted_at IS NULL
+               AND slack_post_id IS NULL
+            """,
+            (str(uuid4()), conversation_id),
+        )
+        claimed = cur.rowcount == 1
+
+    if not claimed:
+        return
+
+    payload = build_slack_payload(conversation_id, normalized)
+    try:
+        send_slack_webhook(payload)
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                UPDATE conversations
+                   SET slack_posted_at = %s
+                 WHERE id = %s
+                """,
+                (now_utc(), conversation_id),
+            )
+    except HTTPException:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                UPDATE conversations
+                   SET slack_post_id = NULL
+                 WHERE id = %s
+                """,
+                (conversation_id,),
+            )
+        raise
 
 
 @app.get("/health")
@@ -214,7 +351,8 @@ def create_conversation(payload: ConversationCreate):
                 INSERT INTO conversations (account_id, contact_id, channel, subject, mode, state, normalized_fields)
                 VALUES (%s, %s, %s, %s, %s, %s, %s)
                 RETURNING id, account_id, contact_id, channel, subject, mode, state,
-                          normalized_fields, summary, ended_at, created_at
+                          normalized_fields, summary, ended_at, created_at,
+                          slack_posted_at, slack_post_id
                 """,
                 (
                     payload.account_id,
@@ -273,6 +411,9 @@ def post_message(id: UUID, payload: MessageCreate):
                 (next_state_value, json.dumps(normalized), summary_value, id),
             )
 
+        if next_state_value == "SUBMIT":
+            maybe_post_slack(conn, id, normalized)
+
     return Message(**message_row)
 
 
@@ -297,6 +438,7 @@ def end_and_send(id: UUID, payload: Optional[EndAndSendRequest] = None):
                 ("SUBMIT", summary_value, now_utc(), json.dumps(normalized), id),
             )
 
+        maybe_post_slack(conn, id, normalized)
         updated = fetch_conversation(conn, id)
 
     return to_conversation_model(updated)

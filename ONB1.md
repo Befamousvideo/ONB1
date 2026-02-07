@@ -61,7 +61,26 @@ Required fields by state (submitted via message `fields`):
 End & Send Now:
 - `POST /api/conversations/{id}/end-and-send` forces `SUBMIT` from any state and stores the summary.
 
+## Slack Handoff (Prospect Brief)
+Trigger:
+- On normal `SUBMIT` transition.
+- On `End & Send Now`.
+
+Message format:
+- Header: `Prospect Intake`
+- Contact: `full_name` (+ email if present)
+- Company: `business_name`
+- Summary bullets (if present): `needs_summary`, `urgency`, `budget_band`, `summary`
+- Preferences (if present): `preferred_contact_channel`, `preferred_times`
+- Admin link: `{ADMIN_BASE_URL}/conversations/{conversation_id}`
+
+Reliability:
+- Retries up to 3 attempts with backoff.
+- Idempotent: only one Slack post per conversation (tracked in DB).
+
 ## Changelog
 - 2026-02-07: Added local Postgres dev environment (Docker Compose), migration/seed scripts, and db README steps.
 - 2026-02-07: Defined OpenAPI contract v1 and added backend route stubs.
 - 2026-02-07: Added prospect state machine v1, DB storage for state/fields, and state machine docs.
+- 2026-02-07: Added git status/log/push helper script under scripts/.
+- 2026-02-07: Added Slack handoff posting for prospect intake submissions.
