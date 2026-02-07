@@ -453,13 +453,21 @@ components:
             $ref: '#/components/schemas/Attachment'
     ClientRequestResponse:
       type: object
-      required: [id, slack_ts]
+      required: [id, slack_ts, addon_flag]
       properties:
         id:
           type: string
           format: uuid
         slack_ts:
           type: string
+        addon_flag:
+          type: boolean
+        addon_rationale:
+          type: string
+          nullable: true
+        client_message:
+          type: string
+          nullable: true
     RequestUpdate:
       type: object
       required: [message]

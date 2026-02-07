@@ -3,6 +3,7 @@ import hashlib
 import json
 import os
 import secrets
+import re
 import time
 import urllib.request
 from typing import Optional, Dict, Any, List
@@ -572,7 +573,9 @@ def slack_api_call(method: str, payload: Dict[str, Any]) -> Dict[str, Any]:
     return parsed
 
 
-def build_request_slack_payload(request_id: UUID, project: Dict[str, Any], payload: ClientRequestCreate) -> Dict[str, Any]:
+def build_request_slack_payload(
+    request_id: UUID, project: Dict[str, Any], payload: ClientRequestCreate, addon: Dict[str, Any]
+) -> Dict[str, Any]:
     attachments = payload.attachments or []
     attachment_lines = []
     for attachment in attachments:
@@ -591,6 +594,9 @@ def build_request_slack_payload(request_id: UUID, project: Dict[str, Any], paylo
         {"type": "section", "text": {"type": "mrkdwn", "text": f"*Urgency:* {payload.urgency}"}},
         {"type": "section", "text": {"type": "mrkdwn", "text": f"*Description:* {payload.description}"}},
     ]
+    if addon.get("addon_flag"):
+        rationale = addon.get("addon_rationale") or "outside scope"
+        blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": f"*Add-on Likely:* {rationale}"}})
     if attachment_lines:
         blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": "*Attachments:*\n" + "\n".join(attachment_lines)}})
 
@@ -601,8 +607,8 @@ def build_request_slack_payload(request_id: UUID, project: Dict[str, Any], paylo
     }
 
 
-def post_request_to_slack(request_id: UUID, project: Dict[str, Any], payload: ClientRequestCreate) -> str:
-    response = slack_api_call("chat.postMessage", build_request_slack_payload(request_id, project, payload))
+def post_request_to_slack(request_id: UUID, project: Dict[str, Any], payload: ClientRequestCreate, addon: Dict[str, Any]) -> str:
+    response = slack_api_call("chat.postMessage", build_request_slack_payload(request_id, project, payload, addon))
     return response.get("ts")
 
 
@@ -615,6 +621,36 @@ def post_request_update(request_id: UUID, thread_ts: str, message: str) -> None:
             "text": f"Update for request {request_id}: {message}",
         },
     )
+
+
+def extract_integration_mentions(description: str) -> List[str]:
+    if not description:
+        return []
+    matches = re.findall(r"(?:integrate|integration|connect|connected|add|hook)\s+(?:with\s+|to\s+)?([A-Za-z0-9._-]+)", description, re.IGNORECASE)
+    return [m.lower() for m in matches]
+
+
+def evaluate_addon(payload: ClientRequestCreate, project_metadata: Dict[str, Any]) -> Dict[str, Any]:
+    reasons = []
+    integrations = [i.lower() for i in project_metadata.get("integrations", [])]
+    sla_same_day = bool(project_metadata.get("sla_same_day", False))
+
+    if payload.request_type.lower() == "new":
+        reasons.append("request_type=new")
+
+    mentioned = extract_integration_mentions(payload.description or "")
+    new_integrations = [m for m in mentioned if m and m not in integrations]
+    if new_integrations:
+        reasons.append(f"new_integration={','.join(new_integrations)}")
+
+    urgency = payload.urgency.lower()
+    if urgency in {"urgent", "same-day", "today", "asap"} and not sla_same_day:
+        reasons.append("same_day_no_sla")
+
+    return {
+        "addon_flag": len(reasons) > 0,
+        "addon_rationale": "; ".join(reasons) if reasons else None,
+    }
 
 
 def maybe_post_slack(conn, conversation_id: UUID, normalized: Dict[str, Any]) -> None:
@@ -1030,7 +1066,7 @@ def create_request(payload: ClientRequestCreate, request: Request):
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT id, name
+                SELECT id, name, metadata
                   FROM projects
                  WHERE id = %s AND account_id = %s
                 """,
@@ -1040,14 +1076,18 @@ def create_request(payload: ClientRequestCreate, request: Request):
             if not project:
                 raise HTTPException(status_code=404, detail="Project not found")
 
+        project_metadata = project.get("metadata") or {}
+        addon = evaluate_addon(payload, project_metadata)
+
         request_id = uuid4()
-        slack_ts = post_request_to_slack(request_id, project, payload)
+        slack_ts = post_request_to_slack(request_id, project, payload, addon)
         with conn.cursor() as cur:
             cur.execute(
                 """
                 INSERT INTO requests (
                     id, project_id, requester_contact_id, title, description, status,
-                    request_type, impact, urgency, slack_channel, slack_ts
+                    request_type, impact, urgency, slack_channel, slack_ts,
+                    addon_flag, addon_rationale
                 )
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
@@ -1063,6 +1103,8 @@ def create_request(payload: ClientRequestCreate, request: Request):
                     payload.urgency,
                     SLACK_REQUEST_CHANNEL,
                     slack_ts,
+                    addon["addon_flag"],
+                    addon["addon_rationale"],
                 ),
             )
             persist_request_attachments(conn, request_id, payload.attachments or [])
@@ -1076,7 +1118,16 @@ def create_request(payload: ClientRequestCreate, request: Request):
                     "attachments": len(payload.attachments or []),
                 },
             )
-        return {"id": str(request_id), "slack_ts": slack_ts}
+        client_message = None
+        if addon["addon_flag"]:
+            client_message = "This may be outside scope; we'll confirm with an estimate."
+        return {
+            "id": str(request_id),
+            "slack_ts": slack_ts,
+            "addon_flag": addon["addon_flag"],
+            "addon_rationale": addon["addon_rationale"],
+            "client_message": client_message,
+        }
 
 
 @app.post("/api/requests/{id}/updates")

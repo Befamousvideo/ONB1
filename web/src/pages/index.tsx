@@ -521,7 +521,11 @@ export default function Home() {
         throw new Error("Failed to submit request");
       }
       const data = await response.json();
-      setRequestResult(`Request submitted. ID: ${data.id}`);
+      if (data.client_message) {
+        setRequestResult(`${data.client_message} (Request ID: ${data.id})`);
+      } else {
+        setRequestResult(`Request submitted. ID: ${data.id}`);
+      }
       setRequestStep(0);
       setRequestDescription("");
       setRequestAttachments([]);

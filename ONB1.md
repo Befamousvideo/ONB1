@@ -29,7 +29,7 @@ Provide a clear, evolving specification for the ONB1 system before implementatio
 - `contacts`: id, account_id, full_name, email, phone, role, created_at, updated_at
 - `conversations`: id, account_id, contact_id, channel, subject, mode, state, normalized_fields, summary, ended_at, slack_posted_at, slack_post_id, created_at
 - `messages`: id, conversation_id, sender_type, sender_contact_id, body, created_at
-- `projects`: id, account_id, name, status, start_date, end_date, created_at, updated_at
+- `projects`: id, account_id, name, status, start_date, end_date, metadata, created_at, updated_at
 - `intake_briefs`: id, account_id, project_id, summary, goals, constraints, scheduling_option, booking_url, preferred_times, timezone, created_at
 - `attachments`: id, conversation_id, intake_brief_id, request_id, file_name, content_type, size_bytes, storage_key, storage_url, created_at
 - `auth_codes`: id, account_id, email, code_hash, expires_at, used_at, attempts, created_at
@@ -121,10 +121,17 @@ Steps:
 Slack:
 - Creates a new post in `#onb1-intake` and stores the Slack thread timestamp on the request.
 - Subsequent updates post to the same thread.
+- Add-on flag and rationale included when detected.
 
 Data:
 - Requests are stored in `requests` with type/impact/urgency and Slack thread metadata.
 - Attachments are stored in `attachments` and linked to the request.
+
+Add-on detection rules:
+- `request_type=new` → add-on likely.
+- If description mentions an integration/tool not in project metadata integrations → add-on likely.
+- If urgency is same-day (`urgent`, `same-day`, `today`, `asap`) and project metadata does not allow same-day SLA → add-on likely.
+- Client message when flagged: "This may be outside scope; we'll confirm with an estimate."
 
 ## Storage (Uploads)
 - Provider: Amazon S3 with presigned `PUT` URLs.
@@ -153,3 +160,4 @@ PII handling:
 - 2026-02-07: Added rate limiting, optional CAPTCHA, PII encryption, and submit audit logs.
 - 2026-02-07: Added client OTP auth and client request intake with Slack threading.
 - 2026-02-07: Added client request flow with Slack threads and request-linked attachments.
+- 2026-02-07: Added add-on detection and rationale for client requests.
