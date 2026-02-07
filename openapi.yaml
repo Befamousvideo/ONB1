@@ -1,6 +1,244 @@
 ﻿openapi: 3.0.3
 info:
   title: ONB1 API
-  version: 0.0.0
-  description: API contract stub. Endpoints to be defined.
-paths: {}
+  version: 0.1.0
+  description: API contract v1.
+servers:
+  - url: http://localhost:8000
+paths:
+  /api/conversations:
+    post:
+      summary: Create a conversation
+      operationId: createConversation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConversationCreate'
+      responses:
+        '201':
+          description: Conversation created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Conversation'
+  /api/conversations/{id}/message:
+    post:
+      summary: Add a message to a conversation
+      operationId: postMessage
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageCreate'
+      responses:
+        '201':
+          description: Message created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+  /api/conversations/{id}/end-and-send:
+    post:
+      summary: End a conversation and send final output
+      operationId: endAndSendConversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EndAndSendRequest'
+      responses:
+        '200':
+          description: Conversation ended and sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Conversation'
+  /api/uploads/presign:
+    post:
+      summary: Generate a presigned upload link
+      operationId: createUploadPresign
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UploadPresignRequest'
+      responses:
+        '200':
+          description: Upload link generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadLink'
+  /api/handoff/slack:
+    post:
+      summary: Internal Slack handoff
+      operationId: handoffSlack
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SlackHandoffRequest'
+      responses:
+        '200':
+          description: Handoff dispatched
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SlackHandoffResponse'
+components:
+  schemas:
+    Conversation:
+      type: object
+      required: [id, account_id, channel, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        account_id:
+          type: string
+          format: uuid
+        contact_id:
+          type: string
+          format: uuid
+          nullable: true
+        channel:
+          type: string
+        subject:
+          type: string
+          nullable: true
+        intake_brief:
+          $ref: '#/components/schemas/IntakeBrief'
+        created_at:
+          type: string
+          format: date-time
+    Message:
+      type: object
+      required: [id, conversation_id, sender_type, body, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        conversation_id:
+          type: string
+          format: uuid
+        sender_type:
+          type: string
+          description: contact|system|agent
+        sender_contact_id:
+          type: string
+          format: uuid
+          nullable: true
+        body:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+    IntakeBrief:
+      type: object
+      required: [summary]
+      properties:
+        summary:
+          type: string
+        goals:
+          type: string
+          nullable: true
+        constraints:
+          type: string
+          nullable: true
+    UploadLink:
+      type: object
+      required: [upload_url, file_url]
+      properties:
+        upload_url:
+          type: string
+        file_url:
+          type: string
+        headers:
+          type: object
+          additionalProperties:
+            type: string
+    ConversationCreate:
+      type: object
+      required: [account_id, channel]
+      properties:
+        account_id:
+          type: string
+          format: uuid
+        contact_id:
+          type: string
+          format: uuid
+          nullable: true
+        channel:
+          type: string
+        subject:
+          type: string
+          nullable: true
+        intake_brief:
+          $ref: '#/components/schemas/IntakeBrief'
+    MessageCreate:
+      type: object
+      required: [sender_type, body]
+      properties:
+        sender_type:
+          type: string
+        sender_contact_id:
+          type: string
+          format: uuid
+          nullable: true
+        body:
+          type: string
+    EndAndSendRequest:
+      type: object
+      properties:
+        summary:
+          type: string
+          nullable: true
+    UploadPresignRequest:
+      type: object
+      required: [file_name, content_type]
+      properties:
+        file_name:
+          type: string
+        content_type:
+          type: string
+        content_length:
+          type: integer
+          format: int64
+          nullable: true
+    SlackHandoffRequest:
+      type: object
+      required: [conversation_id, channel, text]
+      properties:
+        conversation_id:
+          type: string
+          format: uuid
+        channel:
+          type: string
+        text:
+          type: string
+    SlackHandoffResponse:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string

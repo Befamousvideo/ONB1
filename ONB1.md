@@ -40,5 +40,13 @@ Provide a clear, evolving specification for the ONB1 system before implementatio
 - Any changes under `server/` or `db/` must include an update to `ONB1.md`.
 - Architectural decisions are recorded in `docs/decisions.md`.
 
+## API Contract
+- `POST /api/conversations`: Create a conversation with optional intake brief.
+- `POST /api/conversations/{id}/message`: Append a message to a conversation.
+- `POST /api/conversations/{id}/end-and-send`: Close a conversation and emit final output.
+- `POST /api/uploads/presign`: Return a presigned upload link for client uploads.
+- `POST /api/handoff/slack` (internal): Send a conversation summary to Slack.
+
 ## Changelog
 - 2026-02-07: Added local Postgres dev environment (Docker Compose), migration/seed scripts, and db README steps.
+- 2026-02-07: Defined OpenAPI contract v1 and added backend route stubs.
