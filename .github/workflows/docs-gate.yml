@@ -1,0 +1,48 @@
+﻿name: Docs Gate
+
+on:
+  pull_request:
+    paths:
+      - "server/**"
+      - "db/**"
+      - "ONB1.md"
+  push:
+    branches: ["main"]
+
+jobs:
+  docs-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Enforce ONB1.md update for server/db changes
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            BASE_REF="origin/${{ github.base_ref }}"
+            git fetch origin "${{ github.base_ref }}"
+            CHANGED=$(git diff --name-only "$BASE_REF"..."${{ github.sha }}")
+          else
+            BEFORE="${{ github.event.before }}"
+            AFTER="${{ github.sha }}"
+            CHANGED=$(git diff --name-only "$BEFORE"..."$AFTER")
+          fi
+
+          echo "Changed files:"
+          echo "$CHANGED"
+
+          NEEDS_ONB1=false
+          if echo "$CHANGED" | grep -E '^(server/|db/)' >/dev/null 2>&1; then
+            NEEDS_ONB1=true
+          fi
+
+          if [[ "$NEEDS_ONB1" == "true" ]]; then
+            if ! echo "$CHANGED" | grep -E '^ONB1.md$' >/dev/null 2>&1; then
+              echo "ERROR: Changes in server/ or db/ require ONB1.md update."
+              exit 1
+            fi
+          fi

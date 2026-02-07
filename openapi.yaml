@@ -1,0 +1,6 @@
+﻿openapi: 3.0.3
+info:
+  title: ONB1 API
+  version: 0.0.0
+  description: API contract stub. Endpoints to be defined.
+paths: {}
