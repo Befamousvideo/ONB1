@@ -8,7 +8,7 @@
     },
     {
       "name": "MODE_SELECT",
-      "description": "User selects engagement mode.",
+      "description": "User selects engagement mode (prospect or client).",
       "required_fields": ["mode"]
     },
     {
@@ -30,7 +30,8 @@
     {
       "name": "SCHEDULING",
       "description": "Collect scheduling preferences.",
-      "required_fields": ["preferred_times"]
+      "required_fields": [],
+      "rules": ["scheduling_option=link OR preferred_times+timezone"]
     },
     {
       "name": "SUMMARY",
@@ -45,7 +46,8 @@
   ],
   "transitions": [
     {"from": "WELCOME", "to": "MODE_SELECT"},
-    {"from": "MODE_SELECT", "to": "IDENTITY"},
+    {"from": "MODE_SELECT", "to": "IDENTITY", "when": "mode=prospect"},
+    {"from": "MODE_SELECT", "to": "SUBMIT", "when": "mode=client"},
     {"from": "IDENTITY", "to": "BUSINESS_CONTEXT"},
     {"from": "BUSINESS_CONTEXT", "to": "NEEDS"},
     {"from": "NEEDS", "to": "SCHEDULING", "skip_if": "skip_scheduling == true"},

@@ -23,6 +23,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Conversation'
+  /api/conversations/{id}:
+    get:
+      summary: Get a conversation
+      operationId: getConversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Conversation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Conversation'
   /api/conversations/{id}/message:
     post:
       summary: Add a message to a conversation
@@ -88,6 +106,98 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UploadLink'
+  /api/auth/request-otp:
+    post:
+      summary: Request a one-time code for existing client login
+      operationId: requestOtp
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRequest'
+      responses:
+        '200':
+          description: OTP challenge created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthChallenge'
+  /api/auth/verify-otp:
+    post:
+      summary: Verify a one-time code and create a session
+      operationId: verifyOtp
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthVerifyRequest'
+      responses:
+        '200':
+          description: Session created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSession'
+  /api/projects:
+    get:
+      summary: List projects for the authenticated account
+      operationId: listProjects
+      parameters: []
+      responses:
+        '200':
+          description: Projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Project'
+  /api/requests:
+    post:
+      summary: Create a client request
+      operationId: createRequest
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientRequestCreate'
+      responses:
+        '200':
+          description: Request created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientRequestResponse'
+  /api/requests/{id}/updates:
+    post:
+      summary: Post an update to a client request
+      operationId: updateRequest
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestUpdate'
+      responses:
+        '200':
+          description: Update posted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
   /api/handoff/slack:
     post:
       summary: Internal Slack handoff
@@ -182,12 +292,16 @@ components:
           nullable: true
     UploadLink:
       type: object
-      required: [upload_url, file_url]
+      required: [upload_url, file_url, key, max_size]
       properties:
         upload_url:
           type: string
         file_url:
           type: string
+        key:
+          type: string
+        max_size:
+          type: integer
         headers:
           type: object
           additionalProperties:
@@ -234,7 +348,7 @@ components:
           nullable: true
     UploadPresignRequest:
       type: object
-      required: [file_name, content_type]
+      required: [file_name, content_type, content_length]
       properties:
         file_name:
           type: string
@@ -243,7 +357,115 @@ components:
         content_length:
           type: integer
           format: int64
+        conversation_id:
+          type: string
+          format: uuid
           nullable: true
+    Attachment:
+      type: object
+      required: [file_name, content_type, size, url, key]
+      properties:
+        file_name:
+          type: string
+        content_type:
+          type: string
+        size:
+          type: integer
+          format: int64
+        url:
+          type: string
+        key:
+          type: string
+    AuthRequest:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+    AuthVerifyRequest:
+      type: object
+      required: [challenge_id, code]
+      properties:
+        challenge_id:
+          type: string
+          format: uuid
+        code:
+          type: string
+    AuthChallenge:
+      type: object
+      required: [challenge_id, expires_at]
+      properties:
+        challenge_id:
+          type: string
+          format: uuid
+        expires_at:
+          type: string
+          format: date-time
+        dev_code:
+          type: string
+          nullable: true
+    AuthSession:
+      type: object
+      required: [token, account_id]
+      properties:
+        token:
+          type: string
+        account_id:
+          type: string
+          format: uuid
+    Project:
+      type: object
+      required: [id, name, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        status:
+          type: string
+        start_date:
+          type: string
+          format: date
+          nullable: true
+        end_date:
+          type: string
+          format: date
+          nullable: true
+    ClientRequestCreate:
+      type: object
+      required: [project_id, request_type, description, impact, urgency]
+      properties:
+        project_id:
+          type: string
+          format: uuid
+        request_type:
+          type: string
+        description:
+          type: string
+        impact:
+          type: string
+        urgency:
+          type: string
+        attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Attachment'
+    ClientRequestResponse:
+      type: object
+      required: [id, slack_ts]
+      properties:
+        id:
+          type: string
+          format: uuid
+        slack_ts:
+          type: string
+    RequestUpdate:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
     SlackHandoffRequest:
       type: object
       required: [conversation_id, channel, text]
