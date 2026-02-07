@@ -1,0 +1,61 @@
+﻿{
+  "mode": "prospect",
+  "states": [
+    {
+      "name": "WELCOME",
+      "description": "Initial greeting state.",
+      "required_fields": []
+    },
+    {
+      "name": "MODE_SELECT",
+      "description": "User selects engagement mode.",
+      "required_fields": ["mode"]
+    },
+    {
+      "name": "IDENTITY",
+      "description": "Collect identity details.",
+      "required_fields": ["full_name", "email"]
+    },
+    {
+      "name": "BUSINESS_CONTEXT",
+      "description": "Collect business context.",
+      "required_fields": ["business_name"]
+    },
+    {
+      "name": "NEEDS",
+      "description": "Collect needs and goals.",
+      "required_fields": ["needs_summary"],
+      "skip_rules": ["skip_scheduling == true"]
+    },
+    {
+      "name": "SCHEDULING",
+      "description": "Collect scheduling preferences.",
+      "required_fields": ["preferred_times"]
+    },
+    {
+      "name": "SUMMARY",
+      "description": "Confirm summary and scope.",
+      "required_fields": ["summary"]
+    },
+    {
+      "name": "SUBMIT",
+      "description": "Finalize and submit.",
+      "required_fields": []
+    }
+  ],
+  "transitions": [
+    {"from": "WELCOME", "to": "MODE_SELECT"},
+    {"from": "MODE_SELECT", "to": "IDENTITY"},
+    {"from": "IDENTITY", "to": "BUSINESS_CONTEXT"},
+    {"from": "BUSINESS_CONTEXT", "to": "NEEDS"},
+    {"from": "NEEDS", "to": "SCHEDULING", "skip_if": "skip_scheduling == true"},
+    {"from": "NEEDS", "to": "SUMMARY", "when_skipped": "skip_scheduling == true"},
+    {"from": "SCHEDULING", "to": "SUMMARY"},
+    {"from": "SUMMARY", "to": "SUBMIT"}
+  ],
+  "end_and_send": {
+    "from": "*",
+    "to": "SUBMIT",
+    "description": "End & Send Now can be called from any state."
+  }
+}

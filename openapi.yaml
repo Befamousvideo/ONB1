@@ -109,7 +109,7 @@ components:
   schemas:
     Conversation:
       type: object
-      required: [id, account_id, channel, created_at]
+      required: [id, account_id, channel, created_at, mode, state, normalized_fields]
       properties:
         id:
           type: string
@@ -128,6 +128,21 @@ components:
           nullable: true
         intake_brief:
           $ref: '#/components/schemas/IntakeBrief'
+          nullable: true
+        mode:
+          type: string
+        state:
+          type: string
+        normalized_fields:
+          type: object
+          additionalProperties: true
+        summary:
+          type: string
+          nullable: true
+        ended_at:
+          type: string
+          format: date-time
+          nullable: true
         created_at:
           type: string
           format: date-time
@@ -207,6 +222,10 @@ components:
           nullable: true
         body:
           type: string
+        fields:
+          type: object
+          description: Normalized field values for the current state.
+          additionalProperties: true
     EndAndSendRequest:
       type: object
       properties:

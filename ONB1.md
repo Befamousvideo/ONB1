@@ -47,6 +47,21 @@ Provide a clear, evolving specification for the ONB1 system before implementatio
 - `POST /api/uploads/presign`: Return a presigned upload link for client uploads.
 - `POST /api/handoff/slack` (internal): Send a conversation summary to Slack.
 
+## State Machine (Prospect Mode)
+States: `WELCOME → MODE_SELECT → IDENTITY → BUSINESS_CONTEXT → NEEDS → SCHEDULING(optional) → SUMMARY → SUBMIT`.
+
+Required fields by state (submitted via message `fields`):
+- MODE_SELECT: `mode`
+- IDENTITY: `full_name`, `email`
+- BUSINESS_CONTEXT: `business_name`
+- NEEDS: `needs_summary` (can set `skip_scheduling=true`)
+- SCHEDULING: `preferred_times`
+- SUMMARY: `summary`
+
+End & Send Now:
+- `POST /api/conversations/{id}/end-and-send` forces `SUBMIT` from any state and stores the summary.
+
 ## Changelog
 - 2026-02-07: Added local Postgres dev environment (Docker Compose), migration/seed scripts, and db README steps.
 - 2026-02-07: Defined OpenAPI contract v1 and added backend route stubs.
+- 2026-02-07: Added prospect state machine v1, DB storage for state/fields, and state machine docs.
