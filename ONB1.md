@@ -151,6 +151,10 @@ Behavior:
 - Store Stripe `customer_id`, `invoice_id`, and hosted invoice URL on the invoice record.
 - Do not send automatically.
 
+Send gate:
+- Owner action `POST /admin/invoices/{id}/send` sends the invoice email and posts an update to the Slack thread.
+- Idempotent: if already sent, return `already_sent` and do nothing.
+
 Env:
 - `STRIPE_API_KEY`, `STRIPE_WEBHOOK_SECRET`.
 
@@ -158,6 +162,7 @@ Test steps:
 1. Create a client request to generate a draft estimate.
 2. Call `POST /admin/estimates/{id}/approve`.
 3. Verify Stripe draft invoice exists and invoice URL is stored.
+4. Call `POST /admin/invoices/{id}/send` to email the customer and update Slack.
 
 Add-on detection rules:
 - `request_type=new` → add-on likely.
@@ -195,3 +200,4 @@ PII handling:
 - 2026-02-07: Added add-on detection and rationale for client requests.
 - 2026-02-07: Added estimate templates and draft estimate generation for requests.
 - 2026-02-07: Added Stripe draft invoice creation on estimate approval.
+- 2026-02-07: Added owner-controlled invoice send gate with Slack update.

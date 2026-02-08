@@ -194,6 +194,13 @@ class EstimateApproveResponse(BaseModel):
     provider_invoice_url: Optional[str] = None
 
 
+class InvoiceSendResponse(BaseModel):
+    invoice_id: UUID
+    provider_invoice_id: Optional[str] = None
+    provider_invoice_url: Optional[str] = None
+    status: str
+
+
 def get_conn():
     database_url = os.getenv("DATABASE_URL")
     if not database_url:
@@ -704,7 +711,23 @@ def create_draft_estimate(conn, request_id: UUID, request_type: str) -> Dict[str
     }
 
 
-def get_or_create_stripe_customer(conn, account_id: UUID, account_name: str) -> str:
+def get_account_primary_email(conn, account_id: UUID) -> Optional[str]:
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT email
+              FROM contacts
+             WHERE account_id = %s
+             ORDER BY created_at ASC
+             LIMIT 1
+            """,
+            (account_id,),
+        )
+        row = cur.fetchone()
+    return row["email"] if row else None
+
+
+def get_or_create_stripe_customer(conn, account_id: UUID, account_name: str, email: Optional[str]) -> str:
     with conn.cursor() as cur:
         cur.execute(
             """
@@ -719,7 +742,10 @@ def get_or_create_stripe_customer(conn, account_id: UUID, account_name: str) -> 
             return row["stripe_customer_id"]
 
     stripe_client = get_stripe_client()
-    customer = stripe_client.Customer.create(name=account_name or "ONB1 Client")
+    customer = stripe_client.Customer.create(
+        name=account_name or "ONB1 Client",
+        email=email,
+    )
     customer_id = customer["id"]
 
     with conn.cursor() as cur:
@@ -738,7 +764,8 @@ def create_stripe_draft_invoice(
     conn, estimate_id: UUID, account_id: UUID, account_name: str, amount_cents: int, currency: str
 ) -> Dict[str, Any]:
     stripe_client = get_stripe_client()
-    customer_id = get_or_create_stripe_customer(conn, account_id, account_name)
+    customer_email = get_account_primary_email(conn, account_id)
+    customer_id = get_or_create_stripe_customer(conn, account_id, account_name, customer_email)
 
     stripe_client.InvoiceItem.create(
         customer=customer_id,
@@ -1374,6 +1401,66 @@ def approve_estimate(id: UUID):
             invoice_id=invoice_id,
             provider_invoice_id=provider_data.get("provider_invoice_id"),
             provider_invoice_url=provider_data.get("provider_invoice_url"),
+        )
+
+
+@app.post("/admin/invoices/{id}/send", response_model=InvoiceSendResponse)
+def send_invoice(id: UUID):
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT i.id, i.provider_invoice_id, i.provider_invoice_url, i.sent_at,
+                       i.estimate_id, i.project_id, r.slack_ts, r.id as request_id,
+                       p.account_id
+                  FROM invoices i
+                  LEFT JOIN estimates e ON i.estimate_id = e.id
+                  LEFT JOIN requests r ON e.request_id = r.id
+                  LEFT JOIN projects p ON i.project_id = p.id
+                 WHERE i.id = %s
+                """,
+                (id,),
+            )
+            invoice = cur.fetchone()
+            if not invoice:
+                raise HTTPException(status_code=404, detail="Invoice not found")
+
+            if invoice.get("sent_at"):
+                return InvoiceSendResponse(
+                    invoice_id=invoice["id"],
+                    provider_invoice_id=invoice.get("provider_invoice_id"),
+                    provider_invoice_url=invoice.get("provider_invoice_url"),
+                    status="already_sent",
+                )
+
+        stripe_client = get_stripe_client()
+        if not invoice.get("provider_invoice_id"):
+            raise HTTPException(status_code=400, detail="Invoice not linked to Stripe")
+        stripe_client.Invoice.send_invoice(invoice["provider_invoice_id"])
+
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                UPDATE invoices
+                   SET status = %s,
+                       sent_at = %s
+                 WHERE id = %s
+                """,
+                ("sent", now_utc(), invoice["id"]),
+            )
+
+        if invoice.get("slack_ts"):
+            post_request_update(
+                invoice.get("request_id"),
+                invoice.get("slack_ts"),
+                f"Invoice sent: {invoice.get('provider_invoice_url')}",
+            )
+
+        return InvoiceSendResponse(
+            invoice_id=invoice["id"],
+            provider_invoice_id=invoice.get("provider_invoice_id"),
+            provider_invoice_url=invoice.get("provider_invoice_url"),
+            status="sent",
         )
 
 

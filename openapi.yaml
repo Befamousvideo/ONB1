@@ -517,6 +517,21 @@ components:
         provider_invoice_url:
           type: string
           nullable: true
+    InvoiceSendResponse:
+      type: object
+      required: [invoice_id, status]
+      properties:
+        invoice_id:
+          type: string
+          format: uuid
+        provider_invoice_id:
+          type: string
+          nullable: true
+        provider_invoice_url:
+          type: string
+          nullable: true
+        status:
+          type: string
     SlackHandoffRequest:
       type: object
       required: [conversation_id, channel, text]
@@ -569,3 +584,21 @@ components:
             application/json:
               schema:
                 $ref: '#/components/schemas/EstimateApproveResponse'
+  /admin/invoices/{id}/send:
+    post:
+      summary: Send invoice email (internal)
+      operationId: sendInvoice
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Invoice sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceSendResponse'
