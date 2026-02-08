@@ -208,3 +208,4 @@ PII handling:
 - 2026-02-07: Added Stripe draft invoice creation on estimate approval.
 - 2026-02-07: Added owner-controlled invoice send gate with Slack update.
 - 2026-02-08: Added pytest coverage for state machine, Slack idempotency, and invoice gating plus manual test checklist.
+- 2026-02-08: Added migration for conversations.mode defaulting to prospect to fix schema drift.
