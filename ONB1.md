@@ -186,6 +186,12 @@ PII handling:
 - `email` and `phone` are stored encrypted and decrypted only for response/Slack.
 - Message bodies should avoid sensitive fields; UI posts PII in fields, not body.
 
+## Definition of Done
+- Unit tests cover state machine transitions, End & Send Now, Slack idempotency, and invoice gating.
+- Manual QA checklist executed in `docs/manual-test.md`.
+- ONB1.md updated for schema, API, workflow, or security changes.
+- All migrations applied cleanly on a fresh database.
+
 ## Changelog
 - 2026-02-07: Added local Postgres dev environment (Docker Compose), migration/seed scripts, and db README steps.
 - 2026-02-07: Defined OpenAPI contract v1 and added backend route stubs.
@@ -201,3 +207,4 @@ PII handling:
 - 2026-02-07: Added estimate templates and draft estimate generation for requests.
 - 2026-02-07: Added Stripe draft invoice creation on estimate approval.
 - 2026-02-07: Added owner-controlled invoice send gate with Slack update.
+- 2026-02-08: Added pytest coverage for state machine, Slack idempotency, and invoice gating plus manual test checklist.
