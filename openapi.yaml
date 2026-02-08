@@ -501,6 +501,22 @@ components:
           items:
             type: object
             additionalProperties: true
+    EstimateApproveResponse:
+      type: object
+      required: [estimate_id, invoice_id]
+      properties:
+        estimate_id:
+          type: string
+          format: uuid
+        invoice_id:
+          type: string
+          format: uuid
+        provider_invoice_id:
+          type: string
+          nullable: true
+        provider_invoice_url:
+          type: string
+          nullable: true
     SlackHandoffRequest:
       type: object
       required: [conversation_id, channel, text]
@@ -535,3 +551,21 @@ components:
                     items:
                       type: object
                       additionalProperties: true
+  /admin/estimates/{id}/approve:
+    post:
+      summary: Approve estimate and create draft invoice (internal)
+      operationId: approveEstimate
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Draft invoice created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EstimateApproveResponse'

@@ -36,6 +36,8 @@ Provide a clear, evolving specification for the ONB1 system before implementatio
 - `auth_sessions`: id, account_id, token, expires_at, created_at
 - `audit_logs`: id, event_type, conversation_id, metadata, created_at
 - `requests`: id, project_id, requester_contact_id, title, description, status, request_type, impact, urgency, slack_channel, slack_ts, addon_flag, addon_rationale, created_at, updated_at
+- `estimate_templates`: id, name, description, line_items, min_total_cents, max_total_cents, created_at
+- `invoices`: id, project_id, estimate_id, amount_cents, currency, status, due_date, paid_at, provider, provider_invoice_id, provider_invoice_url, created_at, updated_at
 - `estimates`: id, request_id, amount_cents, currency, status, expires_at, created_at, updated_at
 - `estimate_templates`: id, name, description, line_items, min_total_cents, max_total_cents, created_at
 - `invoices`: id, project_id, estimate_id, amount_cents, currency, status, due_date, paid_at, created_at, updated_at
@@ -140,6 +142,23 @@ Templates:
 - Stored in `estimate_templates` with line items and min/max range.
 - Draft estimates are generated from the template that matches `request_type`.
 
+## Billing Integration (Draft Invoice Only)
+Provider:
+- Stripe (draft invoice, never auto-sent).
+
+Behavior:
+- When an estimate is approved (admin action), create a Stripe draft invoice.
+- Store Stripe `customer_id`, `invoice_id`, and hosted invoice URL on the invoice record.
+- Do not send automatically.
+
+Env:
+- `STRIPE_API_KEY`, `STRIPE_WEBHOOK_SECRET`.
+
+Test steps:
+1. Create a client request to generate a draft estimate.
+2. Call `POST /admin/estimates/{id}/approve`.
+3. Verify Stripe draft invoice exists and invoice URL is stored.
+
 Add-on detection rules:
 - `request_type=new` → add-on likely.
 - If description mentions an integration/tool not in project metadata integrations → add-on likely.
@@ -175,3 +194,4 @@ PII handling:
 - 2026-02-07: Added client request flow with Slack threads and request-linked attachments.
 - 2026-02-07: Added add-on detection and rationale for client requests.
 - 2026-02-07: Added estimate templates and draft estimate generation for requests.
+- 2026-02-07: Added Stripe draft invoice creation on estimate approval.

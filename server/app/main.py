@@ -10,6 +10,7 @@ from typing import Optional, Dict, Any, List
 from uuid import UUID, uuid4
 
 import boto3
+import stripe
 from botocore.config import Config
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -48,6 +49,8 @@ ALLOW_DEV_OTP = os.getenv("ALLOW_DEV_OTP", "false").lower() in {"1", "true", "ye
 SESSION_TTL_HOURS = int(os.getenv("SESSION_TTL_HOURS", "24"))
 SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN", "")
 SLACK_REQUEST_CHANNEL = os.getenv("SLACK_REQUEST_CHANNEL", "#onb1-intake")
+STRIPE_API_KEY = os.getenv("STRIPE_API_KEY", "")
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
 SENSITIVE_FIELDS = {"email", "phone"}
 
 RATE_LIMIT_STORE: Dict[str, Dict[str, List[float]]] = {
@@ -182,6 +185,13 @@ class EstimateDraft(BaseModel):
     currency: str
     status: str
     line_items: List[Dict[str, Any]]
+
+
+class EstimateApproveResponse(BaseModel):
+    estimate_id: UUID
+    invoice_id: UUID
+    provider_invoice_id: Optional[str] = None
+    provider_invoice_url: Optional[str] = None
 
 
 def get_conn():
@@ -693,6 +703,62 @@ def create_draft_estimate(conn, request_id: UUID, request_type: str) -> Dict[str
         "line_items": template.get("line_items") or [],
     }
 
+
+def get_or_create_stripe_customer(conn, account_id: UUID, account_name: str) -> str:
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT stripe_customer_id
+              FROM accounts
+             WHERE id = %s
+            """,
+            (account_id,),
+        )
+        row = cur.fetchone()
+        if row and row.get("stripe_customer_id"):
+            return row["stripe_customer_id"]
+
+    stripe_client = get_stripe_client()
+    customer = stripe_client.Customer.create(name=account_name or "ONB1 Client")
+    customer_id = customer["id"]
+
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            UPDATE accounts
+               SET stripe_customer_id = %s
+             WHERE id = %s
+            """,
+            (customer_id, account_id),
+        )
+    return customer_id
+
+
+def create_stripe_draft_invoice(
+    conn, estimate_id: UUID, account_id: UUID, account_name: str, amount_cents: int, currency: str
+) -> Dict[str, Any]:
+    stripe_client = get_stripe_client()
+    customer_id = get_or_create_stripe_customer(conn, account_id, account_name)
+
+    stripe_client.InvoiceItem.create(
+        customer=customer_id,
+        amount=amount_cents,
+        currency=currency.lower(),
+        description=f"Estimate {estimate_id} (draft)",
+    )
+
+    invoice = stripe_client.Invoice.create(
+        customer=customer_id,
+        auto_advance=False,
+        collection_method="send_invoice",
+    )
+
+    return {
+        "provider": "stripe",
+        "provider_invoice_id": invoice.get("id"),
+        "provider_invoice_url": invoice.get("hosted_invoice_url"),
+    }
+
 def extract_integration_mentions(description: str) -> List[str]:
     if not description:
         return []
@@ -770,6 +836,13 @@ def get_s3_client():
     if not region:
         raise HTTPException(status_code=500, detail="AWS_REGION is not set")
     return boto3.client("s3", region_name=region, config=Config(signature_version="s3v4"))
+
+
+def get_stripe_client():
+    if not STRIPE_API_KEY:
+        raise HTTPException(status_code=500, detail="STRIPE_API_KEY is not set")
+    stripe.api_key = STRIPE_API_KEY
+    return stripe
 
 
 def build_storage_key(file_name: str, conversation_id: Optional[UUID]) -> str:
@@ -1216,6 +1289,92 @@ def list_estimates_admin():
             )
             rows = cur.fetchall()
     return {"items": rows}
+
+
+@app.post("/admin/estimates/{id}/approve", response_model=EstimateApproveResponse)
+def approve_estimate(id: UUID):
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT e.id, e.request_id, e.amount_cents, e.currency, e.status,
+                       r.project_id, p.account_id, a.name as account_name
+                  FROM estimates e
+                  JOIN requests r ON e.request_id = r.id
+                  JOIN projects p ON r.project_id = p.id
+                  JOIN accounts a ON p.account_id = a.id
+                 WHERE e.id = %s
+                """,
+                (id,),
+            )
+            estimate = cur.fetchone()
+            if not estimate:
+                raise HTTPException(status_code=404, detail="Estimate not found")
+
+            cur.execute(
+                """
+                SELECT id, provider_invoice_id, provider_invoice_url
+                  FROM invoices
+                 WHERE estimate_id = %s
+                """,
+                (id,),
+            )
+            existing = cur.fetchone()
+            if existing:
+                return EstimateApproveResponse(
+                    estimate_id=id,
+                    invoice_id=existing["id"],
+                    provider_invoice_id=existing.get("provider_invoice_id"),
+                    provider_invoice_url=existing.get("provider_invoice_url"),
+                )
+
+        provider_data = create_stripe_draft_invoice(
+            conn,
+            estimate["id"],
+            estimate["account_id"],
+            estimate["account_name"],
+            estimate["amount_cents"],
+            estimate["currency"],
+        )
+
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO invoices (
+                    project_id, estimate_id, amount_cents, currency, status,
+                    provider, provider_invoice_id, provider_invoice_url
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id
+                """,
+                (
+                    estimate["project_id"],
+                    estimate["id"],
+                    estimate["amount_cents"],
+                    estimate["currency"],
+                    "draft",
+                    provider_data.get("provider"),
+                    provider_data.get("provider_invoice_id"),
+                    provider_data.get("provider_invoice_url"),
+                ),
+            )
+            invoice_id = cur.fetchone()["id"]
+
+            cur.execute(
+                """
+                UPDATE estimates
+                   SET status = %s
+                 WHERE id = %s
+                """,
+                ("approved", estimate["id"]),
+            )
+
+        return EstimateApproveResponse(
+            estimate_id=estimate["id"],
+            invoice_id=invoice_id,
+            provider_invoice_id=provider_data.get("provider_invoice_id"),
+            provider_invoice_url=provider_data.get("provider_invoice_url"),
+        )
 
 
 @app.post("/api/requests/{id}/updates")
