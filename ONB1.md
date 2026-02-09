@@ -211,3 +211,4 @@ PII handling:
 - 2026-02-08: Added pytest coverage for state machine, Slack idempotency, and invoice gating plus manual test checklist.
 - 2026-02-08: Added migration for conversations.mode defaulting to prospect to fix schema drift.
 - 2026-02-09: Made Slack handoff optional when `SLACK_WEBHOOK_URL` is unset; migration runner now applies all migrations and includes a schema alignment pass.
+- 2026-02-09: Added `dev.ps1`, `smoke_test.ps1`, and a minimal local UX page under `web/src/pages/local.tsx`.

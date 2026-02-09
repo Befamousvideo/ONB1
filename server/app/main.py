@@ -818,6 +818,7 @@ def evaluate_addon(payload: ClientRequestCreate, project_metadata: Dict[str, Any
 
 def maybe_post_slack(conn, conversation_id: UUID, normalized: Dict[str, Any]) -> None:
     if not os.getenv("SLACK_WEBHOOK_URL"):
+        print("skipped slack: SLACK_WEBHOOK_URL not set")
         return
     with conn.cursor() as cur:
         cur.execute(
