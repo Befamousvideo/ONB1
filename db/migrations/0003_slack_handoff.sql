@@ -4,7 +4,7 @@
 BEGIN;
 
 ALTER TABLE conversations
-  ADD COLUMN slack_posted_at timestamptz,
-  ADD COLUMN slack_post_id text;
+  ADD COLUMN IF NOT EXISTS slack_posted_at timestamptz,
+  ADD COLUMN IF NOT EXISTS slack_post_id text;
 
 COMMIT;

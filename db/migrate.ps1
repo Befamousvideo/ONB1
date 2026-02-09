@@ -7,12 +7,28 @@ if (-not $DatabaseUrl) {
   exit 1
 }
 
-$scriptPath = Join-Path $PSScriptRoot "..\db\migrations\0001_init.sql"
+$migrationsPath = Join-Path $PSScriptRoot "..\db\migrations"
 
-if (-not (Test-Path $scriptPath)) {
-  Write-Error "Migration file not found: $scriptPath"
+if (-not (Test-Path $migrationsPath)) {
+  Write-Error "Migrations folder not found: $migrationsPath"
   exit 1
 }
 
-& psql $DatabaseUrl -f $scriptPath
-if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+$scripts = Get-ChildItem -Path $migrationsPath -Filter "*.sql" | Sort-Object Name
+if (-not $scripts) {
+  Write-Error "No migration files found in: $migrationsPath"
+  exit 1
+}
+
+$psqlCommand = Get-Command psql -ErrorAction SilentlyContinue
+
+foreach ($script in $scripts) {
+  Write-Host "Applying migration $($script.Name)..."
+  if ($psqlCommand) {
+    & psql $DatabaseUrl -f $script.FullName
+  }
+  else {
+    Get-Content -Raw $script.FullName | docker compose exec -T postgres psql $DatabaseUrl -v ON_ERROR_STOP=1 -f -
+  }
+  if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+}

@@ -98,6 +98,7 @@ Message format:
 Reliability:
 - Retries up to 3 attempts with backoff.
 - Idempotent: only one Slack post per conversation (tracked in DB).
+- If `SLACK_WEBHOOK_URL` is not set, skip posting without failing the request.
 
 ## UX (Prospect Intake)
 Screenshots description:
@@ -209,3 +210,4 @@ PII handling:
 - 2026-02-07: Added owner-controlled invoice send gate with Slack update.
 - 2026-02-08: Added pytest coverage for state machine, Slack idempotency, and invoice gating plus manual test checklist.
 - 2026-02-08: Added migration for conversations.mode defaulting to prospect to fix schema drift.
+- 2026-02-09: Made Slack handoff optional when `SLACK_WEBHOOK_URL` is unset; migration runner now applies all migrations and includes a schema alignment pass.

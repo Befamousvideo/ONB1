@@ -14,5 +14,10 @@ if (-not (Test-Path $scriptPath)) {
   exit 1
 }
 
-& psql $DatabaseUrl -f $scriptPath
+if (Get-Command psql -ErrorAction SilentlyContinue) {
+  & psql $DatabaseUrl -f $scriptPath
+}
+else {
+  Get-Content -Raw $scriptPath | docker compose exec -T postgres psql $DatabaseUrl -v ON_ERROR_STOP=1 -f -
+}
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

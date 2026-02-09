@@ -4,9 +4,9 @@
 BEGIN;
 
 ALTER TABLE intake_briefs
-  ADD COLUMN scheduling_option text,
-  ADD COLUMN booking_url text,
-  ADD COLUMN preferred_times text,
-  ADD COLUMN timezone text;
+  ADD COLUMN IF NOT EXISTS scheduling_option text,
+  ADD COLUMN IF NOT EXISTS booking_url text,
+  ADD COLUMN IF NOT EXISTS preferred_times jsonb,
+  ADD COLUMN IF NOT EXISTS timezone text;
 
 COMMIT;

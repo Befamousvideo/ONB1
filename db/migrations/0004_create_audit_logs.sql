@@ -1,7 +1,4 @@
-﻿-- 0006_audit_logs.sql
--- Audit logging for submission events
-
-BEGIN;
+﻿BEGIN;
 
 CREATE TABLE IF NOT EXISTS audit_logs (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -12,7 +9,7 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   actor_id uuid NULL,
   payload jsonb NOT NULL DEFAULT '{}'::jsonb,
   metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
-  created_at timestamptz NOT NULL DEFAULT now()
+  created_at timestamp with time zone NOT NULL DEFAULT now()
 );
 
 CREATE INDEX IF NOT EXISTS idx_audit_logs_conversation_id ON audit_logs(conversation_id);
