@@ -1,214 +1,111 @@
-﻿# ONB1
+# ONB1 Database Contract
 
-Living spec for the ONB1 repository. This file is mandatory for architectural and structural changes.
+This project defines a SQLite-first database contract using SQL migrations in `migrations/` and a lightweight migration runner in `scripts/migrate.sh`.
 
-## Purpose
-Provide a clear, evolving specification for the ONB1 system before implementation begins.
+## Migration files
 
-## Architecture Overview
-- Front-end: Next.js (TypeScript) SPA/SSR application.
-- Backend API: FastAPI (Python) providing REST endpoints.
-- Database: PostgreSQL (schema defined in `db/migrations/0001_init.sql`).
-- Integration: Front-end calls the API over HTTP; OpenAPI spec maintained in `openapi.yaml`.
+- **001_schema.sql**: Creates all core tables, constraints, and indexes.
+- **002_seed_demo.sql**: Inserts a demo account, contacts, project, and related records.
 
-## Chosen Stack
-- Front-end: Next.js + React + TypeScript
-- Backend: FastAPI (Python)
-- API contract: OpenAPI 3.0 (`/openapi.yaml`)
-- Tooling: GitHub Actions for docs discipline
+## Tables and key fields
 
-## Folder Structure
-- `web/` Next.js front-end
-- `server/` FastAPI backend
-- `db/` database artifacts and migrations
-- `docs/` documentation and decision records
-- `openapi.yaml` API contract stub
+### accounts
+- id (PK)
+- name
+- email (unique)
+- timezone, currency, status
+- created_at, updated_at
 
-## Database Schema (Initial)
-- `accounts`: id, name, status, created_at, updated_at
-- `contacts`: id, account_id, full_name, email, phone, role, created_at, updated_at
-- `conversations`: id, account_id, contact_id, channel, subject, mode, state, normalized_fields, summary, ended_at, slack_posted_at, slack_post_id, created_at
-- `messages`: id, conversation_id, sender_type, sender_contact_id, body, created_at
-- `projects`: id, account_id, name, status, start_date, end_date, metadata, created_at, updated_at
-- `intake_briefs`: id, account_id, project_id, summary, goals, constraints, scheduling_option, booking_url, preferred_times, timezone, created_at
-- `attachments`: id, conversation_id, intake_brief_id, request_id, file_name, content_type, size_bytes, storage_key, storage_url, created_at
-- `auth_codes`: id, account_id, email, code_hash, expires_at, used_at, attempts, created_at
-- `auth_sessions`: id, account_id, token, expires_at, created_at
-- `audit_logs`: id, event_type, conversation_id, metadata, created_at
-- `requests`: id, project_id, requester_contact_id, title, description, status, request_type, impact, urgency, slack_channel, slack_ts, addon_flag, addon_rationale, created_at, updated_at
-- `estimate_templates`: id, name, description, line_items, min_total_cents, max_total_cents, created_at
-- `invoices`: id, project_id, estimate_id, amount_cents, currency, status, due_date, paid_at, provider, provider_invoice_id, provider_invoice_url, created_at, updated_at
-- `estimates`: id, request_id, amount_cents, currency, status, expires_at, created_at, updated_at
-- `estimate_templates`: id, name, description, line_items, min_total_cents, max_total_cents, created_at
-- `invoices`: id, project_id, estimate_id, amount_cents, currency, status, due_date, paid_at, created_at, updated_at
-- `approvals`: id, estimate_id, approver_contact_id, status, approved_at, created_at
+### contacts
+- id (PK)
+- account_id (FK → accounts.id)
+- first_name, last_name, email
+- phone, role, is_primary
+- Unique on (account_id, email)
 
-## Documentation Discipline
-- Any changes under `server/` or `db/` must include an update to `ONB1.md`.
-- Architectural decisions are recorded in `docs/decisions.md`.
+### projects
+- id (PK)
+- account_id (FK → accounts.id)
+- primary_contact_id (FK → contacts.id)
+- name, description, status
+- budget_cents, start_date, end_date
 
-## API Contract
-- `POST /api/conversations`: Create a conversation with optional intake brief.
-- `GET /api/conversations/{id}`: Fetch a conversation (polling helper).
-- `POST /api/conversations/{id}/message`: Append a message to a conversation.
-- `POST /api/conversations/{id}/end-and-send`: Close a conversation and emit final output.
-- `POST /api/uploads/presign`: Return a presigned upload link for client uploads.
-- `POST /api/auth/request-otp`: Request a one-time code for existing clients.
-- `POST /api/auth/verify-otp`: Verify code and issue a bearer token.
-- `GET /api/projects`: List projects for an authenticated client.
-- `POST /api/requests`: Create a client request.
-- `POST /api/requests/{id}/updates`: Post an update to the request (Slack thread).
-- `POST /api/handoff/slack` (internal): Send a conversation summary to Slack.
+### conversations
+- id (PK)
+- account_id (FK → accounts.id)
+- project_id (FK → projects.id)
+- contact_id (FK → contacts.id)
+- channel, subject, status, last_message_at
 
-## State Machine (Prospect Mode)
-States: `WELCOME → MODE_SELECT → IDENTITY → BUSINESS_CONTEXT → NEEDS → SCHEDULING(optional) → SUMMARY → SUBMIT`.
+### messages
+- id (PK)
+- conversation_id (FK → conversations.id)
+- sender_type, sender_contact_id (FK → contacts.id)
+- body, sent_at
 
-Required fields by state (submitted via message `fields`):
-- MODE_SELECT: `mode`
-- IDENTITY: `full_name`, `email`
-- BUSINESS_CONTEXT: `business_name`
-- NEEDS: `needs_summary` (can set `skip_scheduling=true`)
-- SCHEDULING: either `scheduling_option=link` or `preferred_times` + `timezone` (default `America/Los_Angeles`)
-- SUMMARY: `summary`
+### intake_briefs
+- id (PK)
+- account_id (FK → accounts.id)
+- project_id (FK → projects.id)
+- submitted_by_contact_id (FK → contacts.id)
+- title, problem_statement, goals, requirements
+- timeline_expectation, budget_min_cents, budget_max_cents, status
 
-Scheduling rules:
-- Option A: show booking link (from `BOOKING_URL`) and store `scheduling_option=link` + `booking_url`.
-- Option B: collect `preferred_times` + `timezone` and store `scheduling_option=times`.
+### requests
+- id (PK)
+- account_id (FK → accounts.id)
+- project_id (FK → projects.id)
+- requested_by_contact_id (FK → contacts.id)
+- title, description, priority, status, due_date
 
-End & Send Now:
-- `POST /api/conversations/{id}/end-and-send` forces `SUBMIT` from any state and stores the summary.
+### estimates
+- id (PK)
+- account_id (FK → accounts.id)
+- project_id (FK → projects.id)
+- request_id (FK → requests.id)
+- version (unique within project), status
+- total_cents, currency, valid_until, sent_at
 
-Client mode entry:
-- MODE_SELECT accepts `mode=client` to route existing clients to auth + request intake.
+### invoices
+- id (PK)
+- account_id (FK → accounts.id)
+- project_id (FK → projects.id)
+- estimate_id (FK → estimates.id)
+- invoice_number (unique)
+- status, subtotal_cents, tax_cents, total_cents, currency
+- issued_at, due_at, paid_at
 
-## Slack Handoff (Prospect Brief)
-Trigger:
-- On normal `SUBMIT` transition.
-- On `End & Send Now`.
+### approvals
+- id (PK)
+- account_id (FK → accounts.id)
+- project_id (FK → projects.id)
+- estimate_id (FK → estimates.id, optional)
+- invoice_id (FK → invoices.id, optional)
+- approved_by_contact_id (FK → contacts.id)
+- status, decision_note, decided_at
+- Check constraint requiring at least one of estimate_id or invoice_id
 
-Message format:
-- Header: `Prospect Intake`
-- Contact: `full_name` (+ email if present)
-- Company: `business_name`
-- Summary bullets (if present): `needs_summary`, `urgency`, `budget_band`, `summary`
-- Preferences (if present): `preferred_contact_channel`, `preferred_times`
-- Attachments (if present): linked file names
-- Admin link: `{ADMIN_BASE_URL}/conversations/{conversation_id}`
+## Seed data
 
-Reliability:
-- Retries up to 3 attempts with backoff.
-- Idempotent: only one Slack post per conversation (tracked in DB).
-- If `SLACK_WEBHOOK_URL` is not set, skip posting without failing the request.
+002_seed_demo.sql inserts:
+- 1 demo account (acct_demo)
+- 2 contacts
+- 1 active project
+- 1 intake brief
+- 1 conversation + 2 messages
+- 1 approved request
+- 1 accepted estimate
+- 1 issued invoice
+- 1 approval record
 
-## UX (Prospect Intake)
-Screenshots description:
-- Mobile: single-column chat with stacked bubbles, sticky End & Send Now button, and compact progress badge.
-- Desktop: two-column header with progress badge, chat panel centered with pill chips for quick replies.
+## Run migrations
 
-Behaviors:
-- One-question-at-a-time flow with validated email/phone inputs.
-- Quick reply chips for mode, urgency, budget band, and preferred channel.
-- Progress indicator shows step count and approximate time remaining.
-- End & Send Now available from any state.
-- Attachments can be uploaded during summary (PNG/JPEG/PDF, size-limited).
+```bash
+./scripts/migrate.sh
+```
 
-## Client Auth (Existing Clients)
-Flow:
-- `POST /api/auth/request-otp` with email to generate a one-time code.
-- `POST /api/auth/verify-otp` to exchange code for a bearer token.
-- `GET /api/projects` lists projects for the authenticated account.
+Optional custom DB path:
 
-## Client Request Intake
-Steps:
-- Pick project → classify (bug/change/new) → describe → impact/urgency → attach files → submit.
-
-Slack:
-- Creates a new post in `#onb1-intake` and stores the Slack thread timestamp on the request.
-- Subsequent updates post to the same thread.
-- Add-on flag and rationale included when detected.
-
-Data:
-- Requests are stored in `requests` with type/impact/urgency and Slack thread metadata.
-- Attachments are stored in `attachments` and linked to the request.
-- Draft estimates are created per request using templates (status `draft`).
-
-## Estimate Workflow
-States:
-- `draft` → internal only, created automatically on request intake.
-- `sent` → ready to share with client.
-- `approved` → client accepts.
-- `rejected` → client declines.
-
-Templates:
-- Stored in `estimate_templates` with line items and min/max range.
-- Draft estimates are generated from the template that matches `request_type`.
-
-## Billing Integration (Draft Invoice Only)
-Provider:
-- Stripe (draft invoice, never auto-sent).
-
-Behavior:
-- When an estimate is approved (admin action), create a Stripe draft invoice.
-- Store Stripe `customer_id`, `invoice_id`, and hosted invoice URL on the invoice record.
-- Do not send automatically.
-
-Send gate:
-- Owner action `POST /admin/invoices/{id}/send` sends the invoice email and posts an update to the Slack thread.
-- Idempotent: if already sent, return `already_sent` and do nothing.
-
-Env:
-- `STRIPE_API_KEY`, `STRIPE_WEBHOOK_SECRET`.
-
-Test steps:
-1. Create a client request to generate a draft estimate.
-2. Call `POST /admin/estimates/{id}/approve`.
-3. Verify Stripe draft invoice exists and invoice URL is stored.
-4. Call `POST /admin/invoices/{id}/send` to email the customer and update Slack.
-
-Add-on detection rules:
-- `request_type=new` → add-on likely.
-- If description mentions an integration/tool not in project metadata integrations → add-on likely.
-- If urgency is same-day (`urgent`, `same-day`, `today`, `asap`) and project metadata does not allow same-day SLA → add-on likely.
-- Client message when flagged: "This may be outside scope; we'll confirm with an estimate."
-
-## Storage (Uploads)
-- Provider: Amazon S3 with presigned `PUT` URLs.
-- Env: `AWS_REGION`, `S3_BUCKET`, `S3_PUBLIC_BASE_URL` (optional), `MAX_UPLOAD_BYTES`, `ALLOWED_UPLOAD_TYPES`.
-- Limits: max size enforced server-side (`MAX_UPLOAD_BYTES`), allowlist enforced by content type.
-
-## Security
-Protections:
-- Rate limiting by IP for conversation creation and message posting.
-- Optional CAPTCHA gate for anonymous prospect creation.
-- Email/phone encrypted at rest in `normalized_fields` using `ENCRYPTION_KEY`.
-- Audit logs recorded on submit events.
-
-PII handling:
-- `email` and `phone` are stored encrypted and decrypted only for response/Slack.
-- Message bodies should avoid sensitive fields; UI posts PII in fields, not body.
-
-## Definition of Done
-- Unit tests cover state machine transitions, End & Send Now, Slack idempotency, and invoice gating.
-- Manual QA checklist executed in `docs/manual-test.md`.
-- ONB1.md updated for schema, API, workflow, or security changes.
-- All migrations applied cleanly on a fresh database.
-
-## Changelog
-- 2026-02-07: Added local Postgres dev environment (Docker Compose), migration/seed scripts, and db README steps.
-- 2026-02-07: Defined OpenAPI contract v1 and added backend route stubs.
-- 2026-02-07: Added prospect state machine v1, DB storage for state/fields, and state machine docs.
-- 2026-02-07: Added git status/log/push helper script under scripts/.
-- 2026-02-07: Added Slack handoff posting for prospect intake submissions.
-- 2026-02-07: Added prospect intake chat UI with polling and validated inputs.
-- 2026-02-07: Added S3 presigned uploads and attachment metadata for prospect intake.
-- 2026-02-07: Added rate limiting, optional CAPTCHA, PII encryption, and submit audit logs.
-- 2026-02-07: Added client OTP auth and client request intake with Slack threading.
-- 2026-02-07: Added client request flow with Slack threads and request-linked attachments.
-- 2026-02-07: Added add-on detection and rationale for client requests.
-- 2026-02-07: Added estimate templates and draft estimate generation for requests.
-- 2026-02-07: Added Stripe draft invoice creation on estimate approval.
-- 2026-02-07: Added owner-controlled invoice send gate with Slack update.
-- 2026-02-08: Added pytest coverage for state machine, Slack idempotency, and invoice gating plus manual test checklist.
-- 2026-02-08: Added migration for conversations.mode defaulting to prospect to fix schema drift.
-- 2026-02-09: Made Slack handoff optional when `SLACK_WEBHOOK_URL` is unset; migration runner now applies all migrations and includes a schema alignment pass.
-- 2026-02-09: Added `dev.ps1`, `smoke_test.ps1`, and a minimal local UX page under `web/src/pages/local.tsx`.
+```bash
+./scripts/migrate.sh db/my_custom.sqlite
+```
