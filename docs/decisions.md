@@ -1,10 +1,15 @@
-﻿# Decisions
+# Architecture Decisions Log
 
-Record notable architecture or tooling decisions here.
+## ADR-001: Initial stack selection
 
-## Template
-- Date: YYYY-MM-DD
-- Decision: 
-- Context:
-- Alternatives considered:
+- Status: Accepted
+- Date: 2026-02-07
+- Decision:
+  - Use Next.js + TypeScript for frontend.
+  - Use FastAPI for backend API.
+  - Keep OpenAPI contract at repository root.
+- Rationale:
+  - Fast iteration with strong ecosystem support.
+  - Clear separation between UI and API services.
 - Consequences:
+  - Mixed Node.js + Python toolchains required locally and in CI.
