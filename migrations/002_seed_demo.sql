@@ -1,49 +1,79 @@
--- 002_seed_demo.sql  –  Demo data for a complete sample flow
 PRAGMA foreign_keys = ON;
 
--- Account
-INSERT INTO accounts (id, name, email, timezone, currency, status)
-VALUES ('acct_demo', 'Demo Agency', 'hello@demo-agency.com', 'America/Los_Angeles', 'USD', 'active');
+BEGIN;
 
--- Contacts
+INSERT INTO accounts (id, name, email, timezone, currency, status)
+VALUES ('acct_demo', 'Demo Account', 'demo@onb1.local', 'America/New_York', 'USD', 'active');
+
 INSERT INTO contacts (id, account_id, first_name, last_name, email, phone, role, is_primary)
 VALUES
-  ('ctc_alice', 'acct_demo', 'Alice', 'Johnson', 'alice@clientco.com', '+15551234567', 'CEO', 1),
-  ('ctc_bob',   'acct_demo', 'Bob',   'Smith',   'bob@clientco.com',   '+15559876543', 'CTO', 0);
+  ('contact_amy', 'acct_demo', 'Amy', 'Anderson', 'amy@clientco.com', '+1-212-555-0100', 'Owner', 1),
+  ('contact_ben', 'acct_demo', 'Ben', 'Brown',    'ben@clientco.com', '+1-212-555-0101', 'Operations', 0);
 
--- Project
-INSERT INTO projects (id, account_id, primary_contact_id, name, description, status, budget_cents, start_date, end_date)
-VALUES ('proj_web', 'acct_demo', 'ctc_alice', 'Website Redesign', 'Full redesign of corporate site', 'active', 5000000, '2025-01-15', '2025-06-30');
+INSERT INTO projects (id, account_id, primary_contact_id, name, description, status, budget_cents, start_date)
+VALUES (
+  'proj_demo_rebrand', 'acct_demo', 'contact_amy',
+  'ClientCo Website Rebrand',
+  'End-to-end redesign and launch of the marketing site.',
+  'active', 750000, '2026-01-15'
+);
 
--- Intake brief
-INSERT INTO intake_briefs (id, account_id, project_id, submitted_by_contact_id, title, problem_statement, goals, requirements, timeline_expectation, budget_min_cents, budget_max_cents, status)
-VALUES ('ib_001', 'acct_demo', 'proj_web', 'ctc_alice', 'Website Redesign Brief',
-        'Current site is outdated and slow',
-        'Modern look, fast load, mobile-first',
-        'Next.js, headless CMS, analytics',
-        '6 months', 3000000, 6000000, 'accepted');
+INSERT INTO intake_briefs (
+  id, account_id, project_id, submitted_by_contact_id,
+  title, problem_statement, goals, requirements,
+  timeline_expectation, budget_min_cents, budget_max_cents, status
+) VALUES (
+  'brief_demo', 'acct_demo', 'proj_demo_rebrand', 'contact_amy',
+  'Website Rebrand Brief',
+  'Current website does not reflect the new positioning and has low conversion.',
+  'Modernize brand presentation and improve lead conversion by 20%.',
+  'New design system, CMS migration, and analytics instrumentation.',
+  'Launch by end of Q2.', 500000, 900000, 'submitted'
+);
 
--- Conversation + messages
 INSERT INTO conversations (id, account_id, project_id, contact_id, channel, subject, status, last_message_at)
-VALUES ('conv_001', 'acct_demo', 'proj_web', 'ctc_alice', 'email', 'Kick-off discussion', 'open', '2025-01-16T10:30:00Z');
+VALUES (
+  'conv_kickoff', 'acct_demo', 'proj_demo_rebrand', 'contact_amy',
+  'email', 'Kickoff logistics', 'open', CURRENT_TIMESTAMP
+);
 
-INSERT INTO messages (id, conversation_id, sender_type, sender_contact_id, body, sent_at)
+INSERT INTO messages (id, conversation_id, sender_type, sender_contact_id, body)
 VALUES
-  ('msg_001', 'conv_001', 'client', 'ctc_alice', 'Hi, excited to get started on the redesign!', '2025-01-16T10:00:00Z'),
-  ('msg_002', 'conv_001', 'agent',  NULL,         'Welcome Alice! I''ve reviewed the brief — let''s schedule a kick-off call.', '2025-01-16T10:30:00Z');
+  ('msg_1', 'conv_kickoff', 'contact',      'contact_amy', 'Excited to kick this off next week.'),
+  ('msg_2', 'conv_kickoff', 'account_user', NULL,          'Great—sharing agenda and milestones by EOD.');
 
--- Request
-INSERT INTO requests (id, account_id, project_id, requested_by_contact_id, title, description, priority, status, due_date)
-VALUES ('req_001', 'acct_demo', 'proj_web', 'ctc_alice', 'Homepage wireframes', 'Need wireframes for new homepage layout', 'high', 'approved', '2025-02-01');
+INSERT INTO requests (
+  id, account_id, project_id, requested_by_contact_id,
+  title, description, priority, status, due_date
+) VALUES (
+  'req_homepage_redesign', 'acct_demo', 'proj_demo_rebrand', 'contact_ben',
+  'Homepage redesign',
+  'Create responsive homepage concepts with new messaging hierarchy.',
+  'high', 'approved', '2026-02-10'
+);
 
--- Estimate
-INSERT INTO estimates (id, account_id, project_id, request_id, version, status, total_cents, currency, valid_until, sent_at)
-VALUES ('est_001', 'acct_demo', 'proj_web', 'req_001', 1, 'accepted', 1500000, 'USD', '2025-02-15', '2025-01-20T09:00:00Z');
+INSERT INTO estimates (
+  id, account_id, project_id, request_id, version,
+  status, total_cents, currency, valid_until, sent_at
+) VALUES (
+  'est_demo_v1', 'acct_demo', 'proj_demo_rebrand', 'req_homepage_redesign',
+  1, 'accepted', 220000, 'USD', '2026-02-20', '2026-01-25'
+);
 
--- Invoice
-INSERT INTO invoices (id, account_id, project_id, estimate_id, invoice_number, status, subtotal_cents, tax_cents, total_cents, currency, issued_at, due_at)
-VALUES ('inv_001', 'acct_demo', 'proj_web', 'est_001', 'INV-2025-0001', 'issued', 1500000, 135000, 1635000, 'USD', '2025-01-25T00:00:00Z', '2025-02-25T00:00:00Z');
+INSERT INTO invoices (
+  id, account_id, project_id, estimate_id, invoice_number,
+  status, subtotal_cents, tax_cents, total_cents, currency, issued_at, due_at
+) VALUES (
+  'inv_demo_001', 'acct_demo', 'proj_demo_rebrand', 'est_demo_v1',
+  'INV-2026-001', 'issued', 220000, 17600, 237600, 'USD', '2026-01-26', '2026-02-25'
+);
 
--- Approval
-INSERT INTO approvals (id, account_id, project_id, estimate_id, approved_by_contact_id, status, decision_note, decided_at)
-VALUES ('appr_001', 'acct_demo', 'proj_web', 'est_001', 'ctc_alice', 'approved', 'Looks good, let''s proceed.', '2025-01-21T14:00:00Z');
+INSERT INTO approvals (
+  id, account_id, project_id, estimate_id, invoice_id,
+  approved_by_contact_id, status, decision_note, decided_at
+) VALUES (
+  'apr_estimate_demo', 'acct_demo', 'proj_demo_rebrand', 'est_demo_v1', NULL,
+  'contact_amy', 'approved', 'Approved to proceed with implementation.', '2026-01-27'
+);
+
+COMMIT;
