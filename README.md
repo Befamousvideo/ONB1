@@ -1,45 +1,51 @@
-﻿# ONB1
+# ONB1 Bootstrap
 
-Repo bootstrap with documentation gate.
+Initial repository scaffold for ONB1 with a Next.js frontend and FastAPI backend.
 
-## Requirements
-- Node.js 18+ (for Next.js)
-- Python 3.11+ (for FastAPI)
+## Project layout
 
-## Front-end (Next.js)
+- web/ — Next.js + TypeScript frontend
+- server/ — FastAPI backend API
+- db/ — database placeholder directory
+- docs/ — decision records and design docs
+- openapi.yaml — API contract stub
+
+## Prerequisites
+
+- Node.js 20+
+- npm 10+
+- Python 3.11+
+
+## Environment setup
+
+Copy .env.example and fill in values before local runs:
+
+```bash
+cp .env.example .env
+```
+
+## Run frontend
+
 ```bash
 cd web
 npm install
 npm run dev
 ```
 
-## Backend (FastAPI)
+Frontend will run at http://localhost:3000.
+
+## Run backend
+
 ```bash
 cd server
 python -m venv .venv
-. .venv/bin/activate  # Windows: .venv\Scripts\Activate.ps1
+source .venv/bin/activate
 pip install -r requirements.txt
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-## Local Dev (All-in-One)
-```powershell
-.\dev.ps1
-```
-This brings up Postgres, applies migrations + seed, sets env vars, and starts the API.
+API will run at http://localhost:8000.
 
-## Smoke Test
-```powershell
-.\smoke_test.ps1
-```
+## Documentation discipline gate
 
-## Docs Discipline
-Changes under `server/` or `db/` must update `ONB1.md`.
-
-## Local UX
-```bash
-cd web
-npm install
-npm run dev
-```
-Open `http://localhost:3000/local` for the minimal local API UI.
+CI fails pull requests when files under server/ or db/ change without also updating ONB1.md.
