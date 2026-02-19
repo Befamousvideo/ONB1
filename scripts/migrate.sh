@@ -1,32 +1,27 @@
 #!/usr/bin/env bash
-# Lightweight SQLite migration runner
-# Usage: ./scripts/migrate.sh [db_path]
 set -euo pipefail
 
-DB="${1:-db/onb1.sqlite}"
-MIGRATIONS_DIR="$(dirname "$0")/../migrations"
+DB_PATH="${1:-db/onb1.sqlite}"
+mkdir -p "$(dirname "$DB_PATH")"
 
-mkdir -p "$(dirname "$DB")"
-
-# Ensure schema_migrations table exists
-sqlite3 "$DB" <<'SQL'
+sqlite3 "$DB_PATH" <<'SQL'
+PRAGMA foreign_keys = ON;
 CREATE TABLE IF NOT EXISTS schema_migrations (
-    filename TEXT PRIMARY KEY,
-    applied_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now'))
+    version    TEXT PRIMARY KEY,
+    applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 SQL
 
-# Apply each migration in order, exactly once
-for f in $(ls "$MIGRATIONS_DIR"/*.sql | sort); do
-    fname="$(basename "$f")"
-    already=$(sqlite3 "$DB" "SELECT COUNT(*) FROM schema_migrations WHERE filename='$fname';")
-    if [ "$already" -eq 0 ]; then
-        echo "Applying $fname ..."
-        sqlite3 "$DB" < "$f"
-        sqlite3 "$DB" "INSERT INTO schema_migrations (filename) VALUES ('$fname');"
+for migration in $(find migrations -maxdepth 1 -type f -name '*.sql' | sort); do
+    version="$(basename "$migration")"
+    applied="$(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM schema_migrations WHERE version = '$version';")"
+    if [[ "$applied" == "0" ]]; then
+        echo "Applying $version"
+        sqlite3 "$DB_PATH" < "$migration"
+        sqlite3 "$DB_PATH" "INSERT INTO schema_migrations(version) VALUES('$version');"
     else
-        echo "Skipping $fname (already applied)"
+        echo "Skipping $version (already applied)"
     fi
 done
 
-echo "Done. DB: $DB"
+echo "Migrations complete for $DB_PATH"
