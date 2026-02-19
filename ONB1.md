@@ -1,111 +1,38 @@
-# ONB1 Database Contract
+# ONB1 Living Specification
 
-This project defines a SQLite-first database contract using SQL migrations in `migrations/` and a lightweight migration runner in `scripts/migrate.sh`.
+## Purpose
 
-## Migration files
+This document is the single source of truth for project scope, architecture, and implementation decisions during early bootstrapping.
 
-- **001_schema.sql**: Creates all core tables, constraints, and indexes.
-- **002_seed_demo.sql**: Inserts a demo account, contacts, project, and related records.
+## Architecture Overview
 
-## Tables and key fields
+- Frontend: Next.js (App Router) + TypeScript under web/.
+- Backend API: FastAPI (Python) under server/.
+- API Contract: openapi.yaml at repository root (initial stub).
+- Documentation: Project docs in docs/.
+- Data Layer: Reserved db/ directory for schema/migrations.
 
-### accounts
-- id (PK)
-- name
-- email (unique)
-- timezone, currency, status
-- created_at, updated_at
+## Chosen Stack
 
-### contacts
-- id (PK)
-- account_id (FK → accounts.id)
-- first_name, last_name, email
-- phone, role, is_primary
-- Unique on (account_id, email)
+- Frontend: Next.js 14, React 18, TypeScript 5.
+- Backend: FastAPI + Uvicorn, Python 3.11+.
+- CI/CD: GitHub Actions workflow for documentation discipline.
 
-### projects
-- id (PK)
-- account_id (FK → accounts.id)
-- primary_contact_id (FK → contacts.id)
-- name, description, status
-- budget_cents, start_date, end_date
+## Folder Structure
 
-### conversations
-- id (PK)
-- account_id (FK → accounts.id)
-- project_id (FK → projects.id)
-- contact_id (FK → contacts.id)
-- channel, subject, status, last_message_at
+- web/ — Next.js frontend scaffold.
+- server/ — FastAPI API scaffold.
+- db/ — placeholder for database artifacts.
+- docs/ — architecture/decision documents.
+- .github/workflows/ — CI checks.
+- openapi.yaml — API spec stub.
+- .env.example — planned environment variables.
 
-### messages
-- id (PK)
-- conversation_id (FK → conversations.id)
-- sender_type, sender_contact_id (FK → contacts.id)
-- body, sent_at
+## Development Rules
 
-### intake_briefs
-- id (PK)
-- account_id (FK → accounts.id)
-- project_id (FK → projects.id)
-- submitted_by_contact_id (FK → contacts.id)
-- title, problem_statement, goals, requirements
-- timeline_expectation, budget_min_cents, budget_max_cents, status
+- No feature work should begin until this document and decision logs are updated.
+- Any change under server/ or db/ must include an ONB1.md update.
 
-### requests
-- id (PK)
-- account_id (FK → accounts.id)
-- project_id (FK → projects.id)
-- requested_by_contact_id (FK → contacts.id)
-- title, description, priority, status, due_date
+## Changelog
 
-### estimates
-- id (PK)
-- account_id (FK → accounts.id)
-- project_id (FK → projects.id)
-- request_id (FK → requests.id)
-- version (unique within project), status
-- total_cents, currency, valid_until, sent_at
-
-### invoices
-- id (PK)
-- account_id (FK → accounts.id)
-- project_id (FK → projects.id)
-- estimate_id (FK → estimates.id)
-- invoice_number (unique)
-- status, subtotal_cents, tax_cents, total_cents, currency
-- issued_at, due_at, paid_at
-
-### approvals
-- id (PK)
-- account_id (FK → accounts.id)
-- project_id (FK → projects.id)
-- estimate_id (FK → estimates.id, optional)
-- invoice_id (FK → invoices.id, optional)
-- approved_by_contact_id (FK → contacts.id)
-- status, decision_note, decided_at
-- Check constraint requiring at least one of estimate_id or invoice_id
-
-## Seed data
-
-002_seed_demo.sql inserts:
-- 1 demo account (acct_demo)
-- 2 contacts
-- 1 active project
-- 1 intake brief
-- 1 conversation + 2 messages
-- 1 approved request
-- 1 accepted estimate
-- 1 issued invoice
-- 1 approval record
-
-## Run migrations
-
-```bash
-./scripts/migrate.sh
-```
-
-Optional custom DB path:
-
-```bash
-./scripts/migrate.sh db/my_custom.sqlite
-```
+- _No entries yet._
