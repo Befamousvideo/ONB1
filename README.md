@@ -1,14 +1,13 @@
-# ONB1 Bootstrap
+# ONB1 Local-First MVP
 
-Initial repository scaffold for ONB1 with a Next.js frontend and FastAPI backend.
+ONB1 is a StorenTech AI onboarding intake app. The current repo now runs a local-first prospect intake MVP with:
 
-## Project layout
+- `web/` — Next.js 14 App Router frontend for the interview flow
+- `server/` — FastAPI backend with a local in-memory conversation/state machine
+- `docs/question-flow.md` — source flow for the MVP interview steps
+- `ONB1.md` — living specification and implementation notes
 
-- web/ — Next.js + TypeScript frontend
-- server/ — FastAPI backend API
-- db/ — database placeholder directory
-- docs/ — decision records and design docs
-- openapi.yaml — API contract stub
+OAuth, payments, and RAG are intentionally deferred until the intake flow is stable locally.
 
 ## Prerequisites
 
@@ -16,15 +15,19 @@ Initial repository scaffold for ONB1 with a Next.js frontend and FastAPI backend
 - npm 10+
 - Python 3.11+
 
-## Environment setup
+## Local Run
 
-Copy .env.example and fill in values before local runs:
+Backend:
 
 ```bash
-cp .env.example .env
+cd server
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements-dev.txt
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-## Run frontend
+Frontend:
 
 ```bash
 cd web
@@ -32,20 +35,33 @@ npm install
 npm run dev
 ```
 
-Frontend will run at http://localhost:3000.
+Set `NEXT_PUBLIC_API_BASE_URL=http://localhost:8000` if you are not using the default backend URL.
 
-## Run backend
+## Validation
+
+Backend tests:
 
 ```bash
 cd server
-python -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+python -m pytest tests -q
 ```
 
-API will run at http://localhost:8000.
+Frontend checks:
 
-## Documentation discipline gate
+```bash
+cd web
+npm run lint
+npm run build
+```
 
-CI fails pull requests when files under server/ or db/ change without also updating ONB1.md.
+## Current MVP Scope
+
+- Prospect mode intake with one-question-at-a-time state transitions
+- Local handoff summary generation and a Slack-ready stub
+- Existing-client mode held as a placeholder until OAuth is added
+- Scheduling captured as preference text instead of calendar integration
+
+## Documentation Discipline Gate
+
+CI fails pull requests when files under `server/` or `db/` change without also updating `ONB1.md`.

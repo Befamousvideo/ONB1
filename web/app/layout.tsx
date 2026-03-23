@@ -1,9 +1,15 @@
 import type { Metadata } from "next";
+import { Space_Grotesk } from "next/font/google";
 import "./globals.css";
 
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-space-grotesk",
+});
+
 export const metadata: Metadata = {
-  title: "ONB1",
-  description: "ONB1 bootstrap frontend",
+  title: "StorenTech Intake MVP",
+  description: "Local-first onboarding intake for ONB1",
 };
 
 export default function RootLayout({
@@ -11,7 +17,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className={spaceGrotesk.variable}>{children}</body>
     </html>
   );
 }

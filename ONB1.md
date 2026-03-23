@@ -12,6 +12,14 @@ This document is the single source of truth for project scope, architecture, and
 - Documentation: Project docs in docs/.
 - Data Layer: Reserved db/ directory for schema/migrations.
 
+## Local-First MVP Baseline
+
+- Prospect intake flow is implemented as a local-first MVP before OAuth, payments, and RAG.
+- The backend uses a FastAPI state machine with local in-memory persistence for conversation progress.
+- The frontend uses a single App Router intake UI that resumes from browser-local conversation state.
+- Slack handoff is stubbed locally unless a real webhook is provided through environment configuration.
+- Existing-client mode is intentionally a placeholder until authentication is added.
+
 ## Chosen Stack
 
 - Frontend: Next.js 14, React 18, TypeScript 5.
@@ -33,6 +41,105 @@ This document is the single source of truth for project scope, architecture, and
 - No feature work should begin until this document and decision logs are updated.
 - Any change under server/ or db/ must include an ONB1.md update.
 
+## RAG Intelligence Layer (Voice Agent Enhancement)
+
+### Overview
+ONB1's voice agent (Sarah) integrates a RAG (Retrieval Augmented Generation) system
+to deliver hyper-personalized, industry-aware conversations with prospects.
+
+### How It Works
+```
+Prospect calls Sarah
+       ↓
+Sarah asks qualifying questions (see script below)
+       ↓
+Answers trigger RAG query against ChromaDB knowledge base
+       ↓
+Business name found? → Web search for real intel on that specific business
+Industry identified? → Pull industry pain points, benchmarks, case studies
+Neither? → Fall back to general pain points for identified vertical
+       ↓
+Sarah responds with specific, current, relevant intelligence
+       ↓
+Prospect hears an agent that knows their world
+```
+
+### Sarah's Qualifying Question Script (Early in Call)
+```
+1. "What type of business do you run?" (industry detection)
+2. "And what's the name of your business?" (specific intel trigger)
+3. "How long have you been in business?" (maturity context)
+4. "What's your biggest operational challenge right now?" (pain point confirmation)
+```
+
+### RAG Query Logic
+```python
+# Step 1: Try specific business lookup
+if business_name:
+    results = web_search(business_name)  # Live search for real intel
+    results += knowledge_base.query(f"{business_name} {industry}", n_results=3)
+
+# Step 2: Industry knowledge base
+if industry:
+    results += knowledge_base.query(
+        query=f"challenges opportunities solutions for {industry}",
+        n_results=5,
+        max_age_days=30  # Refresh if stale
+    )
+
+# Step 3: Inject into Sarah's context
+sarah_context = f"""
+Prospect: {business_name or 'unknown business'} — {industry}
+Intelligence: {results}
+Use this to sound like an expert in their specific industry.
+Reference their business by name if known.
+"""
+```
+
+### Knowledge Base Categories (ChromaDB Collections)
+- `industries` — pain points, benchmarks, trends per vertical
+- `case_studies` — success stories by industry
+- `solutions` — what ONB1 offers per problem type
+- `competitors` — market positioning intel
+- `pricing` — benchmarks per industry/service type
+
+### Freshness Rules
+- Industry research: refresh if > 30 days old
+- Specific business intel: always do live search
+- Case studies: refresh if > 90 days old
+
+### Tech Stack Addition
+- **ChromaDB** — local vector database (Docker)
+- **LangChain** — RAG pipeline (under CrewAI)
+- **Ollama** — local embedding model (nomic-embed-text)
+- **Brave Search API** — live business lookup
+
+### Example Interaction
+```
+Sarah: "What type of business do you run?"
+Prospect: "I have a dental practice"
+Sarah: "Oh great — what's the name of your practice?"
+Prospect: "Smile Bright Dental in Austin"
+
+[RAG fires: searches "Smile Bright Dental Austin" + dental industry KB]
+
+Sarah: "Perfect. Dental practices like yours typically struggle with
+patient scheduling, insurance verification, and appointment reminders.
+We've helped several Austin-area practices cut front desk admin time
+by 40% using our onboarding automation. Is scheduling a pain point
+for you too?"
+
+Prospect: "...how did you know that?"
+```
+
+### Implementation Priority
+1. ChromaDB setup (Docker)
+2. Industry knowledge base population (research agents)
+3. Embedding pipeline (nomic-embed-text via Ollama)
+4. Sarah prompt injection on qualifying answers
+5. Live business search integration
+
 ## Changelog
 
-- _No entries yet._
+- 2026-02-23: Added RAG Intelligence Layer for voice agent (Sarah) personalization
+- 2026-03-22: Implemented the local-first prospect intake MVP with FastAPI state transitions and a Next.js App Router UI.
