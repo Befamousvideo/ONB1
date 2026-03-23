@@ -46,9 +46,15 @@ This document is the single source of truth for project scope, architecture, and
 - The intake must capture the individual contact, company name, business type, and enough location context to route scheduling.
 - Discovery should focus on repetitive work, lost business from inefficiencies, and operational pain points rather than generic feature interest alone.
 - The assistant should infer 3 to 5 likely automation opportunities from the business type and user answers, then recommend the first one to solve for the strongest ROI.
+- The assistant should use a reusable business-type playbook for likely offers, qualifying questions, and ROI indicators.
 - The next sales motion after intake should be a detailed ROI audit.
 - Scheduling should prefer an in-person ROI audit for Orange County, California prospects when geography and availability allow; otherwise it should default to phone unless the user requests something different.
 - The handoff must email `vincent@storentech.com` with the intake summary and any appointment details.
+- If a prospect raises privacy, security, or IP concerns, the assistant should introduce local/private AI options such as dedicated OpenClaw environments, local databases, and DGX Spark-backed deployments when appropriate.
+
+## Business-Type Recommendation Source
+
+- Use `docs/chatbot-knowledge-base.md` as the recommendation source for service tiers, business-type starter plays, qualifying questions, and local/private AI triggers.
 
 ## RAG Intelligence Layer (Voice Agent Enhancement)
 
@@ -153,3 +159,4 @@ Prospect: "...how did you know that?"
 - 2026-02-23: Added RAG Intelligence Layer for voice agent (Sarah) personalization
 - 2026-03-22: Implemented the local-first prospect intake MVP with FastAPI state transitions and a Next.js App Router UI.
 - 2026-03-23: Added ROI-audit interview guidance, business-type pain-point inference requirements, and Orange County scheduling rules.
+- 2026-03-23: Added the chatbot knowledge-base playbook for offer ladder, business-type automation recommendations, and local/private AI positioning.
