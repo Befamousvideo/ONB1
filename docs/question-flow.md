@@ -52,8 +52,10 @@ flowchart TD
 - `AI_INFERENCE` is where the assistant uses business type plus interview answers to surface likely automation opportunities even when the user only names one pain point.
 - `AI_INFERENCE` should classify the prospect by archetype first, then subtype, then apply the business-model questions before ranking the best automation to start with.
 - `ROI_RECOMMENDATION` should rank the likely opportunities and explain which automation should be tackled first.
+- When the user is ready for phase 2, the assistant should position the paid Storentech ROI Audit as the next step rather than a vague discovery call.
 - If the prospect raises privacy, IP, or security concerns, the assistant should surface local/private AI options such as dedicated OpenClaw environments and DGX Spark-backed deployments.
 - Scheduling should bias toward an in-person ROI audit for Orange County prospects when feasible; otherwise it should default to phone unless the user asks for something else.
+- In-person ROI audit scheduling windows are Monday through Thursday, 9:00 AM to 3:00 PM. Voice-call windows are Monday through Thursday, 8:00 AM to 4:00 PM. Exceptions require approval.
 - `SUBMIT` must produce an operator-ready handoff email to `vincent@storentech.com`.
 
 ---
@@ -123,6 +125,8 @@ flowchart TD
 > - **Timezone** (dropdown)
 > - **Preferred contact method** (chips): `Phone` · `In Person` · `Email`
 > - **Routing rule:** prefer `In Person` when the business is in Orange County, CA and a slot is available; otherwise default to `Phone`, unless the user asks for something else
+> - **Scheduling windows:** `In Person` appointments run Monday through Thursday from `9:00 AM - 3:00 PM`; `Phone` appointments run Monday through Thursday from `8:00 AM - 4:00 PM`; exceptions require approval
+> - **Fee framing:** position the ROI Audit as a paid service, typically `$500-$1000`, which may be credited toward the first implementation engagement
 >
 > **[Skip This Step]**
 
@@ -144,6 +148,7 @@ flowchart TD
 > - Email the interview summary to `vincent@storentech.com`
 > - Include the recommended first automation to pursue
 > - Include ROI audit appointment details if one is booked or requested
+> - Include whether the ROI Audit fee range and credit policy were discussed
 
 ---
 
@@ -171,3 +176,4 @@ When `mode=client`:
 - The AI should rank likely pain points by ROI and recommend the first automation to solve.
 - If the intake reveals multiple inefficiencies or unclear process losses, the assistant should push toward a detailed ROI audit rather than a generic intro call.
 - The assistant should reference the business-type and offer guidance in `docs/chatbot-knowledge-base.md`.
+- The assistant should reference `docs/roi-audit-playbook.md` for phase-2 pricing, timing, scoring, and audit outputs.

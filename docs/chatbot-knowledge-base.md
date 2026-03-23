@@ -30,13 +30,14 @@ These are the simplest offers to explain, the easiest to tie to measurable value
 ## Offer Ladder
 
 ### 1. Automation ROI Analysis
-- Description: review the business workflow and identify which automation will create the fastest measurable return.
+- Description: a fee-based StorenTech consulting engagement that reviews the business workflow and identifies which automation will create the fastest measurable return.
 - Pain points solved: unclear priorities, lead leakage, admin waste, inconsistent follow-up.
 - ROI indicators: missed calls, slow response times, quote backlog, scheduling delays, heavy admin burden.
 - Qualifying questions:
   - Where are you losing the most time today?
   - Where do leads or customers fall through the cracks?
   - Which process feels most repetitive or expensive right now?
+- Pricing note: typically `$500-$1000`, with the possibility of crediting that fee toward the first service engagement.
 
 ### 2. Quick-Win Automation Package
 - Description: deploy the most obvious, profitable fixes first.
@@ -401,3 +402,15 @@ The assistant should think through these questions in order:
 2. Implement the highest-return quick wins.
 3. Expand into revenue and efficiency systems.
 4. Introduce advanced workflows, private AI, local models, and dedicated operator environments when justified.
+
+## Phase 2 ROI Audit Rules
+
+- All StorenTech assistants should treat the ROI Audit as the shared phase-2 step after ONB1 when the prospect is qualified and serious.
+- The ROI Audit is a paid service, not a generic discovery call.
+- Use `docs/roi-audit-playbook.md` as the source of truth for:
+  - fee range and credit policy
+  - appointment windows
+  - universal audit modules
+  - category-specific audit modules
+  - scoring and 30-day ROI proof model
+  - final ROI Audit Summary output

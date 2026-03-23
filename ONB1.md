@@ -58,6 +58,16 @@ This document is the single source of truth for project scope, architecture, and
 - Use `docs/chatbot-knowledge-base.md` as the recommendation source for service tiers, business-type starter plays, qualifying questions, and local/private AI triggers.
 - Prioritize the 9 ONB1 archetypes instead of building dozens of disconnected industry branches first.
 
+## ROI Audit Phase 2
+
+- After ONB1 qualifies a prospect, the default next step is the paid StorenTech ROI Audit.
+- The ROI Audit fee range is typically `$500-$1000`.
+- The fee may be credited toward the first implementation engagement when approved.
+- In-person ROI audit appointments run Monday through Thursday from `9:00 AM - 3:00 PM`.
+- Voice-call ROI audit appointments run Monday through Thursday from `8:00 AM - 4:00 PM`.
+- Exceptions require approval, with voice-call exceptions specifically requiring owner Vincent approval.
+- Use `docs/roi-audit-playbook.md` as the shared source of truth for all assistants covering audit framing, questions, scoring, 30-day ROI proof, and the final audit summary.
+
 ## RAG Intelligence Layer (Voice Agent Enhancement)
 
 ### Overview
@@ -163,3 +173,4 @@ Prospect: "...how did you know that?"
 - 2026-03-23: Added ROI-audit interview guidance, business-type pain-point inference requirements, and Orange County scheduling rules.
 - 2026-03-23: Added the chatbot knowledge-base playbook for offer ladder, business-type automation recommendations, and local/private AI positioning.
 - 2026-03-23: Refined the recommendation model around 9 archetypes, subtype branching, and the private-AI overlay.
+- 2026-03-23: Added the shared ROI Audit playbook with scheduling windows, fee guidance, scoring model, and phase-2 handoff rules.
