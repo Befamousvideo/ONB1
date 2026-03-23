@@ -5,6 +5,57 @@ One-question-at-a-time conversational intake for storentechai.com prospects. Fri
 
 ---
 
+## Mermaid Flowchart
+
+```mermaid
+flowchart TD
+    A["User clicks onboarding CTA"] --> B["WELCOME"]
+    B --> C["MODE_SELECT"]
+    C --> D{"Prospect or existing client?"}
+
+    D -->|"Existing client"| E["Placeholder existing-client path<br/>OAuth / OTP later"]
+    E --> Z["Manual follow-up"]
+
+    D -->|"New prospect"| F["IDENTITY<br/>Collect name, email, phone"]
+    F --> G["BUSINESS_CONTEXT<br/>Collect company, business type, industry, size, location"]
+    G --> H["PAIN_DISCOVERY<br/>Capture repetitive work, inefficiencies, lost-business issues"]
+    H --> I["AI_INFERENCE<br/>Suggest 3 to 5 likely automation pain points by business type + answers"]
+    I --> J["ROI_RECOMMENDATION<br/>Choose the first automation to solve for best ROI"]
+    J --> K{"Detailed ROI audit recommended?"}
+
+    K -->|"Yes"| L["SCHEDULING"]
+    K -->|"No, but still offer"| L
+
+    L --> M{"Orange County, CA<br/>and in-person slot available?"}
+    M -->|"Yes and user open to it"| N["Offer in-person ROI audit"]
+    M -->|"No"| O["Offer phone ROI audit"]
+    M -->|"User prefers phone"| O
+
+    N --> P{"Appointment booked?"}
+    O --> P
+    P -->|"Yes"| Q["Capture appointment details"]
+    P -->|"No"| R["Capture preferred times + contact method"]
+
+    Q --> S["SUMMARY<br/>Show intake, recommended first automation, and scheduling details"]
+    R --> S
+    L -->|"User skips scheduling"| S
+
+    S --> T["SUBMIT"]
+    T --> U["Email summary to vincent@storentech.com"]
+    U --> V["Include recommended first automation"]
+    V --> W["Include ROI audit appointment details if booked"]
+```
+
+## Flow Notes
+
+- `PAIN_DISCOVERY` should focus on repetitive work, missed opportunities, bottlenecks, and lost revenue caused by inefficiencies.
+- `AI_INFERENCE` is where the assistant uses business type plus interview answers to surface likely automation opportunities even when the user only names one pain point.
+- `ROI_RECOMMENDATION` should rank the likely opportunities and explain which automation should be tackled first.
+- Scheduling should bias toward an in-person ROI audit for Orange County prospects when feasible; otherwise it should default to phone unless the user asks for something else.
+- `SUBMIT` must produce an operator-ready handoff email to `vincent@storentech.com`.
+
+---
+
 ## Flow
 
 ### 1. WELCOME
