@@ -41,6 +41,15 @@ This document is the single source of truth for project scope, architecture, and
 - No feature work should begin until this document and decision logs are updated.
 - Any change under server/ or db/ must include an ONB1.md update.
 
+## Interview Intelligence Direction
+
+- The intake must capture the individual contact, company name, business type, and enough location context to route scheduling.
+- Discovery should focus on repetitive work, lost business from inefficiencies, and operational pain points rather than generic feature interest alone.
+- The assistant should infer 3 to 5 likely automation opportunities from the business type and user answers, then recommend the first one to solve for the strongest ROI.
+- The next sales motion after intake should be a detailed ROI audit.
+- Scheduling should prefer an in-person ROI audit for Orange County, California prospects when geography and availability allow; otherwise it should default to phone unless the user requests something different.
+- The handoff must email `vincent@storentech.com` with the intake summary and any appointment details.
+
 ## RAG Intelligence Layer (Voice Agent Enhancement)
 
 ### Overview
@@ -143,3 +152,4 @@ Prospect: "...how did you know that?"
 
 - 2026-02-23: Added RAG Intelligence Layer for voice agent (Sarah) personalization
 - 2026-03-22: Implemented the local-first prospect intake MVP with FastAPI state transitions and a Next.js App Router UI.
+- 2026-03-23: Added ROI-audit interview guidance, business-type pain-point inference requirements, and Orange County scheduling rules.
