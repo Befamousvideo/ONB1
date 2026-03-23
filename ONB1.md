@@ -44,6 +44,7 @@ This document is the single source of truth for project scope, architecture, and
 ## Interview Intelligence Direction
 
 - The intake must capture the individual contact, company name, business type, and enough location context to route scheduling.
+- The recommendation engine should work in three layers: archetype, subtype, then business-model questions.
 - Discovery should focus on repetitive work, lost business from inefficiencies, and operational pain points rather than generic feature interest alone.
 - The assistant should infer 3 to 5 likely automation opportunities from the business type and user answers, then recommend the first one to solve for the strongest ROI.
 - The assistant should use a reusable business-type playbook for likely offers, qualifying questions, and ROI indicators.
@@ -55,6 +56,7 @@ This document is the single source of truth for project scope, architecture, and
 ## Business-Type Recommendation Source
 
 - Use `docs/chatbot-knowledge-base.md` as the recommendation source for service tiers, business-type starter plays, qualifying questions, and local/private AI triggers.
+- Prioritize the 9 ONB1 archetypes instead of building dozens of disconnected industry branches first.
 
 ## RAG Intelligence Layer (Voice Agent Enhancement)
 
@@ -160,3 +162,4 @@ Prospect: "...how did you know that?"
 - 2026-03-22: Implemented the local-first prospect intake MVP with FastAPI state transitions and a Next.js App Router UI.
 - 2026-03-23: Added ROI-audit interview guidance, business-type pain-point inference requirements, and Orange County scheduling rules.
 - 2026-03-23: Added the chatbot knowledge-base playbook for offer ladder, business-type automation recommendations, and local/private AI positioning.
+- 2026-03-23: Refined the recommendation model around 9 archetypes, subtype branching, and the private-AI overlay.

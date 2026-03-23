@@ -9,6 +9,16 @@ Use this guide when the onboarding assistant needs to recommend likely automatio
 - Introduce private AI, local models, dedicated OpenClaw environments, and specialized hardware only when the client has validated ROI or has strong privacy/IP concerns.
 - Position secure local AI as protection for customer data, proprietary workflows, and competitive advantage, not just as a technical feature.
 
+## ONB1 Recommendation Engine Structure
+
+For ONB1, do not start with dozens of disconnected industries. Use a three-layer recommendation model:
+
+1. Pick one of the 9 automation archetypes.
+2. Pick the narrower subtype inside that archetype.
+3. Ask the 8 business-model questions before ranking the first automation to solve.
+
+This keeps the branching cleaner, makes the recommendations sharper, and is easier to maintain over time.
+
 ## Easiest Offers To Sell First
 
 1. AI receptionist / voice agent
@@ -109,69 +119,242 @@ These are the simplest offers to explain, the easiest to tie to measurable value
   - Do you want a dedicated environment for private agents and local models?
   - Is long-term control and customization more important than lowest upfront complexity?
 
-## Business-Type Starter Plays
+## ONB1 Archetypes and Subtypes
 
-### Service Industry
-- Likely first automations:
-  - AI receptionist + missed-call text-back
-  - Scheduling + dispatch optimization
-  - Estimate / quote follow-up
-- Strong follow-ons:
+### 1. Emergency Field Service
+- Best for: businesses driven by inbound calls, urgent jobs, and dispatch speed.
+- Subtypes:
+  - Plumbing
+  - HVAC
+  - Electrical
+  - Locksmith
+  - Water / fire restoration
+  - Garage door
+  - Appliance repair
+  - Roofing emergency repair
+  - Drain / sewer specialists
+- Highest-ROI phase 1:
+  - AI phone receptionist / voice agent
+  - Missed-call text-back
+  - Emergency intake and routing
+  - Scheduling / dispatch automation
+  - Estimate follow-up
+  - Review request automation
+- Phase 2 advanced:
   - Technician copilot
-  - Maintenance-plan automation
-  - OpenClaw back-office coordination
+  - Parts / service history assistant
+  - OpenClaw job coordination
+  - Local/private AI for internal ops
 
-### Retailers and Restaurants
-- Likely first automations:
-  - Product-finder or FAQ chatbot
-  - Phone voice agent for reservations / takeout / inquiries
-  - Loyalty + reactivation automation
-- Strong follow-ons:
-  - Inventory + replenishment alerts
-  - Reputation + social content automation
+### 2. Project-Based Contractors
+- Best for: longer sales cycles, estimates, proposals, and larger-ticket jobs.
+- Subtypes:
+  - General contractors
+  - Remodelers
+  - Kitchen / bath
+  - Roofing replacement
+  - Solar installers
+  - Flooring
+  - Painting contractors
+  - Masonry / concrete
+  - Windows / doors
+  - Fencing
+  - Home improvement specialists
+- Highest-ROI phase 1:
+  - Lead qualification chatbot
+  - Photo / project detail intake
+  - Estimate pipeline automation
+  - Proposal follow-up
+  - Financing follow-up
+  - Appointment booking
+- Phase 2 advanced:
+  - Proposal drafting assistant
+  - Vendor / scheduling coordination
+  - OpenClaw project admin workflows
+  - Secure internal knowledge assistant
+
+### 3. Recurring Route Service Businesses
+- Best for: repeat visits, route efficiency, renewals, and upsells.
+- Subtypes:
+  - Pool service
+  - Landscaping
+  - Pest control
+  - Janitorial / cleaning
+  - Tree care
+  - Irrigation
+  - Pressure washing
+  - Lawn care
+  - Window washing
+- Highest-ROI phase 1:
+  - Route and schedule optimization
+  - Service reminders
+  - Renewal / contract follow-up
+  - Upsell prompts
+  - Review automation
+  - Customer summary messaging
+- Phase 2 advanced:
+  - Field tech assistant
+  - Seasonal demand forecasting
+  - OpenClaw service coordination
+  - Private service-history knowledge systems
+
+### 4. Reservation / Order / Guest-Service Businesses
+- Best for: phone volume, bookings, waitlists, and customer communication.
+- Subtypes:
+  - Restaurants
+  - QSR / fast casual
+  - Pizza / delivery
+  - Cafes / bakeries
+  - Catering companies
+  - Bars / lounges
+  - Hospitality venues
+  - Boutique hotels
+  - Resorts
+  - Event venues
+- Highest-ROI phase 1:
+  - Reservation / takeout / booking voice agent
+  - FAQ chatbot
+  - Review and loyalty follow-up
+  - Catering inquiry intake
+  - Waitlist automation
+  - Guest messaging
+- Phase 2 advanced:
   - OpenClaw manager copilot
+  - Event coordination workflows
+  - VIP guest handling
+  - Multi-location operational reporting
 
-### Online Retailers
-- Likely first automations:
-  - Conversational shopping assistant
-  - Cart / browse abandonment automation
-  - Content + creative automation
-- Strong follow-ons:
-  - AI merchandising
-  - Returns / support agent
-  - OpenClaw commerce-ops agent
+### 5. Storefront Retail
+- Best for: in-store sales support, product questions, loyalty, and local marketing.
+- Subtypes:
+  - Apparel stores
+  - Specialty gift shops
+  - Jewelry
+  - Beauty / cosmetics
+  - Home decor
+  - Furniture showrooms
+  - Markets / specialty grocers
+  - Pet retail
+  - Hobby / specialty stores
+- Highest-ROI phase 1:
+  - Product-finder chatbot
+  - FAQ / inventory inquiry assistant
+  - Loyalty and reactivation campaigns
+  - Review response automation
+  - Basic social / promo automation
+  - Lead capture for higher-ticket items
+- Phase 2 advanced:
+  - AI merchandising assistant
+  - Staff knowledge copilot
+  - Inventory alerts
+  - OpenClaw daily manager summaries
 
-### Manufacturing
-- Likely first automations:
-  - RFQ / quote intake assistant
-  - Procurement + supplier risk monitoring
-  - Dealer / distributor / tech-support chatbot
-- Strong follow-ons:
-  - Demand forecasting + production planning
+### 6. Ecommerce / Online Retail
+- Best for: traffic conversion, cart recovery, support, and merchandising.
+- Subtypes:
+  - DTC brand
+  - Dropshipper
+  - Amazon / marketplace seller
+  - Distributor ecommerce portal
+  - Subscription ecommerce
+  - High-ticket online seller
+  - Catalog / multi-SKU seller
+  - Hybrid online + local retail
+- Highest-ROI phase 1:
+  - Conversational sales chatbot
+  - Cart abandonment recovery
+  - Customer support automation
+  - Product recommendation assistant
+  - Email / SMS flows
+  - Review and repeat-purchase campaigns
+- Phase 2 advanced:
+  - Inventory forecasting
+  - Ad / sales anomaly monitoring
+  - OpenClaw ecommerce-ops agent
+  - Local/private AI product knowledge layer
+
+### 7. RFQ / Quote / Spec-Driven B2B
+- Best for: manufacturers, fabricators, industrial sellers, and wholesale businesses.
+- Subtypes:
+  - Custom fabrication shops
+  - OEM / private-label manufacturers
+  - Contract manufacturers
+  - Industrial parts suppliers
+  - Assemblers
+  - Packaging companies
+  - Wholesale distributors
+  - Job shops
+  - Small / medium manufacturers selling B2B
+- Highest-ROI phase 1:
+  - RFQ intake assistant
+  - Quote-routing workflow
+  - Sales follow-up automation
+  - Customer-service knowledge assistant
+  - Order-status support chatbot
+  - Distributor / dealer support automation
+- Phase 2 advanced:
   - Predictive maintenance
+  - Supplier monitoring
   - OpenClaw operations copilot
+  - Private/local AI for IP-sensitive processes
 
-### Facilities, Gyms, Schools, Clubs
-- Likely first automations:
-  - Member / parent / student concierge
-  - Booking + waitlist automation
-  - Retention + reactivation campaigns
-- Strong follow-ons:
-  - Work-order triage
-  - Event automation
-  - OpenClaw facility desk
+### 8. Membership / Booking / Class-Based Facilities
+- Best for: memberships, recurring bookings, classes, and event/admin load.
+- Subtypes:
+  - Golf clubs
+  - Country clubs
+  - Tennis / pickleball clubs
+  - Gyms
+  - Fitness studios
+  - Sports academies
+  - Lesson providers
+  - Camps
+  - Tutoring centers
+  - Private schools
+  - Class-based enrichment businesses
+- Highest-ROI phase 1:
+  - Member / guest concierge chatbot
+  - Booking / waitlist automation
+  - Renewal / reactivation campaigns
+  - Event and class reminders
+  - FAQ voice agent
+  - Lead-to-tour / trial booking automation
+- Phase 2 advanced:
+  - OpenClaw facility desk assistant
+  - Member sentiment tracking
+  - Staff coordination automation
+  - Secure internal knowledge assistant
 
-### Specialty and High-Trust Businesses
-- Likely first automations:
-  - Lead qualification + appointment setter
-  - Document intake + summarization
-  - Internal knowledge copilot
-- Strong follow-ons:
-  - Client-facing chatbot with human handoff
-  - Proposal / contract drafting assistant
-  - OpenClaw compliance-aware workflow agent
+### 9. High-Trust / Document-Heavy / Regulated Businesses
+- Best for: privacy-sensitive businesses and firms with intake, documents, and compliance pressure.
+- Subtypes:
+  - Dental
+  - Medical practice
+  - Med spa / aesthetics
+  - Chiropractic
+  - Physical therapy
+  - Legal
+  - Accounting / bookkeeping
+  - Insurance agency
+  - Wealth / financial advisory
+  - Real estate brokerage
+  - Property management
+- Highest-ROI phase 1:
+  - Intake assistant
+  - Appointment / consultation booking
+  - Recall / renewal follow-up
+  - Status-update chatbot
+  - Document intake / summarization
+  - FAQ assistant with human handoff
+- Phase 2 advanced:
+  - Secure knowledge assistant
+  - Private AI workflows
+  - OpenClaw internal coordination
+  - Local models / private document systems / dedicated hardware
 
-## Local / Private AI Triggers
+## Security / Private AI Overlay
+
+This is not its own industry category. It is a parallel overlay ONB1 can trigger for any subtype.
 
 Surface private/local AI options when the prospect mentions:
 
@@ -189,6 +372,19 @@ When triggered, the assistant should position:
 - hybrid local/cloud deployments
 - dedicated OpenClaw environments
 - dedicated hardware such as DGX Spark
+
+## Eight Business-Model Questions
+
+Ask these after the archetype and subtype are known:
+
+1. How do customers usually contact you first?
+2. What hurts most right now?
+3. What kind of work do you do most?
+4. Who do you mainly serve?
+5. What happens after a lead comes in?
+6. Do you already use systems we should connect to?
+7. Is privacy, IP protection, or local AI important to you?
+8. What result would matter most in the next 90 days?
 
 ## Chatbot Decision Rules
 

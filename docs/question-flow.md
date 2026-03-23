@@ -50,6 +50,7 @@ flowchart TD
 
 - `PAIN_DISCOVERY` should focus on repetitive work, missed opportunities, bottlenecks, and lost revenue caused by inefficiencies.
 - `AI_INFERENCE` is where the assistant uses business type plus interview answers to surface likely automation opportunities even when the user only names one pain point.
+- `AI_INFERENCE` should classify the prospect by archetype first, then subtype, then apply the business-model questions before ranking the best automation to start with.
 - `ROI_RECOMMENDATION` should rank the likely opportunities and explain which automation should be tackled first.
 - If the prospect raises privacy, IP, or security concerns, the assistant should surface local/private AI options such as dedicated OpenClaw environments and DGX Spark-backed deployments.
 - Scheduling should bias toward an in-person ROI audit for Orange County prospects when feasible; otherwise it should default to phone unless the user asks for something else.
@@ -165,6 +166,7 @@ When `mode=client`:
 
 ## Next Iteration Guidance
 - The AI should recognize business-type patterns such as plumber, field service, retail, manufacturing, and similar categories.
+- The AI should use the 9-archetype recommendation structure before narrowing into subtype-specific logic.
 - The AI should suggest 3 to 5 likely automation pain points, not just wait for the user to name one.
 - The AI should rank likely pain points by ROI and recommend the first automation to solve.
 - If the intake reveals multiple inefficiencies or unclear process losses, the assistant should push toward a detailed ROI audit rather than a generic intro call.
