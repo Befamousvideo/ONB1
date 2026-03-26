@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 const STORAGE_KEY = "onb1-local-conversation";
 const STEP_ORDER = [
   "WELCOME",
@@ -81,6 +80,17 @@ function buildSummary(fields: Record<string, string>) {
 function selectedStepIndex(state: ConversationState) {
   const index = STEP_ORDER.indexOf(state);
   return index === -1 ? 0 : index;
+}
+
+function getApiBase() {
+  const configuredBase = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
+  if (configuredBase) {
+    return configuredBase.replace(/\/$/, "");
+  }
+  if (typeof window !== "undefined") {
+    return `${window.location.protocol}//${window.location.hostname}:8011`;
+  }
+  return "http://localhost:8011";
 }
 
 async function parseJson(response: Response) {
@@ -166,7 +176,7 @@ export default function HomePage() {
 
   async function resumeConversation(conversationId: string) {
     try {
-      const response = await fetch(`${API_BASE}/api/conversations/${conversationId}`);
+      const response = await fetch(`${getApiBase()}/api/conversations/${conversationId}`);
       const payload = (await parseJson(response)) as Conversation;
       setConversation(payload);
       setError("");
@@ -180,7 +190,7 @@ export default function HomePage() {
     setLoading(true);
     setError("");
     try {
-      const response = await fetch(`${API_BASE}/api/conversations`, {
+      const response = await fetch(`${getApiBase()}/api/conversations`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mode: "prospect" }),
@@ -203,7 +213,7 @@ export default function HomePage() {
     setLoading(true);
     setError("");
     try {
-      const response = await fetch(`${API_BASE}/api/conversations/${conversation.id}/message`, {
+      const response = await fetch(`${getApiBase()}/api/conversations/${conversation.id}/message`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -228,7 +238,7 @@ export default function HomePage() {
     setLoading(true);
     setError("");
     try {
-      const response = await fetch(`${API_BASE}/api/conversations/${conversation.id}/end-and-send`, {
+      const response = await fetch(`${getApiBase()}/api/conversations/${conversation.id}/end-and-send`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
