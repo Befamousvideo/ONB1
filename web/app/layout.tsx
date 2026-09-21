@@ -8,8 +8,8 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "StorenTech Intake MVP",
-  description: "Local-first onboarding intake for ONB1",
+  title: "ROIA discovery",
+  description: "Employee and exploring paths for StorenTech Automation ROI Analysis discovery",
 };
 
 export default function RootLayout({

@@ -9,11 +9,39 @@ import main
 
 def test_next_state_sequence():
     assert main.next_state("WELCOME", {}) == "MODE_SELECT"
-    assert main.next_state("MODE_SELECT", {"mode": "client"}) == "SUBMIT"
+    assert main.next_state("MODE_SELECT", {"mode": "staff", "role": "Admin / Ops"}) == "IDENTITY"
+    assert main.next_state("MODE_SELECT", {"mode": "prospect"}) == "IDENTITY"
+    assert main.next_state("BUSINESS_CONTEXT", {}) == "ARCHETYPE"
+    assert main.next_state("ARCHETYPE", {}) == "PAIN_POINTS"
     assert main.next_state("NEEDS", {"skip_scheduling": "true"}) == "SUMMARY"
-    assert main.next_state("NEEDS", {"skip_scheduling": "false"}) == "SCHEDULING"
+    assert main.next_state("PAIN_POINTS", {"skip_scheduling": "false"}) == "SCHEDULING"
     assert main.next_state("SUMMARY", {}) == "SUBMIT"
     assert main.next_state("SUBMIT", {}) == "SUBMIT"
+
+
+def test_canonical_mode_defaults_to_staff():
+    assert main.canonical_mode({}) == "staff"
+    assert main.canonical_mode("employee") == "staff"
+    assert main.canonical_mode("staff") == "staff"
+    assert main.canonical_mode({"mode": "prospect"}) == "prospect"
+
+
+def test_staff_ceo_prompts_differ_from_prospect_ceo():
+    staff = main.prompt_for_state("SUBMIT", {"mode": "staff", "role": "Owner / CEO"})
+    prospect = main.prompt_for_state("SUBMIT", {"mode": "prospect", "role": "Owner / CEO"})
+    assert "executive view" in staff
+    assert "Automation ROI Analysis" in prospect
+    assert staff != prospect
+    assert "prospect" not in staff.lower()
+
+
+def test_mode_select_accepts_role_or_mode():
+    main.validate_required_fields("MODE_SELECT", {"role": "Sales"})
+    main.validate_required_fields("MODE_SELECT", {"mode": "staff"})
+    main.validate_required_fields("MODE_SELECT", {"mode": "prospect"})
+    with pytest.raises(HTTPException) as excinfo:
+        main.validate_required_fields("MODE_SELECT", {})
+    assert excinfo.value.detail["fields"] == ["role"]
 
 
 def test_validate_required_fields_scheduling():

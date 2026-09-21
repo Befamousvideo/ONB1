@@ -1,6 +1,6 @@
 # ONB1 Local-First MVP
 
-ONB1 is a StorenTech AI onboarding intake app. The current repo runs a local-first prospect intake MVP with:
+ONB1 is a StorenTech AI onboarding discovery app. The current repo runs a local-first staff/exploring MVP with:
 
 - `web/` — Next.js 14 App Router frontend (`web/app/page.tsx`, route `/`)
 - `server/` — FastAPI backend with a **local in-memory** conversation/state machine (not durable Postgres)
@@ -24,7 +24,7 @@ One command starts the in-memory API on port **8000** and the intake UI on port 
 ./scripts/dev.sh
 ```
 
-Then open [http://127.0.0.1:3000](http://127.0.0.1:3000). Click **Launch Intake**.
+Then open [http://127.0.0.1:3000](http://127.0.0.1:3000). Click **Begin discovery**. Use `?mode=prospect` for the exploring path.
 
 Manual equivalent (two terminals):
 
@@ -97,9 +97,9 @@ npm run build
 
 ## Current MVP Scope
 
-- Prospect mode intake with one-question-at-a-time state transitions
+- Staff (`mode: "staff"`) and exploring (`mode: "prospect"`) paths with one-question-at-a-time state transitions
+- Role chips and role-aware staff prompts; budget/timeline only on the exploring path
 - Local handoff summary generation and a Slack-ready stub
-- Existing-client mode held as a placeholder until OAuth is added
 - Scheduling captured as preference text instead of calendar integration
 
 ## Documentation Discipline Gate

@@ -14,12 +14,21 @@ This document is the single source of truth for project scope, architecture, and
 
 ## Local-First MVP Baseline
 
-- Prospect intake flow is implemented as a local-first MVP before OAuth, payments, and RAG.
+- Two first-class discovery modes are implemented as a local-first MVP before OAuth, payments, and RAG.
 - The backend uses a FastAPI state machine with local in-memory persistence for conversation progress. Postgres / `dev.ps1` is not part of the supported local launch.
-- The frontend uses a single App Router intake UI (`web/app/page.tsx`, route `/`) that resumes from browser-local conversation state.
+- The frontend uses a single App Router discovery UI (`web/app/page.tsx`, route `/`) that resumes from browser-local conversation state.
 - API and UI share port **8000** for FastAPI (`NEXT_PUBLIC_API_BASE_URL=http://localhost:8000`). The previous UI fallback of `8011` is retired.
 - Slack handoff is stubbed locally unless a real webhook is provided through environment configuration.
-- Existing-client mode is intentionally a placeholder until authentication is added.
+- Staff mode is the default (`?mode=staff`). Exploring mode is `?mode=prospect` on the API key only.
+
+## Employee / ROIA Discovery Copy (PR2)
+
+- `mode: "staff"` (aliases: omitted / `employee`) is the Red-O default. `mode: "prospect"` is the exploring / pre-hire path.
+- URL `?mode=staff|prospect` plus optional “How are you joining today?” chips select the audience. Staff UI never shows the word “prospect”.
+- Staff path: role chips including Owner/CEO, Admin/Ops, Sales, HR/People, Finance, FOH, BOH, Other. Role-aware `STATE_PROMPTS` overlays (default Admin/Ops). No budget or timeline chips.
+- Exploring path: separate hero/chrome and `PROSPECT_STATE_PROMPTS`. Budget, timing, and sales-path scheduling copy are restored only here. Staff Owner/CEO copy is not reused.
+- Interview states: `WELCOME → MODE_SELECT → IDENTITY → BUSINESS_CONTEXT → ARCHETYPE → PAIN_POINTS → SCHEDULING → SUMMARY → SUBMIT`. `NEEDS` remains an alias of `PAIN_POINTS`.
+- Category/subtype labels stay the 9 ONB1 archetypes. This pass is chrome + prompts only — no Diggler deep question packs.
 
 ## Local Launch And Smoke (PR1)
 
@@ -176,6 +185,7 @@ Prospect: "...how did you know that?"
 
 ## Changelog
 
+- 2026-09-21: PR2 employee/ROIA discovery copy (Tony v1–v3). Staff vs exploring modes, role chips including Owner/CEO, role-aware staff `STATE_PROMPTS`, prospect-only budget/timeline, default `mode=staff`.
 - 2026-09-21: PR1 reproducible Linux/WSL launch + smoke. Aligned API/UI to port 8000, quarantined Pages `/local` and `smoke_test.ps1`, added `scripts/dev.sh` and `scripts/smoke.sh` for the in-memory intake API.
 - 2026-02-23: Added RAG Intelligence Layer for voice agent (Sarah) personalization
 - 2026-03-22: Implemented the local-first prospect intake MVP with FastAPI state transitions and a Next.js App Router UI.

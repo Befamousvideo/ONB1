@@ -25,7 +25,8 @@ Usage: scripts/smoke.sh [--with-web]
   Proves the in-memory FastAPI intake API:
     GET  /health
     POST /api/conversations
-    POST /api/conversations/{id}/message  (WELCOME -> MODE_SELECT -> IDENTITY)
+    POST /api/conversations/{id}/message  (staff WELCOME -> MODE_SELECT role -> IDENTITY)
+    POST /api/conversations                (prospect mode starts without breaking staff)
     GET  /api/conversations/{id}
 
   Reuses a healthy API on API_BASE, or starts in-memory uvicorn
@@ -154,19 +155,21 @@ printf '%s' "$health_body" | python3 -c 'import json,sys; data=json.loads(sys.st
   || fail "health body was not {status: ok}: $health_body"
 pass "GET /health"
 
-create_raw="$(http_json POST "$API_BASE/api/conversations" '{"mode":"prospect"}')"
+create_raw="$(http_json POST "$API_BASE/api/conversations" '{"mode":"staff"}')"
 create_status="$(printf '%s' "$create_raw" | json_field status)"
 create_body="$(printf '%s' "$create_raw" | json_field body)"
 [[ "$create_status" == "201" ]] || fail "create conversation status $create_status body=$create_body"
 CONV_ID="$(printf '%s' "$create_body" | python3 -c 'import json,sys; print(json.loads(sys.stdin.read())["id"])')"
 [[ -n "$CONV_ID" ]] || fail "create conversation missing id"
-pass "POST /api/conversations id=$CONV_ID"
+create_mode="$(printf '%s' "$create_body" | python3 -c 'import json,sys; print(json.loads(sys.stdin.read()).get("normalized_fields", {}).get("mode", ""))')"
+[[ "$create_mode" == "staff" ]] || fail "staff create expected mode=staff got $create_mode"
+pass "POST /api/conversations staff id=$CONV_ID"
 
 welcome_raw="$(http_json POST "$API_BASE/api/conversations/${CONV_ID}/message" '{"content":"Ready to start.","fields":{}}')"
 welcome_status="$(printf '%s' "$welcome_raw" | json_field status)"
 [[ "$welcome_status" == "201" ]] || fail "welcome advance status $welcome_status"
 
-mode_raw="$(http_json POST "$API_BASE/api/conversations/${CONV_ID}/message" '{"content":"New prospect","fields":{"mode":"prospect"}}')"
+mode_raw="$(http_json POST "$API_BASE/api/conversations/${CONV_ID}/message" '{"content":"Admin / Ops","fields":{"mode":"staff","role":"Admin / Ops"}}')"
 mode_status="$(printf '%s' "$mode_raw" | json_field status)"
 mode_body="$(printf '%s' "$mode_raw" | json_field body)"
 [[ "$mode_status" == "201" ]] || fail "mode select status $mode_status body=$mode_body"
@@ -195,6 +198,16 @@ got_field_email="$(printf '%s' "$get_body" | json_nested email)"
 [[ "$got_field_email" == "$SMOKE_EMAIL" ]] || fail "normalized_fields.email expected $SMOKE_EMAIL got $got_field_email"
 pass "GET /api/conversations/{id} identity persisted"
 
+prospect_raw="$(http_json POST "$API_BASE/api/conversations" '{"mode":"prospect"}')"
+prospect_status="$(printf '%s' "$prospect_raw" | json_field status)"
+prospect_body="$(printf '%s' "$prospect_raw" | json_field body)"
+[[ "$prospect_status" == "201" ]] || fail "prospect create status $prospect_status body=$prospect_body"
+prospect_mode="$(printf '%s' "$prospect_body" | python3 -c 'import json,sys; print(json.loads(sys.stdin.read()).get("normalized_fields", {}).get("mode", ""))')"
+[[ "$prospect_mode" == "prospect" ]] || fail "prospect create expected mode=prospect got $prospect_mode"
+prospect_welcome="$(printf '%s' "$prospect_body" | python3 -c 'import json,sys; msgs=json.loads(sys.stdin.read()).get("messages", []); print(msgs[0]["content"] if msgs else "")')"
+printf '%s' "$prospect_welcome" | grep -q "Automation ROI Analysis" || fail "prospect WELCOME did not use exploring pack"
+pass "POST /api/conversations prospect mode=prospect starts"
+
 if [[ "$WITH_WEB" == "1" ]]; then
   web_html="$(python3 - "$WEB_BASE" <<'PY'
 import sys
@@ -210,9 +223,9 @@ except Exception as exc:
     sys.exit(1)
 PY
 )" || fail "web is not reachable at $WEB_BASE (start ./scripts/dev.sh, then rerun --with-web)"
-printf '%s' "$web_html" | grep -q "Prospect intake" || fail "web page at $WEB_BASE is missing App Router intake copy (is Pages /local still shadowing /?)"
-printf '%s' "$web_html" | grep -q "No active intake yet" || fail "web page at $WEB_BASE is missing the empty intake state"
-pass "GET $WEB_BASE App Router intake"
+printf '%s' "$web_html" | grep -q "Your seat. Your workflow" || fail "web page at $WEB_BASE is missing staff discovery copy (is Pages /local still shadowing /?)"
+printf '%s' "$web_html" | grep -q "start discovery. Pause and resume" || fail "web page at $WEB_BASE is missing the empty discovery state"
+pass "GET $WEB_BASE App Router discovery"
 else
   if python3 - "$WEB_BASE" <<'PY' >/dev/null 2>&1
 import sys, urllib.request
@@ -224,10 +237,10 @@ import sys, urllib.request
 print(urllib.request.urlopen(sys.argv[1], timeout=8).read().decode(errors="replace"))
 PY
 )"
-    if printf '%s' "$web_html" | grep -q "Prospect intake"; then
-      pass "GET $WEB_BASE App Router intake (optional, web already running)"
+    if printf '%s' "$web_html" | grep -q "Your seat. Your workflow"; then
+      pass "GET $WEB_BASE App Router discovery (optional, web already running)"
     else
-      echo "note  web is running at $WEB_BASE but did not look like the App Router intake"
+      echo "note  web is running at $WEB_BASE but did not look like the App Router discovery UI"
     fi
   else
     echo "note  web not running at $WEB_BASE (API smoke passed). Start ./scripts/dev.sh and rerun with --with-web."
