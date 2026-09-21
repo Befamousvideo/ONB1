@@ -15,10 +15,18 @@ This document is the single source of truth for project scope, architecture, and
 ## Local-First MVP Baseline
 
 - Prospect intake flow is implemented as a local-first MVP before OAuth, payments, and RAG.
-- The backend uses a FastAPI state machine with local in-memory persistence for conversation progress.
-- The frontend uses a single App Router intake UI that resumes from browser-local conversation state.
+- The backend uses a FastAPI state machine with local in-memory persistence for conversation progress. Postgres / `dev.ps1` is not part of the supported local launch.
+- The frontend uses a single App Router intake UI (`web/app/page.tsx`, route `/`) that resumes from browser-local conversation state.
+- API and UI share port **8000** for FastAPI (`NEXT_PUBLIC_API_BASE_URL=http://localhost:8000`). The previous UI fallback of `8011` is retired.
 - Slack handoff is stubbed locally unless a real webhook is provided through environment configuration.
 - Existing-client mode is intentionally a placeholder until authentication is added.
+
+## Local Launch And Smoke (PR1)
+
+- Supported launch (Linux/WSL): `./scripts/dev.sh` starts in-memory FastAPI on `:8000` and Next.js on `:3000`. API deps use `server/.venv` when `python3-venv` exists, otherwise a local `server/.deps` pip target.
+- Supported smoke: `./scripts/smoke.sh` (API: health, create conversation, identity name/email, get conversation). Add `--with-web` when the UI is already running.
+- Quarantined: Pages Router `/local` (`web/legacy/pages-local-ux/`) and `smoke_test.ps1` (stale `account_id` / `sender_type` contract). `/local` now serves a notice that links to `/`.
+- Dual `web/next.config.js` + `web/next.config.mjs` collapsed to `web/next.config.mjs` so Next.js has one config.
 
 ## Chosen Stack
 
@@ -168,6 +176,7 @@ Prospect: "...how did you know that?"
 
 ## Changelog
 
+- 2026-09-21: PR1 reproducible Linux/WSL launch + smoke. Aligned API/UI to port 8000, quarantined Pages `/local` and `smoke_test.ps1`, added `scripts/dev.sh` and `scripts/smoke.sh` for the in-memory intake API.
 - 2026-02-23: Added RAG Intelligence Layer for voice agent (Sarah) personalization
 - 2026-03-22: Implemented the local-first prospect intake MVP with FastAPI state transitions and a Next.js App Router UI.
 - 2026-03-23: Added ROI-audit interview guidance, business-type pain-point inference requirements, and Orange County scheduling rules.

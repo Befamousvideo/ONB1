@@ -7,6 +7,7 @@ out/
 __pycache__/
 *.py[cod]
 .venv/
+.deps/
 
 # Env
 .env

@@ -1,4 +1,4 @@
-﻿import type { AppProps } from "next/app";
+import type { AppProps } from "next/app";
 import { Space_Grotesk } from "next/font/google";
 
 const space = Space_Grotesk({ subsets: ["latin"], variable: "--font-space" });
