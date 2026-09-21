@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
-# Local-first intake smoke against the in-memory FastAPI API.
-# Required checks: health, create conversation, identity (name/email), get conversation.
-# Optional: --with-web also asserts the App Router intake page is reachable.
+# Staff/exploring smoke against FastAPI + durable Postgres.
+# Required: health, staff create, identity (name/email/work_phone), get,
+# restart-resume, exploring create. Optional --with-web.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # shellcheck source=lib/onb1-api.sh
 ONB1_ROOT="$ROOT"
 . "$ROOT/scripts/lib/onb1-api.sh"
+# shellcheck source=lib/onb1-db.sh
+. "$ROOT/scripts/lib/onb1-db.sh"
 API_HOST="${API_HOST:-127.0.0.1}"
 API_PORT="${API_PORT:-8000}"
 API_BASE="${API_BASE:-http://${API_HOST}:${API_PORT}}"
@@ -17,28 +19,31 @@ STARTED_API=0
 API_PID=""
 SMOKE_NAME="Smoke Tester"
 SMOKE_EMAIL="smoke@example.com"
+SMOKE_PHONE="555-0100"
 
 usage() {
   cat <<'EOF'
 Usage: scripts/smoke.sh [--with-web]
 
-  Proves the in-memory FastAPI intake API:
-    GET  /health
-    POST /api/conversations
-    POST /api/conversations/{id}/message  (staff WELCOME -> MODE_SELECT role -> IDENTITY)
-    POST /api/conversations                (prospect mode starts without breaking staff)
+  Proves durable staff discovery + exploring mode:
+    GET  /health (persistence=postgres)
+    POST /api/conversations staff
+    POST .../message  (WELCOME -> MODE_SELECT role -> IDENTITY with work_phone)
     GET  /api/conversations/{id}
+    Restart (or a fresh API process) still returns the same staff identity
+    POST /api/conversations prospect (starts, does not break staff)
 
-  Reuses a healthy API on API_BASE, or starts in-memory uvicorn
-  (server/.venv, or server/.deps if python3-venv is unavailable).
+  Starts Postgres (Docker or local) when DATABASE_URL is not already reachable,
+  applies db/migrations, then uvicorn (server/.venv or server/.deps).
 
   --with-web   Also GET WEB_BASE (default http://127.0.0.1:3000) and require
-               the App Router intake markers. Does not start Next.js.
+               the App Router staff discovery markers. Does not start Next.js.
 
 Environment:
-  API_BASE   default http://127.0.0.1:8000
-  API_PORT   default 8000 (used when starting uvicorn)
-  WEB_BASE   default http://127.0.0.1:3000
+  API_BASE       default http://127.0.0.1:8000
+  API_PORT       default 8000 (used when starting uvicorn)
+  DATABASE_URL   default postgresql://onb1:onb1_dev_password@127.0.0.1:5432/onb1
+  WEB_BASE       default http://127.0.0.1:3000
 EOF
 }
 
@@ -123,8 +128,8 @@ health_ok() {
 
 start_api() {
   onb1_ensure_api_python
-  echo "Starting in-memory FastAPI on ${API_HOST}:${API_PORT} ..."
-  onb1_run_uvicorn "$API_HOST" "$API_PORT" >/tmp/onb1-smoke-api.log 2>&1 &
+  echo "Starting FastAPI on ${API_HOST}:${API_PORT} (DATABASE_URL set, persistence=postgres) ..."
+  DATABASE_URL="$DATABASE_URL" onb1_run_uvicorn "$API_HOST" "$API_PORT" >/tmp/onb1-smoke-api.log 2>&1 &
   API_PID=$!
   STARTED_API=1
 
@@ -140,20 +145,27 @@ start_api() {
   fail "API did not become healthy at $API_BASE/health. See /tmp/onb1-smoke-api.log"
 }
 
+onb1_ensure_postgres || fail "Postgres is required for staff identity durability"
+onb1_migrate || fail "db/migrations failed. See migrate output above"
+
 if health_ok; then
-  pass "reusing healthy API at $API_BASE"
+  existing_persistence="$(http_json GET "$API_BASE/health" | json_field body | python3 -c 'import json,sys; print(json.loads(sys.stdin.read()).get("persistence",""))')"
+  if [[ "$existing_persistence" != "postgres" ]]; then
+    fail "API at $API_BASE is memory-only. Stop it so smoke can start a Postgres-backed API."
+  fi
+  pass "reusing Postgres-backed API at $API_BASE"
 else
   start_api
-  pass "started in-memory API at $API_BASE"
+  pass "started Postgres-backed API at $API_BASE"
 fi
 
 health_raw="$(http_json GET "$API_BASE/health")"
 health_status="$(printf '%s' "$health_raw" | json_field status)"
 health_body="$(printf '%s' "$health_raw" | json_field body)"
 [[ "$health_status" == "200" ]] || fail "health status $health_status"
-printf '%s' "$health_body" | python3 -c 'import json,sys; data=json.loads(sys.stdin.read()); assert data.get("status")=="ok"' \
-  || fail "health body was not {status: ok}: $health_body"
-pass "GET /health"
+printf '%s' "$health_body" | python3 -c 'import json,sys; data=json.loads(sys.stdin.read()); assert data.get("status")=="ok"; assert data.get("persistence")=="postgres"' \
+  || fail "health body was not {status: ok, persistence: postgres}: $health_body"
+pass "GET /health persistence=postgres"
 
 create_raw="$(http_json POST "$API_BASE/api/conversations" '{"mode":"staff"}')"
 create_status="$(printf '%s' "$create_raw" | json_field status)"
@@ -176,12 +188,12 @@ mode_body="$(printf '%s' "$mode_raw" | json_field body)"
 mode_state="$(printf '%s' "$mode_body" | json_field state)"
 [[ "$mode_state" == "IDENTITY" ]] || fail "expected IDENTITY after mode select, got $mode_state"
 
-identity_payload="$(python3 -c 'import json; print(json.dumps({"content":"Smoke Tester | smoke@example.com","fields":{"full_name":"Smoke Tester","email":"smoke@example.com"}}))')"
+identity_payload="$(python3 -c 'import json; print(json.dumps({"content":"Smoke Tester | smoke@example.com","fields":{"full_name":"Smoke Tester","email":"smoke@example.com","work_phone":"555-0100"}}))')"
 identity_raw="$(http_json POST "$API_BASE/api/conversations/${CONV_ID}/message" "$identity_payload")"
 identity_status="$(printf '%s' "$identity_raw" | json_field status)"
 identity_body="$(printf '%s' "$identity_raw" | json_field body)"
 [[ "$identity_status" == "201" ]] || fail "identity status $identity_status body=$identity_body"
-pass "POST identity name=$SMOKE_NAME email=$SMOKE_EMAIL"
+pass "POST identity name=$SMOKE_NAME email=$SMOKE_EMAIL work_phone=$SMOKE_PHONE"
 
 get_raw="$(http_json GET "$API_BASE/api/conversations/${CONV_ID}")"
 get_status="$(printf '%s' "$get_raw" | json_field status)"
@@ -192,11 +204,58 @@ got_name="$(printf '%s' "$get_body" | json_field participant_name)"
 got_email="$(printf '%s' "$get_body" | json_field participant_email)"
 got_field_name="$(printf '%s' "$get_body" | json_nested full_name)"
 got_field_email="$(printf '%s' "$get_body" | json_nested email)"
+got_field_phone="$(printf '%s' "$get_body" | json_nested work_phone)"
+got_field_role="$(printf '%s' "$get_body" | json_nested role)"
 [[ "$got_name" == "$SMOKE_NAME" ]] || fail "participant_name expected $SMOKE_NAME got $got_name"
 [[ "$got_email" == "$SMOKE_EMAIL" ]] || fail "participant_email expected $SMOKE_EMAIL got $got_email"
 [[ "$got_field_name" == "$SMOKE_NAME" ]] || fail "normalized_fields.full_name expected $SMOKE_NAME got $got_field_name"
 [[ "$got_field_email" == "$SMOKE_EMAIL" ]] || fail "normalized_fields.email expected $SMOKE_EMAIL got $got_field_email"
-pass "GET /api/conversations/{id} identity persisted"
+[[ "$got_field_phone" == "$SMOKE_PHONE" ]] || fail "normalized_fields.work_phone expected $SMOKE_PHONE got $got_field_phone"
+[[ "$got_field_role" == "Admin / Ops" ]] || fail "normalized_fields.role expected Admin / Ops got $got_field_role"
+pass "GET /api/conversations/{id} staff identity persisted"
+
+assert_identity_from() {
+  local base="$1"
+  local raw status body name email phone role
+  raw="$(http_json GET "${base}/api/conversations/${CONV_ID}")"
+  status="$(printf '%s' "$raw" | json_field status)"
+  body="$(printf '%s' "$raw" | json_field body)"
+  [[ "$status" == "200" ]] || fail "resume GET status $status body=$body"
+  name="$(printf '%s' "$body" | json_field participant_name)"
+  email="$(printf '%s' "$body" | json_field participant_email)"
+  phone="$(printf '%s' "$body" | json_nested work_phone)"
+  role="$(printf '%s' "$body" | json_nested role)"
+  [[ "$name" == "$SMOKE_NAME" ]] || fail "resume participant_name expected $SMOKE_NAME got $name"
+  [[ "$email" == "$SMOKE_EMAIL" ]] || fail "resume participant_email expected $SMOKE_EMAIL got $email"
+  [[ "$phone" == "$SMOKE_PHONE" ]] || fail "resume work_phone expected $SMOKE_PHONE got $phone"
+  [[ "$role" == "Admin / Ops" ]] || fail "resume role expected Admin / Ops got $role"
+}
+
+RESUME_PORT=8099
+RESUME_BASE="http://127.0.0.1:${RESUME_PORT}"
+echo "Proving staff identity survives a fresh API process on :${RESUME_PORT} ..."
+DATABASE_URL="$DATABASE_URL" onb1_run_uvicorn 127.0.0.1 "$RESUME_PORT" >/tmp/onb1-smoke-resume.log 2>&1 &
+RESUME_PID=$!
+resume_ok=0
+for _ in $(seq 1 40); do
+  if python3 - "$RESUME_BASE" <<'PY' >/dev/null 2>&1
+import sys, urllib.request
+urllib.request.urlopen(f"{sys.argv[1]}/health", timeout=1)
+PY
+  then
+    resume_ok=1
+    break
+  fi
+  if ! kill -0 "$RESUME_PID" 2>/dev/null; then
+    fail "resume API exited. See /tmp/onb1-smoke-resume.log"
+  fi
+  sleep 0.25
+done
+[[ "$resume_ok" == "1" ]] || fail "resume API did not become healthy. See /tmp/onb1-smoke-resume.log"
+assert_identity_from "$RESUME_BASE"
+kill "$RESUME_PID" 2>/dev/null || true
+wait "$RESUME_PID" 2>/dev/null || true
+pass "staff identity durable after API restart (work_phone + role)"
 
 prospect_raw="$(http_json POST "$API_BASE/api/conversations" '{"mode":"prospect"}')"
 prospect_status="$(printf '%s' "$prospect_raw" | json_field status)"

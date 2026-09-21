@@ -333,7 +333,8 @@ function buildSummary(fields: Record<string, string>) {
   const lines: string[] = [];
   if (fields.full_name) lines.push(`Name: ${fields.full_name}`);
   if (fields.email) lines.push(`Email: ${fields.email}`);
-  if (fields.phone) lines.push(`Phone: ${fields.phone}`);
+  if (fields.work_phone) lines.push(`Work phone: ${fields.work_phone}`);
+  else if (fields.phone) lines.push(`Phone: ${fields.phone}`);
   if (fields.role) lines.push(`Seat: ${fields.role}`);
   if (fields.company_location) lines.push(`Company / location: ${fields.company_location}`);
   if (fields.business_name) lines.push(`Company: ${fields.business_name}`);
@@ -688,8 +689,14 @@ export default function HomePage() {
             <input className="text-input" onChange={(event) => updateField("email", event.target.value)} type="email" value={fields.email || ""} />
           </label>
           <label className="field-group">
-            <span className="field-label">Phone (optional)</span>
-            <input className="text-input" onChange={(event) => updateField("phone", event.target.value)} value={fields.phone || ""} />
+            <span className="field-label">{activeMode === "staff" ? "Work phone" : "Phone (optional)"}</span>
+            <input
+              className="text-input"
+              onChange={(event) =>
+                updateField(activeMode === "staff" ? "work_phone" : "phone", event.target.value)
+              }
+              value={activeMode === "staff" ? fields.work_phone || "" : fields.phone || ""}
+            />
           </label>
           <label className="field-group">
             <span className="field-label">Company or location (if you have more than one) — optional</span>
@@ -701,13 +708,14 @@ export default function HomePage() {
           </label>
           <button
             className="primary-button"
-            disabled={loading}
+            disabled={loading || (activeMode === "staff" && !(fields.work_phone || "").trim())}
             onClick={() =>
               advanceConversation(
                 {
                   full_name: fields.full_name || "",
                   email: fields.email || "",
                   phone: fields.phone || "",
+                  work_phone: fields.work_phone || "",
                   company_location: fields.company_location || "",
                   mode: activeMode,
                 },

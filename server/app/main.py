@@ -17,6 +17,15 @@ from pydantic import BaseModel, Field
 UTC = timezone.utc
 EMAIL_RE = re.compile(r"^\S+@\S+\.\S+$")
 SLACK_WEBHOOK_URL = os.getenv("SLACK_WEBHOOK_URL")
+DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
+DEFAULT_ACCOUNT_NAME = "ONB1 ROIA workspace"
+
+try:
+    import psycopg
+    from psycopg.rows import dict_row
+except ImportError:  # pragma: no cover - memory-only unit tests
+    psycopg = None
+    dict_row = None
 LOCAL_CORS_ORIGIN_REGEX = (
     r"^https?://("
     r"localhost|"
@@ -289,6 +298,29 @@ class LocalConnection:
         return LocalCursor()
 
 
+class PgConnection:
+    def __init__(self, conn: Any) -> None:
+        self._conn = conn
+
+    def __enter__(self) -> PgConnection:
+        return self
+
+    def __exit__(self, exc_type, exc, tb) -> bool:
+        if exc_type:
+            self._conn.rollback()
+        else:
+            self._conn.commit()
+        self._conn.close()
+        return False
+
+    def cursor(self) -> Any:
+        return self._conn.cursor()
+
+
+def persistence_backend() -> str:
+    return "postgres" if DATABASE_URL else "memory"
+
+
 def utc_now() -> datetime:
     return datetime.now(tz=UTC)
 
@@ -361,7 +393,9 @@ def build_summary(fields: dict[str, str]) -> str:
         lines.append(f"Name: {fields['full_name']}")
     if fields.get("email"):
         lines.append(f"Email: {fields['email']}")
-    if fields.get("phone"):
+    if fields.get("work_phone"):
+        lines.append(f"Work phone: {fields['work_phone']}")
+    elif fields.get("phone"):
         lines.append(f"Phone: {fields['phone']}")
     if fields.get("role"):
         lines.append(f"Seat: {fields['role']}")
@@ -556,8 +590,14 @@ def validate_required_fields(state: str, fields: dict[str, str]) -> None:
     if missing:
         raise HTTPException(status_code=400, detail={"error": "missing_fields", "fields": missing})
 
-    if state == "IDENTITY" and not EMAIL_RE.match(clean_text(fields.get("email"))):
-        raise HTTPException(status_code=400, detail={"error": "invalid_email"})
+    if state == "IDENTITY":
+        if not EMAIL_RE.match(clean_text(fields.get("email"))):
+            raise HTTPException(status_code=400, detail={"error": "invalid_email"})
+        if canonical_mode(fields) == "staff":
+            work_phone = clean_text(fields.get("work_phone")) or clean_text(fields.get("phone"))
+            if not work_phone:
+                raise HTTPException(status_code=400, detail={"error": "missing_fields", "fields": ["work_phone"]})
+            fields["work_phone"] = work_phone
 
 
 def new_message(conversation_id: UUID, role: str, content: str, attachments: list[Attachment] | None = None) -> dict[str, Any]:
@@ -571,8 +611,164 @@ def new_message(conversation_id: UUID, role: str, content: str, attachments: lis
     }
 
 
-def get_conn() -> LocalConnection:
+def get_conn() -> LocalConnection | PgConnection:
+    if DATABASE_URL:
+        if psycopg is None or dict_row is None:
+            raise HTTPException(status_code=503, detail="postgres_driver_missing")
+        return PgConnection(psycopg.connect(DATABASE_URL, row_factory=dict_row))
     return LocalConnection()
+
+
+def ensure_default_account(conn: Any) -> UUID:
+    with conn.cursor() as cursor:
+        cursor.execute("SELECT id FROM accounts WHERE name = %s", (DEFAULT_ACCOUNT_NAME,))
+        row = cursor.fetchone()
+        if row:
+            return row["id"]
+        cursor.execute(
+            "INSERT INTO accounts (name, status) VALUES (%s, %s) RETURNING id",
+            (DEFAULT_ACCOUNT_NAME, "active"),
+        )
+        created = cursor.fetchone()
+    return created["id"]
+
+
+def upsert_contact(conn: Any, account_id: UUID, fields: dict[str, str]) -> UUID | None:
+    email = clean_text(fields.get("email"))
+    if not email:
+        return None
+    work_phone = clean_text(fields.get("work_phone")) or clean_text(fields.get("phone"))
+    with conn.cursor() as cursor:
+        cursor.execute(
+            """
+            INSERT INTO contacts (
+                account_id, full_name, email, phone, work_phone, role, company_location
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (account_id, email) DO UPDATE SET
+                full_name = EXCLUDED.full_name,
+                phone = COALESCE(EXCLUDED.phone, contacts.phone),
+                work_phone = COALESCE(EXCLUDED.work_phone, contacts.work_phone),
+                role = COALESCE(EXCLUDED.role, contacts.role),
+                company_location = COALESCE(EXCLUDED.company_location, contacts.company_location),
+                updated_at = now()
+            RETURNING id
+            """,
+            (
+                account_id,
+                clean_text(fields.get("full_name")) or email,
+                email,
+                work_phone or None,
+                work_phone or None,
+                clean_text(fields.get("role")) or None,
+                clean_text(fields.get("company_location")) or None,
+            ),
+        )
+        row = cursor.fetchone()
+    return row["id"] if row else None
+
+
+def insert_message_row(cursor: Any, message: dict[str, Any]) -> None:
+    attachments = message.get("attachments") or []
+    cursor.execute(
+        """
+        INSERT INTO messages (
+            id, conversation_id, sender_type, body, role, content, attachments, created_at
+        )
+        VALUES (%s, %s, %s, %s, %s, %s, %s::jsonb, %s)
+        ON CONFLICT (id) DO NOTHING
+        """,
+        (
+            message["id"],
+            message["conversation_id"],
+            message.get("role") or "assistant",
+            message.get("content") or "",
+            message.get("role") or "assistant",
+            message.get("content") or "",
+            json.dumps(attachments),
+            message.get("created_at") or utc_now(),
+        ),
+    )
+
+
+def persist_new_conversation(conn: Any, conversation: dict[str, Any]) -> None:
+    fields = conversation.get("normalized_fields") or {}
+    account_id = ensure_default_account(conn)
+    contact_id = upsert_contact(conn, account_id, fields)
+    conversation["account_id"] = account_id
+    conversation["contact_id"] = contact_id
+    with conn.cursor() as cursor:
+        cursor.execute(
+            """
+            INSERT INTO conversations (
+                id, account_id, contact_id, channel, subject, mode, state,
+                normalized_fields, status, participant_name, participant_email,
+                slack_post_id, created_at, updated_at
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s, %s, %s, %s, %s, %s)
+            """,
+            (
+                conversation["id"],
+                account_id,
+                contact_id,
+                "web",
+                "ROIA discovery",
+                canonical_mode(fields),
+                conversation.get("state", "WELCOME"),
+                json.dumps(fields),
+                conversation.get("status", "active"),
+                conversation.get("participant_name") or fields.get("full_name"),
+                conversation.get("participant_email") or fields.get("email"),
+                conversation.get("slack_post_id"),
+                conversation.get("created_at") or utc_now(),
+                conversation.get("updated_at") or utc_now(),
+            ),
+        )
+        for message in conversation.get("messages") or []:
+            insert_message_row(cursor, message)
+
+
+def persist_conversation_update(
+    conn: Any,
+    conversation_id: UUID,
+    fields: dict[str, str],
+    state: str | None = None,
+    status: str | None = None,
+    messages: list[dict[str, Any]] | None = None,
+    attachments: list[Attachment] | None = None,
+) -> None:
+    account_id = ensure_default_account(conn)
+    contact_id = upsert_contact(conn, account_id, fields)
+    with conn.cursor() as cursor:
+        cursor.execute(
+            """
+            UPDATE conversations SET
+                state = COALESCE(%s, state),
+                status = COALESCE(%s, status),
+                normalized_fields = %s::jsonb,
+                participant_name = COALESCE(%s, participant_name),
+                participant_email = COALESCE(%s, participant_email),
+                contact_id = COALESCE(%s, contact_id),
+                summary = COALESCE(%s, summary),
+                updated_at = %s
+            WHERE id = %s
+            """,
+            (
+                state,
+                status,
+                json.dumps(fields),
+                fields.get("full_name"),
+                fields.get("email"),
+                contact_id,
+                fields.get("summary"),
+                utc_now(),
+                conversation_id,
+            ),
+        )
+        for message in messages or []:
+            insert_message_row(cursor, message)
+    if attachments:
+        persist_attachments(conn, conversation_id, attachments)
 
 
 def fetch_conversation(conn: Any, conversation_id: UUID) -> dict[str, Any] | None:
@@ -588,7 +784,46 @@ def fetch_conversation(conn: Any, conversation_id: UUID) -> dict[str, Any] | Non
 
     with conn.cursor() as cursor:
         cursor.execute("SELECT * FROM conversations WHERE id = %s", (conversation_id,))
-        return cursor.fetchone()
+        row = cursor.fetchone()
+        if not row:
+            return None
+        cursor.execute(
+            """
+            SELECT * FROM messages
+            WHERE conversation_id = %s
+            ORDER BY created_at ASC
+            """,
+            (conversation_id,),
+        )
+        messages = []
+        for message in cursor.fetchall():
+            messages.append(
+                {
+                    "id": message["id"],
+                    "conversation_id": message["conversation_id"],
+                    "role": message.get("role") or message.get("sender_type"),
+                    "content": message.get("content") or message.get("body") or "",
+                    "attachments": message.get("attachments") or [],
+                    "created_at": message.get("created_at"),
+                }
+            )
+        cursor.execute(
+            """
+            SELECT payload, summary FROM intake_briefs
+            WHERE conversation_id = %s
+            ORDER BY created_at DESC
+            LIMIT 1
+            """,
+            (conversation_id,),
+        )
+        brief_row = cursor.fetchone()
+        payload = dict(row)
+        payload["messages"] = messages
+        if brief_row and brief_row.get("payload"):
+            payload["intake_brief"] = brief_row["payload"]
+        elif brief_row and brief_row.get("summary"):
+            payload["intake_brief"] = {"summary": brief_row["summary"]}
+        return payload
 
 
 def persist_intake_brief(conn: Any, conversation_id: UUID, brief: dict[str, Any]) -> UUID:
@@ -599,10 +834,26 @@ def persist_intake_brief(conn: Any, conversation_id: UUID, brief: dict[str, Any]
             conversation["updated_at"] = utc_now()
         return uuid4()
 
+    account_id = ensure_default_account(conn)
+    goals = brief.get("goals")
+    constraints = brief.get("constraints")
     with conn.cursor() as cursor:
         cursor.execute(
-            "INSERT INTO intake_briefs (conversation_id, payload) VALUES (%s, %s) RETURNING id",
-            (conversation_id, json.dumps(brief)),
+            """
+            INSERT INTO intake_briefs (
+                account_id, conversation_id, summary, goals, constraints, payload
+            )
+            VALUES (%s, %s, %s, %s, %s, %s::jsonb)
+            RETURNING id
+            """,
+            (
+                account_id,
+                conversation_id,
+                clean_text(brief.get("summary")) or "ROIA discovery notes",
+                json.dumps(goals) if not isinstance(goals, str) else goals,
+                json.dumps(constraints) if not isinstance(constraints, str) else constraints,
+                json.dumps(brief),
+            ),
         )
         row = cursor.fetchone()
     return row["id"] if row else uuid4()
@@ -618,9 +869,22 @@ def persist_attachments(conn: Any, conversation_id: UUID, attachments: list[Atta
 
     with conn.cursor() as cursor:
         for attachment in attachments:
+            data = attachment.model_dump()
             cursor.execute(
-                "INSERT INTO attachments (conversation_id, payload) VALUES (%s, %s)",
-                (conversation_id, json.dumps(attachment.model_dump())),
+                """
+                INSERT INTO attachments (
+                    conversation_id, file_name, content_type, size_bytes, storage_key, storage_url
+                )
+                VALUES (%s, %s, %s, %s, %s, %s)
+                """,
+                (
+                    conversation_id,
+                    data.get("file_name") or "upload",
+                    data.get("content_type") or "application/octet-stream",
+                    data.get("size_bytes") or 0,
+                    data.get("file_name") or "upload",
+                    data.get("file_url") or "",
+                ),
             )
 
 
@@ -843,9 +1107,23 @@ def end_and_send(
             fields["notes"] = clean_text(payload.notes)
         if not fields.get("summary"):
             fields["summary"] = build_summary(fields)
+        if canonical_mode(fields) == "staff":
+            work_phone = clean_text(fields.get("work_phone")) or clean_text(fields.get("phone"))
+            if not work_phone:
+                raise HTTPException(status_code=400, detail={"error": "missing_fields", "fields": ["work_phone"]})
+            fields["work_phone"] = work_phone
 
         if isinstance(conn, LocalConnection):
             update_local_conversation(
+                conversation_id,
+                fields=fields,
+                state="SUBMIT",
+                status="ended",
+                attachments=payload.attachments,
+            )
+        elif isinstance(conn, PgConnection):
+            persist_conversation_update(
+                conn,
                 conversation_id,
                 fields=fields,
                 state="SUBMIT",
@@ -874,13 +1152,15 @@ def end_and_send(
                 _CONVERSATIONS[conversation_id]["slack_post_id"] = slack_post_id
                 updated_row = dict(_CONVERSATIONS[conversation_id])
                 updated_row["normalized_fields"] = json.dumps(_CONVERSATIONS[conversation_id]["normalized_fields"])
+        elif isinstance(conn, PgConnection):
+            updated_row = fetch_conversation(conn, conversation_id) or updated_row
 
         return to_conversation_model(updated_row)
 
 
 @app.get("/health")
 def health() -> dict[str, str]:
-    return {"status": "ok"}
+    return {"status": "ok", "persistence": persistence_backend()}
 
 
 @app.post("/api/conversations", status_code=201)
@@ -911,15 +1191,22 @@ def create_conversation(payload: CreateConversationRequest) -> dict[str, Any]:
         "created_at": now,
         "updated_at": now,
     }
-    with _STORE_LOCK:
-        _CONVERSATIONS[conversation_id] = conversation
-    return to_conversation_model(conversation)
+    with get_conn() as conn:
+        if isinstance(conn, LocalConnection):
+            with _STORE_LOCK:
+                _CONVERSATIONS[conversation_id] = conversation
+            return to_conversation_model(conversation)
+        persist_new_conversation(conn, conversation)
+        stored = fetch_conversation(conn, conversation_id)
+        if not stored:
+            raise HTTPException(status_code=500, detail="conversation_persist_failed")
+        return to_conversation_model(stored)
 
 
 @app.get("/api/conversations/{conversation_id}")
 def get_conversation(conversation_id: UUID) -> dict[str, Any]:
-    with _STORE_LOCK:
-        conversation = _CONVERSATIONS.get(conversation_id)
+    with get_conn() as conn:
+        conversation = fetch_conversation(conn, conversation_id)
         if not conversation:
             raise HTTPException(status_code=404, detail="conversation_not_found")
         return to_conversation_model(conversation)
@@ -927,33 +1214,49 @@ def get_conversation(conversation_id: UUID) -> dict[str, Any]:
 
 @app.post("/api/conversations/{conversation_id}/message", status_code=201)
 def create_conversation_message(conversation_id: UUID, payload: CreateMessageRequest) -> dict[str, Any]:
-    with _STORE_LOCK:
-        conversation = _CONVERSATIONS.get(conversation_id)
+    with get_conn() as conn:
+        conversation = fetch_conversation(conn, conversation_id)
         if not conversation:
             raise HTTPException(status_code=404, detail="conversation_not_found")
         current_state = conversation["state"]
-        existing_fields = dict(conversation["normalized_fields"])
+        existing_fields = parse_normalized_fields(conversation.get("normalized_fields"))
 
-    incoming_fields = normalize_fields(payload.fields)
-    merged_fields = {**existing_fields, **incoming_fields}
-    if current_state == "SUBMIT":
-        return to_conversation_model(conversation)
+        incoming_fields = normalize_fields(payload.fields)
+        merged_fields = {**existing_fields, **incoming_fields}
+        if current_state == "SUBMIT":
+            return to_conversation_model(conversation)
 
-    validate_required_fields(current_state, merged_fields)
-    if not merged_fields.get("summary"):
-        merged_fields["summary"] = build_summary(merged_fields)
+        validate_required_fields(current_state, merged_fields)
+        if not merged_fields.get("summary"):
+            merged_fields["summary"] = build_summary(merged_fields)
 
-    user_content = clean_text(payload.content) or summarize_step_response(current_state, merged_fields)
-    next_step = next_state(current_state, merged_fields) if payload.advance else current_state
-
-    updated = update_local_conversation(conversation_id, fields=merged_fields, state=next_step)
-    with _STORE_LOCK:
+        user_content = clean_text(payload.content) or summarize_step_response(current_state, merged_fields)
+        next_step = next_state(current_state, merged_fields) if payload.advance else current_state
+        new_messages: list[dict[str, Any]] = []
         if user_content:
-            updated["messages"].append(new_message(conversation_id, "user", user_content, payload.attachments))
-        updated["messages"].append(new_message(conversation_id, "assistant", prompt_for_state(next_step, merged_fields)))
-        updated["updated_at"] = utc_now()
-        _CONVERSATIONS[conversation_id] = updated
-        return to_conversation_model(updated)
+            new_messages.append(new_message(conversation_id, "user", user_content, payload.attachments))
+        new_messages.append(new_message(conversation_id, "assistant", prompt_for_state(next_step, merged_fields)))
+
+        if isinstance(conn, LocalConnection):
+            updated = update_local_conversation(conversation_id, fields=merged_fields, state=next_step)
+            with _STORE_LOCK:
+                updated["messages"].extend(new_messages)
+                updated["updated_at"] = utc_now()
+                _CONVERSATIONS[conversation_id] = updated
+                return to_conversation_model(updated)
+
+        persist_conversation_update(
+            conn,
+            conversation_id,
+            fields=merged_fields,
+            state=next_step,
+            messages=new_messages,
+            attachments=payload.attachments,
+        )
+        stored = fetch_conversation(conn, conversation_id)
+        if not stored:
+            raise HTTPException(status_code=404, detail="conversation_not_found")
+        return to_conversation_model(stored)
 
 
 @app.post("/api/conversations/{conversation_id}/end-and-send")

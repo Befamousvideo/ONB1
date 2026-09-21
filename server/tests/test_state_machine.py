@@ -44,6 +44,28 @@ def test_mode_select_accepts_role_or_mode():
     assert excinfo.value.detail["fields"] == ["role"]
 
 
+def test_staff_identity_requires_work_phone():
+    main.validate_required_fields(
+        "IDENTITY",
+        {"mode": "staff", "full_name": "Ada", "email": "ada@example.com", "work_phone": "555-0100"},
+    )
+    aliased = {"mode": "staff", "full_name": "Ada", "email": "ada@example.com", "phone": "555-0199"}
+    main.validate_required_fields("IDENTITY", aliased)
+    assert aliased["work_phone"] == "555-0199"
+    with pytest.raises(HTTPException) as excinfo:
+        main.validate_required_fields(
+            "IDENTITY", {"mode": "staff", "full_name": "Ada", "email": "ada@example.com"}
+        )
+    assert excinfo.value.detail["fields"] == ["work_phone"]
+
+
+def test_prospect_identity_phone_optional():
+    main.validate_required_fields(
+        "IDENTITY",
+        {"mode": "prospect", "full_name": "Bea", "email": "bea@example.com"},
+    )
+
+
 def test_validate_required_fields_scheduling():
     main.validate_required_fields("SCHEDULING", {"scheduling_option": "link"})
     main.validate_required_fields(
@@ -57,12 +79,46 @@ def test_validate_required_fields_scheduling():
     assert "timezone" in detail["fields"]
 
 
+def test_end_and_send_staff_requires_work_phone(monkeypatch):
+    conversation_id = uuid4()
+    row = {
+        "id": conversation_id,
+        "state": "SUMMARY",
+        "normalized_fields": json.dumps({"mode": "staff", "full_name": "Ada", "email": "ada@example.com"}),
+    }
+
+    class FakeConn:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def cursor(self):
+            raise AssertionError("should fail before cursor work")
+
+    monkeypatch.setattr(main, "get_conn", lambda: FakeConn())
+    monkeypatch.setattr(main, "fetch_conversation", lambda *_a, **_k: row)
+
+    with pytest.raises(HTTPException) as excinfo:
+        main.end_and_send(conversation_id, payload=main.EndAndSendRequest(summary="Done"), request=None)
+    assert excinfo.value.detail["fields"] == ["work_phone"]
+
+
 def test_end_and_send_forces_submit(monkeypatch):
     conversation_id = uuid4()
     old_row = {
         "id": conversation_id,
         "state": "NEEDS",
-        "normalized_fields": json.dumps({"summary": "Draft"}),
+        "normalized_fields": json.dumps(
+            {
+                "summary": "Draft",
+                "mode": "staff",
+                "full_name": "Ada",
+                "email": "ada@example.com",
+                "work_phone": "555-0100",
+            }
+        ),
     }
     updated_row = {
         "id": conversation_id,

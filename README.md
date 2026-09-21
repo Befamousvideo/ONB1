@@ -56,10 +56,14 @@ From the repo root, against the in-memory API:
 
 This exits 0 only after:
 
-1. `GET /health`
-2. `POST /api/conversations`
-3. Identity step with name + email
+1. `GET /health` with `persistence=postgres`
+2. `POST /api/conversations` staff
+3. Identity step with name, email, and required `work_phone`
 4. `GET /api/conversations/{id}` showing that identity
+5. A fresh API process still returns the same staff conversation
+6. Exploring `mode: "prospect"` starts without breaking staff
+
+Smoke starts Postgres (Docker Compose or a local cluster) and applies `db/migrations` when `DATABASE_URL` is not already reachable.
 
 `./scripts/smoke.sh` starts a temporary API if nothing healthy is listening on `API_BASE` (default `http://127.0.0.1:8000`). API deps install into `server/.venv` when `python3-venv` is available, otherwise into `server/.deps`.
 
@@ -99,6 +103,7 @@ npm run build
 
 - Staff (`mode: "staff"`) and exploring (`mode: "prospect"`) paths with one-question-at-a-time state transitions
 - Role chips and role-aware staff prompts; budget/timeline only on the exploring path
+- Durable Postgres staff identity (`work_phone` required) so answers survive API restart
 - Local handoff summary generation and a Slack-ready stub
 - Scheduling captured as preference text instead of calendar integration
 
