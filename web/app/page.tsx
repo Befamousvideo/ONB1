@@ -564,7 +564,7 @@ export default function HomePage() {
     writeAudienceToSearch(initialMode, link);
     const storedConversationId = window.localStorage.getItem(STORAGE_KEY);
     if (storedConversationId) {
-      void resumeConversation(storedConversationId);
+      void resumeConversation(storedConversationId, initialMode);
     }
   }, []);
 
@@ -599,6 +599,12 @@ export default function HomePage() {
   }, [conversation, fields, summaryDraft]);
 
   function chooseAudience(nextMode: AudienceMode) {
+    if (conversation && canonicalMode(conversation.normalized_fields.mode) !== nextMode) {
+      window.localStorage.removeItem(STORAGE_KEY);
+      setConversation(null);
+      setNodeDraft({});
+      setSummaryDraft("");
+    }
     setAudienceMode(nextMode);
     setFields((current) => {
       const nextRole = current.role || "";
@@ -612,10 +618,13 @@ export default function HomePage() {
     writeAudienceToSearch(nextMode, staffLink);
   }
 
-  async function resumeConversation(conversationId: string) {
+  async function resumeConversation(conversationId: string, expectedMode?: AudienceMode) {
     try {
       const response = await fetch(`${getApiBase()}/api/conversations/${conversationId}`);
       const payload = (await parseJson(response)) as Conversation;
+      if (expectedMode && canonicalMode(payload.normalized_fields.mode) !== expectedMode) {
+        return;
+      }
       setConversation(payload);
       setError("");
     } catch {
