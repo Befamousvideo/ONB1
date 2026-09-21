@@ -14,6 +14,11 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
+try:
+    from . import staff_packs
+except ImportError:  # pragma: no cover - tests import app/main.py on sys.path
+    import staff_packs
+
 UTC = timezone.utc
 EMAIL_RE = re.compile(r"^\S+@\S+\.\S+$")
 SLACK_WEBHOOK_URL = os.getenv("SLACK_WEBHOOK_URL")
@@ -38,8 +43,9 @@ LOCAL_CORS_ORIGIN_REGEX = (
 
 STATE_PROMPTS = {
     "WELCOME": (
-        "Welcome — this is discovery for your company’s ROIA with StorenTech AI. "
-        "About 3–8 minutes. Pause anytime and finish tomorrow or on your phone."
+        "This discovery maps where time and friction show up so leadership can see how work runs. "
+        "It is not a performance review and not about cutting jobs. About 3–8 minutes — "
+        "pause anytime and finish later if you need to. Not a pitch."
     ),
     "MODE_SELECT": (
         "Which seat are you answering from? Owner/CEO, Admin, Sales, HR, Finance, "
@@ -228,6 +234,15 @@ class CreateConversationRequest(BaseModel):
     participant_email: str | None = None
     mode: str = "staff"
     role: str | None = None
+    pack: str | None = None
+    invite: str | None = None
+    invite_kind: str | None = None
+    client_id: str | None = None
+    invoice_id: str | None = None
+    client_invoice_id: str | None = None
+    clientInvoiceId: str | None = None
+    c: str | None = None
+    slug: str | None = None
 
 
 class CreateMessageRequest(BaseModel):
@@ -342,6 +357,12 @@ def normalize_fields(fields: dict[str, Any]) -> dict[str, str]:
     for key, value in fields.items():
         if value is None:
             continue
+        if key in staff_packs.STRUCTURED_FIELD_KEYS:
+            if isinstance(value, (dict, list)):
+                normalized[key] = json.dumps(value)
+            elif clean_text(value):
+                normalized[key] = clean_text(value)
+            continue
         if isinstance(value, list):
             text = ", ".join(clean_text(item) for item in value if clean_text(item))
         else:
@@ -436,6 +457,11 @@ def build_summary(fields: dict[str, str]) -> str:
         lines.append(f"Best way to reach you: {fields['preferred_contact_channel']}")
     if fields.get("notes"):
         lines.append(f"Notes: {fields['notes']}")
+    if canonical_mode(fields) == "staff":
+        extra = staff_packs.staff_summary_lines(fields)
+        for line in extra:
+            if line not in lines:
+                lines.append(line)
     return "\n".join(lines)
 
 
@@ -492,15 +518,40 @@ def build_intake_brief(fields: dict[str, str], notes: str | None = None) -> dict
             next_steps.append("Optional clarification during the preferred windows.")
         else:
             next_steps.append("No live follow-up requested; finish from the written answers.")
-    return {
+    brief = {
         "summary": summary,
         "goals": goals,
         "constraints": constraints or ["No additional constraints captured yet."],
         "recommended_next_steps": next_steps,
     }
+    if not prospect:
+        export = staff_packs.nora_export(fields)
+        brief["nora_export"] = {
+            "staff_quotes": export.get("staff_quotes") or [],
+            "guest_friction": export.get("guest_friction") or [],
+            "software_stack": export.get("software_stack") or [],
+            "time_sinks": export.get("time_sinks") or [],
+            "leak_hints": export.get("leak_hints") or [],
+            "one_fix_wish": export.get("one_fix_wish") or [],
+            "anonymity": export.get("anonymity"),
+            "locations": export.get("locations") or fields.get("company_location"),
+            "client_invoice_id": fields.get("client_invoice_id"),
+            "thin_evidence": export.get("thin_evidence") or [],
+        }
+        brief["client_invoice_id"] = fields.get("client_invoice_id")
+        brief["do_not_send"] = True
+    return brief
 
 
 def prompt_for_state(state: str, fields: dict[str, str]) -> str:
+    if canonical_mode(fields) == "staff" and staff_packs.is_pack_state(state):
+        node = staff_packs.public_node(state, fields)
+        text = node.get("prompt") or ""
+        if state == "QS":
+            summary = build_summary(fields)
+            if summary:
+                return f"{text}\n\n{summary}"
+        return text
     if canonical_mode(fields) == "prospect":
         text = PROSPECT_STATE_PROMPTS.get(state) or STATE_PROMPTS.get(state, "")
     else:
@@ -594,10 +645,12 @@ def validate_required_fields(state: str, fields: dict[str, str]) -> None:
         if not EMAIL_RE.match(clean_text(fields.get("email"))):
             raise HTTPException(status_code=400, detail={"error": "invalid_email"})
         if canonical_mode(fields) == "staff":
+            role = staff_packs.session_staff_role(fields)
             work_phone = clean_text(fields.get("work_phone")) or clean_text(fields.get("phone"))
-            if not work_phone:
+            if staff_packs.work_phone_required(role) and not work_phone:
                 raise HTTPException(status_code=400, detail={"error": "missing_fields", "fields": ["work_phone"]})
-            fields["work_phone"] = work_phone
+            if work_phone:
+                fields["work_phone"] = work_phone
 
 
 def new_message(conversation_id: UUID, role: str, content: str, attachments: list[Attachment] | None = None) -> dict[str, Any]:
@@ -957,10 +1010,11 @@ def to_conversation_model(row: dict[str, Any]) -> dict[str, Any]:
     normalized_fields = parse_normalized_fields(row.get("normalized_fields"))
     created_at = row.get("created_at", utc_now())
     updated_at = row.get("updated_at", created_at)
-    return {
+    state = row.get("state", "WELCOME")
+    model = {
         "id": row["id"],
         "status": row.get("status", "active"),
-        "state": row.get("state", "WELCOME"),
+        "state": state,
         "participant_name": row.get("participant_name") or normalized_fields.get("full_name"),
         "participant_email": row.get("participant_email") or normalized_fields.get("email"),
         "normalized_fields": normalized_fields,
@@ -970,6 +1024,23 @@ def to_conversation_model(row: dict[str, Any]) -> dict[str, Any]:
         "created_at": created_at,
         "updated_at": updated_at,
     }
+    if canonical_mode(normalized_fields) == "staff":
+        node_id = state if staff_packs.is_pack_state(state) else normalized_fields.get("pack_node") or staff_packs.start_node_id(normalized_fields)
+        if node_id == "SUBMIT":
+            node_id = "T_OK"
+        model["current_node"] = staff_packs.public_node(node_id, normalized_fields)
+        model["staff_link"] = {
+            "client_id": normalized_fields.get("client_id"),
+            "invoice_id": normalized_fields.get("invoice_id"),
+            "client_invoice_id": normalized_fields.get("client_invoice_id"),
+            "invite": normalized_fields.get("invite") or normalized_fields.get("invite_kind") or "general",
+            "pack": staff_packs.session_staff_role(normalized_fields) or None,
+            "url": staff_packs.staff_link_url(normalized_fields),
+            "do_not_send": True,
+        }
+        model["nora_export"] = staff_packs.nora_export(normalized_fields)
+        model["pack_version"] = staff_packs.pack_document().get("version")
+    return model
 
 
 def update_local_conversation(
@@ -1108,10 +1179,7 @@ def end_and_send(
         if not fields.get("summary"):
             fields["summary"] = build_summary(fields)
         if canonical_mode(fields) == "staff":
-            work_phone = clean_text(fields.get("work_phone")) or clean_text(fields.get("phone"))
-            if not work_phone:
-                raise HTTPException(status_code=400, detail={"error": "missing_fields", "fields": ["work_phone"]})
-            fields["work_phone"] = work_phone
+            staff_packs.ensure_staff_submit_identity(fields)
 
         if isinstance(conn, LocalConnection):
             update_local_conversation(
@@ -1163,27 +1231,47 @@ def health() -> dict[str, str]:
     return {"status": "ok", "persistence": persistence_backend()}
 
 
+@app.get("/api/staff-packs")
+def list_staff_packs() -> dict[str, Any]:
+    return staff_packs.catalog()
+
+
+@app.get("/api/staff-packs/{pack_id}")
+def get_staff_pack(pack_id: str) -> dict[str, Any]:
+    return staff_packs.pack_detail(pack_id)
+
+
 @app.post("/api/conversations", status_code=201)
 def create_conversation(payload: CreateConversationRequest) -> dict[str, Any]:
     mode = canonical_mode(payload.mode)
-    fields = normalize_fields(
-        {
-            "full_name": payload.participant_name,
-            "email": payload.participant_email,
-            "mode": mode,
-            "role": payload.role,
-        }
-    )
+    if mode == "staff":
+        fields = staff_packs.start_staff_session(payload.model_dump())
+        if payload.participant_name:
+            fields["full_name"] = clean_text(payload.participant_name)
+        if payload.participant_email:
+            fields["email"] = clean_text(payload.participant_email)
+        state = staff_packs.start_node_id(fields)
+        fields["pack_node"] = state
+    else:
+        fields = normalize_fields(
+            {
+                "full_name": payload.participant_name,
+                "email": payload.participant_email,
+                "mode": mode,
+                "role": payload.role,
+            }
+        )
+        state = "WELCOME"
     conversation_id = uuid4()
     now = utc_now()
     conversation = {
         "id": conversation_id,
         "status": "active",
-        "state": "WELCOME",
+        "state": state,
         "participant_name": fields.get("full_name"),
         "participant_email": fields.get("email"),
         "normalized_fields": fields,
-        "messages": [new_message(conversation_id, "assistant", prompt_for_state("WELCOME", fields))],
+        "messages": [new_message(conversation_id, "assistant", prompt_for_state(state, fields))],
         "attachments": [],
         "intake_brief": None,
         "audit_log": [],
@@ -1226,12 +1314,22 @@ def create_conversation_message(conversation_id: UUID, payload: CreateMessageReq
         if current_state == "SUBMIT":
             return to_conversation_model(conversation)
 
-        validate_required_fields(current_state, merged_fields)
+        if canonical_mode(merged_fields) == "staff" and staff_packs.is_pack_state(current_state):
+            next_step, merged_fields = staff_packs.apply_staff_step(
+                current_state,
+                merged_fields,
+                payload.fields,
+                payload.content,
+            )
+            if not payload.advance:
+                next_step = current_state
+        else:
+            validate_required_fields(current_state, merged_fields)
+            next_step = next_state(current_state, merged_fields) if payload.advance else current_state
         if not merged_fields.get("summary"):
             merged_fields["summary"] = build_summary(merged_fields)
 
         user_content = clean_text(payload.content) or summarize_step_response(current_state, merged_fields)
-        next_step = next_state(current_state, merged_fields) if payload.advance else current_state
         new_messages: list[dict[str, Any]] = []
         if user_content:
             new_messages.append(new_message(conversation_id, "user", user_content, payload.attachments))

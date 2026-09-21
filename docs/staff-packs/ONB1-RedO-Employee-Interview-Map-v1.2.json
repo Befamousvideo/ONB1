@@ -1,0 +1,3360 @@
+{
+  "version": "1.2.0",
+  "mode": "staff",
+  "clientPackId": "red-o",
+  "surface": "employee-interview",
+  "status": "DRAFT-MAP-READY · Vince locks v1.2 · Diggler canon + Nora encode + Mary WELCOME + Tony polish-v1.1 · 2026-09-21",
+  "drafted": "2026-09-21 PT · Diggler factual · Nora ROIA · Mary GTM · Tony polish-v1.1 · Vince locks → Bob PR3 source-of-truth",
+  "timezoneNote": "America/Los_Angeles (PT)",
+  "audience": "hired-client-employees-inside-roia",
+  "notAudience": [
+    "prospect-intake",
+    "prospect_ceo",
+    "sales-wizard"
+  ],
+  "siblingArtifacts": {
+    "prospect_ceo": "ONB1-Prospect-CEO-Discovery-Map-v1.md (separate — do not merge)",
+    "prospectIfTTT_existing": "ONB1-Prospect-IFTTT-Branching-Map-v1.md / Drive 1Wdh--_TP-WrR3jLH56PJngHrf_HdCitk"
+  },
+  "formInterimOnly": true,
+  "ownership": {
+    "content": "Diggler",
+    "voicePolish": "Tony Traffic (onb1-copy-table.md v3) — polished v1.1 folded; Vince wire-now OK",
+    "encode": "Bob PR3",
+    "gtm": "Mary GTM",
+    "noraCheck": "Nora Narrative ROIA check 2026-09-21",
+    "vinceLocks": "Vince 2026-09-21 — seven Diggler defaults locked"
+  },
+  "contactFields": {
+    "name": {
+      "type": "short",
+      "required": true,
+      "label": "Your name"
+    },
+    "email": {
+      "type": "email",
+      "required": true,
+      "label": "Work email"
+    },
+    "workPhone": {
+      "type": "phone",
+      "required": false,
+      "label": "Work phone",
+      "gtmNote": "Vince lock: HQ (ceo/hr/sales/finance/admin) required; FOH/BOH soft-optional (NOT required)",
+      "requiredByRole": {
+        "staff_ceo": true,
+        "staff_hr": true,
+        "staff_sales": true,
+        "staff_finance": true,
+        "staff_admin": true,
+        "staff_foh": "soft-optional",
+        "staff_boh": "soft-optional",
+        "staff_other": true
+      },
+      "vinceLock": true
+    }
+  },
+  "packPayload": {
+    "red-o": {
+      "company": "Red O",
+      "locations": [
+        "Fashion Island",
+        "Santa Monica",
+        "Westlake",
+        "Irvine HQ / corporate",
+        "Other",
+        "Prefer not to say"
+      ],
+      "industryDefault": "Restaurant / FSR",
+      "locks": [
+        "no-staff-cut",
+        "no-invented-savings",
+        "no-tenure-question",
+        "no-budget-chips",
+        "no-timeline-chips",
+        "no-prospect-ui-wording",
+        "no-buy-pricing-chrome",
+        "no-1k-chips",
+        "no-chatbot-demo-chrome",
+        "no-ai-employee-language",
+        "no-what-ai-to-build-result-q",
+        "no-performance-review-framing",
+        "no-job-cut-framing"
+      ],
+      "locationLock": {
+        "vinceLock": true,
+        "keep": [
+          "Fashion Island",
+          "Santa Monica",
+          "Westlake",
+          "Irvine HQ",
+          "Other"
+        ],
+        "note": "Vince lock 1 — keep these labels; Prefer not to say remains soft escape"
+      }
+    }
+  },
+  "roleBranches": {
+    "staff_ceo": {
+      "label": "Owner / CEO / leadership",
+      "tonyKey": "role_ceo",
+      "lens": "staff_ceo",
+      "stakes": "strategy / P&L / risk / growth",
+      "entryNode": "CEO-P1",
+      "painNode": "CEO-P1",
+      "resultNode": "CEO-R1",
+      "not": "prospect_ceo",
+      "nodeIds": [
+        "CEO-P1",
+        "CEO-GUEST",
+        "CEO-P2",
+        "CEO-P3",
+        "CEO-G1",
+        "CEO-SYS",
+        "CEO-X1",
+        "CEO-R1",
+        "CEO-WALK"
+      ],
+      "invitePath": "execOnly",
+      "onAllStaffLinks": false,
+      "vinceLock": true
+    },
+    "staff_hr": {
+      "label": "HR / People",
+      "tonyKey": "role_hr",
+      "lens": "staff_hr",
+      "stakes": "people / process / tools / time sinks",
+      "entryNode": "HR-P1",
+      "painNode": "HR-P1",
+      "resultNode": "HR-R1",
+      "nodeIds": [
+        "HR-P1",
+        "HR-SYS",
+        "HR-T1",
+        "HR-T2",
+        "HR-H1",
+        "HR-R1",
+        "HR-WALK"
+      ]
+    },
+    "staff_sales": {
+      "label": "Sales",
+      "tonyKey": "role_sales",
+      "lens": "staff_sales",
+      "stakes": "leads / follow-up / handoffs / events",
+      "entryNode": "SALES-P1",
+      "painNode": "SALES-P1",
+      "resultNode": "SALES-R1",
+      "nodeIds": [
+        "SALES-P1",
+        "SALES-SYS",
+        "SALES-L1",
+        "SALES-L1b",
+        "SALES-F1",
+        "SALES-R1",
+        "SALES-WALK"
+      ]
+    },
+    "staff_finance": {
+      "label": "Finance",
+      "tonyKey": "role_finance",
+      "lens": "staff_finance",
+      "stakes": "billing / AP / close / credits",
+      "entryNode": "FIN-P1",
+      "painNode": "FIN-P1",
+      "resultNode": "FIN-R1",
+      "nodeIds": [
+        "FIN-P1",
+        "FIN-SYS",
+        "FIN-G1",
+        "FIN-V1",
+        "FIN-C1",
+        "FIN-CR1",
+        "FIN-R1",
+        "FIN-WALK"
+      ]
+    },
+    "staff_admin": {
+      "label": "Admin / Ops",
+      "tonyKey": "role_admin",
+      "lens": "staff_admin",
+      "stakes": "coordination / tools / multi-site",
+      "entryNode": "ADMIN-P1",
+      "painNode": "ADMIN-P1",
+      "resultNode": "ADMIN-R1",
+      "defaultWhenRoleUnknown": true,
+      "nodeIds": [
+        "ADMIN-P1",
+        "ADMIN-SYS",
+        "ADMIN-X1",
+        "ADMIN-G1",
+        "ADMIN-V1",
+        "ADMIN-R1",
+        "ADMIN-DAY",
+        "ADMIN-MGR",
+        "ADMIN-M1",
+        "ADMIN-M2",
+        "ADMIN-M3",
+        "ADMIN-WALK"
+      ]
+    },
+    "staff_foh": {
+      "label": "Front of house",
+      "tonyKey": "role_foh",
+      "lens": "staff_foh",
+      "stakes": "guest moments / phones / POS / waits",
+      "entryNode": "FOH-P1",
+      "painNode": "FOH-P1",
+      "resultNode": "FOH-R1",
+      "nodeIds": [
+        "FOH-P1",
+        "FOH-SYS",
+        "FOH-POS",
+        "FOH-PHONE",
+        "FOH-RES",
+        "FOH-WAIT",
+        "FOH-86",
+        "FOH-R1",
+        "FOH-DAY",
+        "FOH-MGR",
+        "FOH-M1",
+        "FOH-M2",
+        "FOH-WALK"
+      ]
+    },
+    "staff_boh": {
+      "label": "Back of house / Ops floor",
+      "tonyKey": "role_boh",
+      "lens": "staff_boh",
+      "stakes": "tickets / prep / inventory handoffs",
+      "entryNode": "BOH-P1",
+      "painNode": "BOH-P1",
+      "resultNode": "BOH-R1",
+      "nodeIds": [
+        "BOH-P1",
+        "BOH-SYS",
+        "BOH-86",
+        "BOH-INV",
+        "BOH-OG",
+        "BOH-ORD",
+        "BOH-RAIL",
+        "BOH-LABOR",
+        "BOH-R1",
+        "BOH-DAY",
+        "BOH-MGR",
+        "BOH-M1",
+        "BOH-M4",
+        "BOH-WALK"
+      ]
+    },
+    "staff_other": {
+      "label": "Other / several seats",
+      "tonyKey": "role_other",
+      "lens": "staff_other",
+      "stakes": "light mix",
+      "entryNode": "OTHER-P1",
+      "painNode": "OTHER-P1",
+      "resultNode": "OTHER-R1",
+      "nodeIds": [
+        "OTHER-P1",
+        "OTHER-SYS",
+        "OTHER-MIX1",
+        "OTHER-MIX2",
+        "OTHER-R1"
+      ]
+    }
+  },
+  "noraCaptureMap": {
+    "company": {
+      "required": true,
+      "nodes": [
+        "Q0",
+        "Q0b"
+      ]
+    },
+    "locations": {
+      "required": true,
+      "nodes": [
+        "Q3",
+        "Q3o"
+      ]
+    },
+    "software_stack": {
+      "required": true,
+      "nodes": [
+        "CEO-SYS",
+        "HR-SYS",
+        "SALES-SYS",
+        "FIN-SYS",
+        "ADMIN-SYS",
+        "FOH-SYS",
+        "BOH-SYS",
+        "OTHER-SYS"
+      ],
+      "productNameRequired": true,
+      "note": "SYS chips + forced productName short per checked category; Other text required"
+    },
+    "staff_quotes": {
+      "required": true,
+      "withContext": [
+        "role",
+        "location",
+        "anonymity"
+      ]
+    },
+    "time_sinks": {
+      "required": true
+    },
+    "guest_friction": {
+      "required": true,
+      "nodes": [
+        "BOH-86",
+        "CEO-GUEST",
+        "CEO-P1",
+        "FOH-86",
+        "FOH-P1",
+        "FOH-PHONE",
+        "FOH-WAIT",
+        "SALES-F1",
+        "SALES-P1"
+      ],
+      "note": "v1.1: CEO-P1 reputation/guest chip + CEO-GUEST + BOH-86 runs-out tagged"
+    },
+    "one_fix_wish": {
+      "required": true,
+      "nodes": [
+        "CEO-R1",
+        "HR-R1",
+        "SALES-R1",
+        "FIN-R1",
+        "ADMIN-R1",
+        "FOH-R1",
+        "BOH-R1",
+        "OTHER-R1"
+      ]
+    },
+    "leak_hints": {
+      "required": true,
+      "byLens": true
+    },
+    "daypart": {
+      "required": false,
+      "nodes": [
+        "ADMIN-DAY",
+        "FOH-DAY",
+        "BOH-DAY"
+      ]
+    },
+    "manager_vs_frontline": {
+      "required": false,
+      "nodes": [
+        "ADMIN-MGR",
+        "FOH-MGR",
+        "BOH-MGR"
+      ]
+    },
+    "anonymity": {
+      "required": false,
+      "nodes": [
+        "Q4c"
+      ],
+      "default": "named",
+      "optInAnonymous": true,
+      "keepRole": true
+    },
+    "walk_your_day": {
+      "required": false
+    },
+    "client_invoice_id": {
+      "required": true,
+      "nodes": [
+        "Q0"
+      ],
+      "requiredVia": "staffLinkPolicy.alwaysCarryClientInvoiceId",
+      "note": "Vince lock: staff links always carry client/invoice id"
+    }
+  },
+  "tonyHooks": {
+    "copyTable": "onb1-copy-table.md v3",
+    "mode": "staff",
+    "staffCeoNotProspectCeo": true,
+    "removedInStaffMode": [
+      "budget_*",
+      "timeline_*",
+      "mode:prospect UI wording",
+      "sales-pitch follow-up promises"
+    ],
+    "handoff": "Tony voice polish v1.1 applied on Diggler v1.1 Nora base; Bob PR3 encodes polished JSON",
+    "polishVersion": "1.1",
+    "supersedes": "onb1-staff-packs-polished.json (v1)"
+  },
+  "terminals": {
+    "T_OK": "Submit success",
+    "T_SOFT": "Soft thanks / pause-resume",
+    "T_DEAD": "Abandon before email"
+  },
+  "gates": {
+    "moneyVendor": [
+      "FIN-G1",
+      "FIN-V1",
+      "FIN-CR1",
+      "ADMIN-G1",
+      "ADMIN-V1",
+      "BOH-ORD",
+      "BOH-M4"
+    ],
+    "orderingOnly": [
+      "BOH-OG",
+      "BOH-ORD"
+    ],
+    "managerOverlay": [
+      "ADMIN-MGR",
+      "ADMIN-M1",
+      "ADMIN-M2",
+      "ADMIN-M3",
+      "FOH-MGR",
+      "FOH-M1",
+      "FOH-M2",
+      "BOH-MGR",
+      "BOH-M1",
+      "BOH-M4"
+    ],
+    "neverAsk": [
+      "How long have you worked here?",
+      "budget chips",
+      "project timeline chips"
+    ]
+  },
+  "flowOrder": [
+    "Q0",
+    "Q0b?",
+    "Q1",
+    "Q2",
+    "Q3",
+    "Q4",
+    "Q4c",
+    "staff_* ROLE_PACK",
+    "QS",
+    "T_OK"
+  ],
+  "nodes": [
+    {
+      "id": "Q0",
+      "tag": "Sys",
+      "type": "system",
+      "required": false,
+      "prompt": "Resolve client pack from unique link, invite token, or company.",
+      "next": [
+        {
+          "if": "packResolved",
+          "then": "Q1"
+        },
+        {
+          "if": "else",
+          "then": "Q0b"
+        }
+      ],
+      "noraFields": [
+        "company",
+        "client_invoice_id"
+      ],
+      "notes": "session.mode=staff; session.packId=red-o; Vince lock: staff links ALWAYS carry client/invoice id (staffLinkPolicy)",
+      "staffLinkPolicy": {
+        "alwaysCarryClientInvoiceId": true,
+        "vinceLock": true
+      }
+    },
+    {
+      "id": "Q0b",
+      "tag": "Sys",
+      "type": "mc",
+      "required": true,
+      "prompt": "Which company is this discovery for?",
+      "options": [
+        "Red O Restaurants",
+        "Other / not listed",
+        "Prefer not to say"
+      ],
+      "next": [
+        {
+          "if": "Red O Restaurants",
+          "then": "Q1",
+          "set": {
+            "packId": "red-o"
+          }
+        },
+        {
+          "if": "else",
+          "then": "Q1",
+          "set": {
+            "packId": "generic"
+          }
+        }
+      ],
+      "noraFields": [
+        "company"
+      ]
+    },
+    {
+      "id": "Q1",
+      "tag": "Both",
+      "type": "cta",
+      "required": true,
+      "prompt": "This discovery maps where time and friction show up so leadership can see how work runs. It is not a performance review and not about cutting jobs. About 3–8 minutes — pause anytime and finish later if you need to. Not a pitch.",
+      "options": [
+        "Begin discovery"
+      ],
+      "next": [
+        {
+          "if": "always",
+          "then": "Q2"
+        }
+      ],
+      "tonyHook": "STATE_PROMPT.WELCOME staff",
+      "tonyState": "WELCOME",
+      "maryGtm": {
+        "calmLine": true,
+        "notPerformanceReview": true,
+        "notJobCuts": true,
+        "humansOutFront": true,
+        "noAiEmployeeLanguage": true,
+        "especially": [
+          "staff_foh",
+          "staff_boh",
+          "staff_hr"
+        ],
+        "welcomeLock": "Maps time/friction so leadership can see how work runs — NOT a performance review, NOT about cutting jobs."
+      },
+      "notes": "Tony v1.1 + Mary GTM: WELCOME maps time/friction for leadership how-work-runs; not performance review; not job cuts; pause/resume; no AI-employee language"
+    },
+    {
+      "id": "Q2",
+      "tag": "Both",
+      "type": "contact",
+      "required": true,
+      "prompt": "Your name and work contact so we file this with the right ROIA.",
+      "fields": [
+        {
+          "key": "name",
+          "label": "Your name",
+          "type": "short",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Work email",
+          "type": "email",
+          "required": true
+        },
+        {
+          "key": "workPhone",
+          "label": "Work phone",
+          "type": "phone",
+          "required": false,
+          "requiredByRole": {
+            "staff_ceo": true,
+            "staff_hr": true,
+            "staff_sales": true,
+            "staff_finance": true,
+            "staff_admin": true,
+            "staff_foh": "soft-optional",
+            "staff_boh": "soft-optional",
+            "staff_other": true
+          },
+          "softOptionalRoles": [
+            "staff_foh",
+            "staff_boh"
+          ],
+          "hqRequiredRoles": [
+            "staff_ceo",
+            "staff_hr",
+            "staff_sales",
+            "staff_finance",
+            "staff_admin"
+          ],
+          "vinceLock": true,
+          "note": "FOH/BOH soft-optional (NOT required); HQ seats required; staff_other required"
+        }
+      ],
+      "next": [
+        {
+          "if": "always",
+          "then": "Q3"
+        }
+      ],
+      "tonyHook": "STATE_PROMPT.IDENTITY staff",
+      "phoneRule": {
+        "type": "phone",
+        "required": false,
+        "label": "Work phone",
+        "requiredByRole": {
+          "staff_ceo": true,
+          "staff_hr": true,
+          "staff_sales": true,
+          "staff_finance": true,
+          "staff_admin": true,
+          "staff_foh": "soft-optional",
+          "staff_boh": "soft-optional",
+          "staff_other": true
+        },
+        "softOptionalRoles": [
+          "staff_foh",
+          "staff_boh"
+        ],
+        "hqRequiredRoles": [
+          "staff_ceo",
+          "staff_hr",
+          "staff_sales",
+          "staff_finance",
+          "staff_admin"
+        ],
+        "vinceLock": true,
+        "gtmNote": "Vince lock: HQ required; FOH/BOH soft-optional (NOT required)"
+      },
+      "notes": "v1.2 Vince lock: HQ workPhone required; FOH/BOH soft-optional (NOT required)"
+    },
+    {
+      "id": "Q3",
+      "tag": "Both",
+      "type": "mc",
+      "required": true,
+      "prompt": "Which place are you mainly tied to?",
+      "options": [
+        "Fashion Island",
+        "Santa Monica",
+        "Westlake",
+        "Irvine HQ / corporate",
+        "Other",
+        "Prefer not to say"
+      ],
+      "next": [
+        {
+          "if": "Other",
+          "then": "Q3o"
+        },
+        {
+          "if": "else",
+          "then": "Q4"
+        }
+      ],
+      "noraFields": [
+        "locations"
+      ],
+      "vinceLock": {
+        "locations": true,
+        "keep": [
+          "Fashion Island",
+          "Santa Monica",
+          "Westlake",
+          "Irvine HQ",
+          "Other"
+        ]
+      },
+      "notes": "Vince lock 1: keep Fashion Island / Santa Monica / Westlake / Irvine HQ / Other (+ Prefer not to say escape)"
+    },
+    {
+      "id": "Q3o",
+      "tag": "Both",
+      "type": "short",
+      "required": false,
+      "prompt": "Which place? (short)",
+      "next": [
+        {
+          "if": "always",
+          "then": "Q4"
+        }
+      ],
+      "noraFields": [
+        "locations"
+      ]
+    },
+    {
+      "id": "Q4",
+      "tag": "Both",
+      "type": "mc",
+      "required": true,
+      "prompt": "Which seat are you answering from? We’ll tune the questions to your seat.",
+      "options": [
+        {
+          "value": "staff_ceo",
+          "label": "Owner / CEO / leadership",
+          "tonyKey": "role_ceo"
+        },
+        {
+          "value": "staff_hr",
+          "label": "HR / People",
+          "tonyKey": "role_hr"
+        },
+        {
+          "value": "staff_sales",
+          "label": "Sales",
+          "tonyKey": "role_sales"
+        },
+        {
+          "value": "staff_finance",
+          "label": "Finance",
+          "tonyKey": "role_finance"
+        },
+        {
+          "value": "staff_admin",
+          "label": "Admin / Ops",
+          "tonyKey": "role_admin"
+        },
+        {
+          "value": "staff_foh",
+          "label": "Front of house",
+          "tonyKey": "role_foh"
+        },
+        {
+          "value": "staff_boh",
+          "label": "Back of house / Ops floor",
+          "tonyKey": "role_boh"
+        },
+        {
+          "value": "staff_other",
+          "label": "Other / several seats",
+          "tonyKey": "role_other"
+        }
+      ],
+      "next": [
+        {
+          "if": "staff_ceo",
+          "then": "Q4c",
+          "enterPack": "staff_ceo"
+        },
+        {
+          "if": "staff_hr",
+          "then": "Q4c",
+          "enterPack": "staff_hr"
+        },
+        {
+          "if": "staff_sales",
+          "then": "Q4c",
+          "enterPack": "staff_sales"
+        },
+        {
+          "if": "staff_finance",
+          "then": "Q4c",
+          "enterPack": "staff_finance"
+        },
+        {
+          "if": "staff_admin",
+          "then": "Q4c",
+          "enterPack": "staff_admin"
+        },
+        {
+          "if": "staff_foh",
+          "then": "Q4c",
+          "enterPack": "staff_foh"
+        },
+        {
+          "if": "staff_boh",
+          "then": "Q4c",
+          "enterPack": "staff_boh"
+        },
+        {
+          "if": "staff_other",
+          "then": "Q4c",
+          "enterPack": "staff_other"
+        }
+      ],
+      "tonyHook": "role chips staff + MODE_SELECT",
+      "notes": "Distinct staff_* packs; mode=staff"
+    },
+    {
+      "id": "Q4c",
+      "tag": "Both",
+      "type": "mc",
+      "required": false,
+      "prompt": "If a short quote is used in the ROIA, how should we label it? Default is named (first name + role + location). You can opt in to anonymous — we still keep your role.",
+      "options": [
+        {
+          "value": "named",
+          "label": "First name + role + location is fine",
+          "default": true
+        },
+        {
+          "value": "anonymous_keep_role",
+          "label": "Role + location only (no name)",
+          "optInAnonymous": true,
+          "keepRole": true
+        },
+        {
+          "value": "prefer_not",
+          "label": "Prefer not to say"
+        }
+      ],
+      "next": [
+        {
+          "if": "session.role==staff_ceo",
+          "then": "CEO-P1"
+        },
+        {
+          "if": "session.role==staff_hr",
+          "then": "HR-P1"
+        },
+        {
+          "if": "session.role==staff_sales",
+          "then": "SALES-P1"
+        },
+        {
+          "if": "session.role==staff_finance",
+          "then": "FIN-P1"
+        },
+        {
+          "if": "session.role==staff_admin",
+          "then": "ADMIN-P1"
+        },
+        {
+          "if": "session.role==staff_foh",
+          "then": "FOH-P1"
+        },
+        {
+          "if": "session.role==staff_boh",
+          "then": "BOH-P1"
+        },
+        {
+          "if": "session.role==staff_other",
+          "then": "OTHER-P1"
+        }
+      ],
+      "noraFields": [
+        "anonymity"
+      ],
+      "default": "First name + role + location is fine",
+      "defaultPolicy": "named",
+      "quotePolicy": {
+        "default": "named",
+        "optInAnonymous": true,
+        "anonymousKeepsRole": true,
+        "vinceLock": true
+      },
+      "notes": "Vince lock 4: named by default; opt-in anonymous keeps role"
+    },
+    {
+      "id": "CEO-P1",
+      "tag": "M",
+      "type": "checkboxes",
+      "required": true,
+      "prompt": "Where does the business feel the most drag — growth, follow-through, or ops overhead?",
+      "options": [
+        "Growth stalled or uneven across locations",
+        "Follow-through breaks after decisions",
+        "Ops overhead eating leadership time",
+        "Margin / P&L visibility weak",
+        "Risk / compliance blind spots",
+        "Reputation / guest experience drift",
+        "Multi-location inconsistency",
+        "Other"
+      ],
+      "next": [
+        {
+          "if": "optionIncludes:Reputation / guest experience drift",
+          "then": "CEO-GUEST"
+        },
+        {
+          "if": "else",
+          "then": "CEO-P2"
+        }
+      ],
+      "tonyHook": "pain_q.staff_ceo",
+      "noraFields": [
+        "time_sinks",
+        "leak_hints",
+        "guest_friction"
+      ],
+      "pack": "staff_ceo",
+      "guestFrictionOptions": [
+        "Reputation / guest experience drift"
+      ],
+      "notes": " v1.1: reputation/guest chip → guest_friction; may open CEO-GUEST"
+    },
+    {
+      "id": "CEO-GUEST",
+      "tag": "M",
+      "type": "paragraph",
+      "required": false,
+      "prompt": "Where does guest experience or reputation drift show up that the numbers miss — and what does that look like on a real night?",
+      "showIf": {
+        "node": "CEO-P1",
+        "optionIncludesAny": [
+          "Reputation / guest experience drift"
+        ]
+      },
+      "next": [
+        {
+          "if": "always",
+          "then": "CEO-P2"
+        }
+      ],
+      "noraFields": [
+        "guest_friction",
+        "staff_quotes",
+        "leak_hints"
+      ],
+      "softEscape": {
+        "enabled": true,
+        "labels": [
+          "Skip",
+          "Not sure"
+        ],
+        "noraFlag": "thin_evidence",
+        "note": "Thin-evidence escape — do not block; Nora flags thin evidence"
+      },
+      "pack": "staff_ceo",
+      "notes": "Light CEO guest para (v1.1 Nora) — optional; soft Skip / Not sure OK"
+    },
+    {
+      "id": "CEO-P2",
+      "tag": "M",
+      "type": "paragraph",
+      "required": true,
+      "prompt": "Where is P&L or margin hardest to see clearly week to week — and what do you distrust in the numbers?",
+      "next": [
+        {
+          "if": "always",
+          "then": "CEO-P3"
+        }
+      ],
+      "noraFields": [
+        "leak_hints",
+        "staff_quotes"
+      ],
+      "pack": "staff_ceo",
+      "softEscape": {
+        "enabled": true,
+        "labels": [
+          "Skip",
+          "Not sure"
+        ],
+        "noraFlag": "thin_evidence",
+        "note": "Thin-evidence escape — do not block; Nora flags thin evidence"
+      },
+      "requiredMode": "soft"
+    },
+    {
+      "id": "CEO-P3",
+      "tag": "M",
+      "type": "paragraph",
+      "required": true,
+      "prompt": "What operational or reputational risk keeps you up that reports don’t show well?",
+      "next": [
+        {
+          "if": "always",
+          "then": "CEO-G1"
+        }
+      ],
+      "noraFields": [
+        "leak_hints",
+        "staff_quotes"
+      ],
+      "pack": "staff_ceo",
+      "softEscape": {
+        "enabled": true,
+        "labels": [
+          "Skip",
+          "Not sure"
+        ],
+        "noraFlag": "thin_evidence",
+        "note": "Thin-evidence escape — do not block; Nora flags thin evidence"
+      },
+      "requiredMode": "soft"
+    },
+    {
+      "id": "CEO-G1",
+      "tag": "M",
+      "type": "paragraph",
+      "required": true,
+      "prompt": "If you wanted to grow (another location, more events, stronger weekday sales), what breaks first in how the company runs today?",
+      "next": [
+        {
+          "if": "always",
+          "then": "CEO-SYS"
+        }
+      ],
+      "noraFields": [
+        "leak_hints",
+        "staff_quotes"
+      ],
+      "pack": "staff_ceo",
+      "softEscape": {
+        "enabled": true,
+        "labels": [
+          "Skip",
+          "Not sure"
+        ],
+        "noraFlag": "thin_evidence",
+        "note": "Thin-evidence escape — do not block; Nora flags thin evidence"
+      },
+      "requiredMode": "soft"
+    },
+    {
+      "id": "CEO-SYS",
+      "tag": "M",
+      "type": "checkboxes",
+      "required": true,
+      "prompt": "Which systems do you personally rely on for a company view in a normal week? Exact product names help.",
+      "options": [
+        "Accounting / P&L exports",
+        "POS / sales dashboards",
+        "Spreadsheets you maintain yourself",
+        "Email",
+        "Reservations / events summaries",
+        "Labor / scheduling summaries",
+        "CRM / lead summaries",
+        "Shared drives",
+        "Other (type exact name)",
+        "Prefer not to say"
+      ],
+      "next": [
+        {
+          "if": "always",
+          "then": "CEO-X1"
+        }
+      ],
+      "noraFields": [
+        "software_stack"
+      ],
+      "pack": "staff_ceo",
+      "productNameFollowUp": {
+        "type": "short",
+        "prompt": "Type the product name.",
+        "exportField": "productName",
+        "trigger": "whenCategoryChecked",
+        "perCheckedCategory": true,
+        "skipForOptions": [
+          "Prefer not to say"
+        ],
+        "otherRule": {
+          "optionMatches": [
+            "Other (type exact name)",
+            "Other"
+          ],
+          "textRequired": true,
+          "notSkippableAlone": true,
+          "note": "If Other is checked, typed product text is required — Other alone without text is invalid"
+        },
+        "encodeNote": "After any SYS category chip is checked (except Prefer not to say), force short follow-up. Export productName per checked category."
+      },
+      "exportFields": [
+        "software_stack",
+        "productName"
+      ],
+      "notes": "v1.1: forced short \"Type the product name.\" per checked category → productName; Other text required"
+    },
+    {
+      "id": "CEO-X1",
+      "tag": "M",
+      "type": "paragraph",
+      "required": true,
+      "prompt": "When something needs a company-wide decision, what usually slows it down?",
+      "next": [
+        {
+          "if": "always",
+          "then": "CEO-R1"
+        }
+      ],
+      "noraFields": [
+        "time_sinks",
+        "staff_quotes"
+      ],
+      "pack": "staff_ceo",
+      "softEscape": {
+        "enabled": true,
+        "labels": [
+          "Skip",
+          "Not sure"
+        ],
+        "noraFlag": "thin_evidence",
+        "note": "Thin-evidence escape — do not block; Nora flags thin evidence"
+      },
+      "requiredMode": "soft"
+    },
+    {
+      "id": "CEO-R1",
+      "tag": "M",
+      "type": "paragraph",
+      "required": true,
+      "prompt": "What would make this ROIA map most useful for decisions in the next quarter (visibility, follow-through, or ops clarity)?",
+      "next": [
+        {
+          "if": "always",
+          "then": "CEO-WALK"
+        }
+      ],
+      "tonyHook": "result_q.staff_ceo",
+      "noraFields": [
+        "one_fix_wish"
+      ],
+      "pack": "staff_ceo",
+      "softEscape": {
+        "enabled": true,
+        "labels": [
+          "Skip",
+          "Not sure"
+        ],
+        "noraFlag": "thin_evidence",
+        "note": "Thin-evidence escape — do not block; Nora flags thin evidence"
+      },
+      "requiredMode": "soft",
+      "resultQLock": "map-useful ROIA outcomes only — never ask what AI to build",
+      "forbiddenFollowUps": [
+        "what AI should we build",
+        "which chatbot",
+        "build us X"
+      ]
+    },
+    {
+      "id": "CEO-WALK",
+      "tag": "M",
+      "type": "paragraph",
+      "required": false,
+      "prompt": "In a few sentences, what does a heavy leadership week look like for you?",
+      "next": [
+        {
+          "if": "always",
+          "then": "QS"
+        }
+      ],
+      "noraFields": [
+        "walk_your_day",
+        "staff_quotes"
+      ],
+      "pack": "staff_ceo"
+    },
+    {
+      "id": "HR-P1",
+      "tag": "E",
+      "type": "checkboxes",
+      "required": true,
+      "prompt": "Where do people workflows get stuck or eat the day?",
+      "options": [
+        "Hiring / recruiting chase",
+        "Onboarding paperwork",
+        "Coverage / call-outs",
+        "Schedule change floods",
+        "Training / tribal knowledge",
+        "Internal requests / tickets to HR",
+        "Inconsistent manager answers by location",
+        "Other"
+      ],
+      "next": [
+        {
+          "if": "always",
+          "then": "HR-SYS"
+        }
+      ],
+      "tonyHook": "pain_q.staff_hr",
+      "noraFields": [
+        "time_sinks",
+        "leak_hints"
+      ],
+      "pack": "staff_hr"
+    },
+    {
+      "id": "HR-SYS",
+      "tag": "E",
+      "type": "checkboxes",
+      "required": true,
+      "prompt": "Which systems do you personally use for people work in a normal week? Exact names help.",
+      "options": [
+        "Email",
+        "Spreadsheets",
+        "HRIS / HR software",
+        "Payroll portal",
+        "Scheduling (7shifts / HotSchedules / other)",
+        "Applicant tracking / job boards",
+        "Slack / text / GroupMe",
+        "Shared drives",
+        "Other (type exact name)"
+      ],
+      "next": [
+        {
+          "if": "always",
+          "then": "HR-T1"
+        }
+      ],
+      "noraFields": [
+        "software_stack"
+      ],
+      "pack": "staff_hr",
+      "productNameFollowUp": {
+        "type": "short",
+        "prompt": "Type the product name.",
+        "exportField": "productName",
+        "trigger": "whenCategoryChecked",
+        "perCheckedCategory": true,
+        "skipForOptions": [
+          "Prefer not to say"
+        ],
+        "otherRule": {
+          "optionMatches": [
+            "Other (type exact name)",
+            "Other"
+          ],
+          "textRequired": true,
+          "notSkippableAlone": true,
+          "note": "If Other is checked, typed product text is required — Other alone without text is invalid"
+        },
+        "encodeNote": "After any SYS category chip is checked (except Prefer not to say), force short follow-up. Export productName per checked category."
+      },
+      "exportFields": [
+        "software_stack",
+        "productName"
+      ],
+      "notes": "v1.1: forced short \"Type the product name.\" per checked category → productName; Other text required"
+    },
+    {
+      "id": "HR-T1",
+      "tag": "E",
+      "type": "paragraph",
+      "required": true,
+      "prompt": "On a busy week, where does the most people-ops time go that you wish didn’t?",
+      "next": [
+        {
+          "if": "always",
+          "then": "HR-T2"
+        }
+      ],
+      "noraFields": [
+        "time_sinks",
+        "staff_quotes"
+      ],
+      "pack": "staff_hr",
+      "softEscape": {
+        "enabled": true,
+        "labels": [
+          "Skip",
+          "Not sure"
+        ],
+        "noraFlag": "thin_evidence",
+        "note": "Thin-evidence escape — do not block; Nora flags thin evidence"
+      },
+      "requiredMode": "soft"
+    },
+    {
+      "id": "HR-T2",
+      "tag": "E",
+      "type": "paragraph",
+      "required": true,
+      "prompt": "Which people process breaks most often — and what does “broken” look like on the floor?",
+      "next": [
+        {
+          "if": "always",
+          "then": "HR-H1"
+        }
+      ],
+      "noraFields": [
+        "leak_hints",
+        "staff_quotes"
+      ],
+      "pack": "staff_hr",
+      "softEscape": {
+        "enabled": true,
+        "labels": [
+          "Skip",
+          "Not sure"
+        ],
+        "noraFlag": "thin_evidence",
+        "note": "Thin-evidence escape — do not block; Nora flags thin evidence"
+      },
+      "requiredMode": "soft"
+    },
+    {
+      "id": "HR-H1",
+      "tag": "E",
+      "type": "paragraph",
+      "required": true,
+      "prompt": "Where does people-related information get stuck between locations, managers, or systems?",
+      "next": [
+        {
+          "if": "always",
+          "then": "HR-R1"
+        }
+      ],
+      "noraFields": [
+        "leak_hints",
+        "staff_quotes"
+      ],
+      "pack": "staff_hr",
+      "softEscape": {
+        "enabled": true,
+        "labels": [
+          "Skip",
+          "Not sure"
+        ],
+        "noraFlag": "thin_evidence",
+        "note": "Thin-evidence escape — do not block; Nora flags thin evidence"
+      },
+      "requiredMode": "soft"
+    },
+    {
+      "id": "HR-R1",
+      "tag": "E",
+      "type": "paragraph",
+      "required": true,
+      "prompt": "What would help your people operation most as we map the ROIA?",
+      "next": [
+        {
+          "if": "always",
+          "then": "HR-WALK"
+        }
+      ],
+      "tonyHook": "result_q.staff_hr",
+      "noraFields": [
+        "one_fix_wish"
+      ],
+      "pack": "staff_hr",
+      "softEscape": {
+        "enabled": true,
+        "labels": [
+          "Skip",
+          "Not sure"
+        ],
+        "noraFlag": "thin_evidence",
+        "note": "Thin-evidence escape — do not block; Nora flags thin evidence"
+      },
+      "requiredMode": "soft",
+      "resultQLock": "map-useful ROIA outcomes only — never ask what AI to build"
+    },
+    {
+      "id": "HR-WALK",
+      "tag": "E",
+      "type": "paragraph",
+      "required": false,
+      "prompt": "In a few sentences, walk through a normal busy people-ops day for you.",
+      "next": [
+        {
+          "if": "always",
+          "then": "QS"
+        }
+      ],
+      "noraFields": [
+        "walk_your_day",
+        "staff_quotes"
+      ],
+      "pack": "staff_hr"
+    },
+    {
+      "id": "SALES-P1",
+      "tag": "E",
+      "type": "checkboxes",
+      "required": true,
+      "prompt": "Where do conversations stall or get dropped after first contact?",
+      "options": [
+        "Missed calls or leads",
+        "Slow follow-up",
+        "Chasing cold or stale follow-ups",
+        "Events / private dining leads stalling in email or text",
+        "No single place for lead status",
+        "Hand-offs to floor that drop",
+        "Calendar / room holds chaos",
+        "Other"
+      ],
+      "next": [
+        {
+          "if": "always",
+          "then": "SALES-SYS"
+        }
+      ],
+      "tonyHook": "pain_q.staff_sales",
+      "noraFields": [
+        "time_sinks",
+        "guest_friction",
+        "leak_hints"
+      ],
+      "pack": "staff_sales"
+    },
+    {
+      "id": "SALES-SYS",
+      "tag": "E",
+      "type": "checkboxes",
+      "required": true,
+      "prompt": "Which systems do you personally touch for leads and events in a normal week? Type exact product names in Other when you can.",
+      "options": [
+        "Email",
+        "Text / WhatsApp",
+        "Shared inbox",
+        "CRM / lead software",
+        "Reservations / events software",
+        "Spreadsheets",
+        "Slack / GroupMe",
+        "Personal phone",
+        "Other (type exact name)"
+      ],
+      "next": [
+        {
+          "if": "always",
+          "then": "SALES-L1"
+        }
+      ],
+      "noraFields": [
+        "software_stack"
+      ],
+      "pack": "staff_sales",
+      "productNameFollowUp": {
+        "type": "short",
+        "prompt": "Type the product name.",
+        "exportField": "productName",
+        "trigger": "whenCategoryChecked",
+        "perCheckedCategory": true,
+        "skipForOptions": [
+          "Prefer not to say"
+        ],
+        "otherRule": {
+          "optionMatches": [
+            "Other (type exact name)",
+            "Other"
+          ],
+          "textRequired": true,
+          "notSkippableAlone": true,
+          "note": "If Other is checked, typed product text is required — Other alone without text is invalid"
+        },
+        "encodeNote": "After any SYS category chip is checked (except Prefer not to say), force short follow-up. Export productName per checked category."
+      },
+      "exportFields": [
+        "software_stack",
+        "productName"
+      ],
+      "notes": "v1.1: forced short \"Type the product name.\" per checked category → productName; Other text required"
+    },
+    {
+      "id": "SALES-L1",
+      "tag": "E",
+      "type": "mc",
+      "required": true,
+      "prompt": "Events / private dining / catering leads — where do they live today?",
+      "options": [
+        "Email",
+        "Text",
+        "Shared inbox",
+        "CRM / software",
+        "Someone's personal phone",
+        "Not sure",
+        "N/A"
+      ],
+      "next": [
+        {
+          "if": "always",
+          "then": "SALES-L1b"
+        }
+      ],
+      "noraFields": [
+        "leak_hints"
+      ],
+      "pack": "staff_sales"
+    },
+    {
+      "id": "SALES-L1b",
+      "tag": "E",
+      "type": "short",
+      "required": false,
+      "prompt": "What falls through?",
+      "next": [
+        {
+          "if": "always",
+          "then": "SALES-F1"
+        }
+      ],
+      "noraFields": [
+        "staff_quotes",
+        "leak_hints"
+      ],
+      "pack": "staff_sales"
+    },
+    {
+      "id": "SALES-F1",
+      "tag": "E",
+      "type": "paragraph",
+      "required": true,
+      "prompt": "When someone calls or messages during a rush about a big party or private dining, what usually happens?",
+      "next": [
+        {
+          "if": "always",
+          "then": "SALES-R1"
+        }
+      ],
+      "noraFields": [
+        "guest_friction",
+        "staff_quotes"
+      ],
+      "pack": "staff_sales",
+      "softEscape": {
+        "enabled": true,
+        "labels": [
+          "Skip",
+          "Not sure"
+        ],
+        "noraFlag": "thin_evidence",
+        "note": "Thin-evidence escape — do not block; Nora flags thin evidence"
+      },
+      "requiredMode": "soft"
+    },
+    {
+      "id": "SALES-R1",
+      "tag": "E",
+      "type": "paragraph",
+      "required": true,
+      "prompt": "What would help sales follow-through most as we map the ROIA?",
+      "next": [
+        {
+          "if": "always",
+          "then": "SALES-WALK"
+        }
+      ],
+      "tonyHook": "result_q.staff_sales",
+      "noraFields": [
+        "one_fix_wish"
+      ],
+      "pack": "staff_sales",
+      "softEscape": {
+        "enabled": true,
+        "labels": [
+          "Skip",
+          "Not sure"
+        ],
+        "noraFlag": "thin_evidence",
+        "note": "Thin-evidence escape — do not block; Nora flags thin evidence"
+      },
+      "requiredMode": "soft",
+      "resultQLock": "map-useful ROIA outcomes only — never ask what AI to build"
+    },
+    {
+      "id": "SALES-WALK",
+      "tag": "E",
+      "type": "paragraph",
+      "required": false,
+      "prompt": "In a few sentences, walk through a normal busy sales or events day.",
+      "next": [
+        {
+          "if": "always",
+          "then": "QS"
+        }
+      ],
+      "noraFields": [
+        "walk_your_day",
+        "staff_quotes"
+      ],
+      "pack": "staff_sales"
+    },
+    {
+      "id": "FIN-P1",
+      "tag": "E",
+      "type": "checkboxes",
+      "required": true,
+      "prompt": "Where do money workflows create chase, errors, or delays?",
+      "options": [
+        "Invoice / vendor chase",
+        "Approvals bottleneck",
+        "Close / month-end rework",
+        "Reports don't match floor feel",
+        "Credits / shortages / substitutions untracked",
+        "Sales vs labor exports messy",
+        "Other"
+      ],
+      "next": [
+        {
+          "if": "always",
+          "then": "FIN-SYS"
+        }
+      ],
+      "tonyHook": "pain_q.staff_finance",
+      "noraFields": [
+        "time_sinks",
+        "leak_hints"
+      ],
+      "pack": "staff_finance"
+    },
+    {
+      "id": "FIN-SYS",
+      "tag": "E",
+      "type": "checkboxes",
+      "required": true,
+      "prompt": "Which systems do you personally touch for money or close work in a normal week? Exact product names help.",
+      "options": [
+        "QuickBooks / accounting software",
+        "Spreadsheets",
+        "Email",
+        "Bank / bill-pay portal",
+        "POS reports / sales exports",
+        "Inventory / ordering exports",
+        "Shared drives",
+        "Slack / text",
+        "Other (type exact name)"
+      ],
+      "next": [
+        {
+          "if": "always",
+          "then": "FIN-G1"
+        }
+      ],
+      "noraFields": [
+        "software_stack"
+      ],
+      "pack": "staff_finance",
+      "productNameFollowUp": {
+        "type": "short",
+        "prompt": "Type the product name.",
+        "exportField": "productName",
+        "trigger": "whenCategoryChecked",
+        "perCheckedCategory": true,
+        "skipForOptions": [
+          "Prefer not to say"
+        ],
+        "otherRule": {
+          "optionMatches": [
+            "Other (type exact name)",
+            "Other"
+          ],
+          "textRequired": true,
+          "notSkippableAlone": true,
+          "note": "If Other is checked, typed product text is required — Other alone without text is invalid"
+        },
+        "encodeNote": "After any SYS category chip is checked (except Prefer not to say), force short follow-up. Export productName per checked category."
+      },
+      "exportFields": [
+        "software_stack",
+        "productName"
+      ],
+      "notes": "v1.1: forced short \"Type the product name.\" per checked category → productName; Other text required"
+    },
+    {
+      "id": "FIN-G1",
+      "tag": "M",
+      "type": "mc",
+      "required": true,
+      "prompt": "Do you place or check vendor / distributor invoices?",
+      "options": [
+        "Yes — place and/or check",
+        "I see them but don't own them",
+        "No",
+        "Prefer not to say"
+      ],
+      "next": [
+        {
+          "if": "Yes — place and/or check",
+          "then": "FIN-V1"
+        },
+        {
+          "if": "I see them but don't own them",
+          "then": "FIN-V1"
+        },
+        {
+          "if": "else",
+          "then": "FIN-C1"
+        }
+      ],
+      "pack": "staff_finance"
+    },
+    {
+      "id": "FIN-V1",
+      "tag": "M",
+      "type": "short",
+      "required": false,
+      "prompt": "Who places distributor / vendor orders and who checks invoices — as you understand it?",
+      "next": [
+        {
+          "if": "always",
+          "then": "FIN-C1"
+        }
+      ],
+      "noraFields": [
+        "leak_hints"
+      ],
+      "pack": "staff_finance"
+    },
+    {
+      "id": "FIN-C1",
+      "tag": "E",
+      "type": "paragraph",
+      "required": true,
+      "prompt": "After month-end (or week-end), what report or close task feels painful or pointless?",
+      "next": [
+        {
+          "if": "moneyVisible",
+          "then": "FIN-CR1"
+        },
+        {
+          "if": "else",
+          "then": "FIN-R1"
+        }
+      ],
+      "noraFields": [
+        "time_sinks",
+        "staff_quotes"
+      ],
+      "pack": "staff_finance",
+      "softEscape": {
+        "enabled": true,
+        "labels": [
+          "Skip",
+          "Not sure"
+        ],
+        "noraFlag": "thin_evidence",
+        "note": "Thin-evidence escape — do not block; Nora flags thin evidence"
+      },
+      "requiredMode": "soft"
+    },
+    {
+      "id": "FIN-CR1",
+      "tag": "M",
+      "type": "paragraph",
+      "required": false,
+      "prompt": "Distributor credits, shortages, substitutions — who tracks them, and what gets left on the table?",
+      "next": [
+        {
+          "if": "always",
+          "then": "FIN-R1"
+        }
+      ],
+      "noraFields": [
+        "leak_hints"
+      ],
+      "showIf": "FIN-G1 money-visible",
+      "pack": "staff_finance"
+    },
+    {
+      "id": "FIN-R1",
+      "tag": "E",
+      "type": "paragraph",
+      "required": true,
+      "prompt": "What would clean up finance workflows most as we map the ROIA?",
+      "next": [
+        {
+          "if": "always",
+          "then": "FIN-WALK"
+        }
+      ],
+      "tonyHook": "result_q.staff_finance",
+      "noraFields": [
+        "one_fix_wish"
+      ],
+      "pack": "staff_finance",
+      "softEscape": {
+        "enabled": true,
+        "labels": [
+          "Skip",
+          "Not sure"
+        ],
+        "noraFlag": "thin_evidence",
+        "note": "Thin-evidence escape — do not block; Nora flags thin evidence"
+      },
+      "requiredMode": "soft",
+      "resultQLock": "map-useful ROIA outcomes only — never ask what AI to build"
+    },
+    {
+      "id": "FIN-WALK",
+      "tag": "E",
+      "type": "paragraph",
+      "required": false,
+      "prompt": "In a few sentences, walk through a normal close or AP-heavy day.",
+      "next": [
+        {
+          "if": "always",
+          "then": "QS"
+        }
+      ],
+      "noraFields": [
+        "walk_your_day",
+        "staff_quotes"
+      ],
+      "pack": "staff_finance"
+    },
+    {
+      "id": "ADMIN-P1",
+      "tag": "E",
+      "type": "checkboxes",
+      "required": true,
+      "prompt": "Where does work bounce between people or tools?",
+      "options": [
+        "Chasing answers across locations",
+        "Too much admin / paperwork",
+        "Scheduling / booking friction",
+        "Handoffs break between people/tools",
+        "Support or inbox overload",
+        "Same ask, different answer per location",
+        "Reports that don't match what the floor feels",
+        "Other"
+      ],
+      "next": [
+        {
+          "if": "always",
+          "then": "ADMIN-SYS"
+        }
+      ],
+      "tonyHook": "pain_q.staff_admin",
+      "noraFields": [
+        "time_sinks",
+        "leak_hints"
+      ],
+      "pack": "staff_admin"
+    },
+    {
+      "id": "ADMIN-SYS",
+      "tag": "E",
+      "type": "checkboxes",
+      "required": true,
+      "prompt": "Which systems do you personally touch in a normal week? Exact product names help.",
+      "options": [
+        "Email",
+        "Spreadsheets",
+        "Accounting / QuickBooks (or similar)",
+        "Scheduling",
+        "Reservations / events software",
+        "POS reports (not ringing tickets)",
+        "Slack / text / GroupMe",
+        "Shared drives",
+        "CRM / lead inbox",
+        "Other (type exact name)"
+      ],
+      "next": [
+        {
+          "if": "always",
+          "then": "ADMIN-X1"
+        }
+      ],
+      "noraFields": [
+        "software_stack"
+      ],
+      "pack": "staff_admin",
+      "productNameFollowUp": {
+        "type": "short",
+        "prompt": "Type the product name.",
+        "exportField": "productName",
+        "trigger": "whenCategoryChecked",
+        "perCheckedCategory": true,
+        "skipForOptions": [
+          "Prefer not to say"
+        ],
+        "otherRule": {
+          "optionMatches": [
+            "Other (type exact name)",
+            "Other"
+          ],
+          "textRequired": true,
+          "notSkippableAlone": true,
+          "note": "If Other is checked, typed product text is required — Other alone without text is invalid"
+        },
+        "encodeNote": "After any SYS category chip is checked (except Prefer not to say), force short follow-up. Export productName per checked category."
+      },
+      "exportFields": [
+        "software_stack",
+        "productName"
+      ],
+      "notes": "v1.1: forced short \"Type the product name.\" per checked category → productName; Other text required"
+    },
+    {
+      "id": "ADMIN-X1",
+      "tag": "E",
+      "type": "paragraph",
+      "required": true,
+      "prompt": "When a location needs something from HQ (or the reverse), what usually slows it down?",
+      "next": [
+        {
+          "if": "always",
+          "then": "ADMIN-G1"
+        }
+      ],
+      "noraFields": [
+        "leak_hints",
+        "staff_quotes"
+      ],
+      "pack": "staff_admin",
+      "softEscape": {
+        "enabled": true,
+        "labels": [
+          "Skip",
+          "Not sure"
+        ],
+        "noraFlag": "thin_evidence",
+        "note": "Thin-evidence escape — do not block; Nora flags thin evidence"
+      },
+      "requiredMode": "soft"
+    },
+    {
+      "id": "ADMIN-G1",
+      "tag": "M",
+      "type": "mc",
+      "required": true,
+      "prompt": "Do you handle money, vendors, or invoices in your role?",
+      "options": [
+        "Yes",
+        "No",
+        "Prefer not to say"
+      ],
+      "next": [
+        {
+          "if": "Yes",
+          "then": "ADMIN-V1"
+        },
+        {
+          "if": "else",
+          "then": "ADMIN-R1"
+        }
+      ],
+      "pack": "staff_admin"
+    },
+    {
+      "id": "ADMIN-V1",
+      "tag": "M",
+      "type": "short",
+      "required": false,
+      "prompt": "Who places distributor / vendor orders and who checks invoices — as you understand it?",
+      "next": [
+        {
+          "if": "always",
+          "then": "ADMIN-R1"
+        }
+      ],
+      "noraFields": [
+        "leak_hints"
+      ],
+      "pack": "staff_admin"
+    },
+    {
+      "id": "ADMIN-R1",
+      "tag": "E",
+      "type": "paragraph",
+      "required": true,
+      "prompt": "What would make day-to-day ops calmer?",
+      "next": [
+        {
+          "if": "always",
+          "then": "ADMIN-DAY"
+        }
+      ],
+      "tonyHook": "result_q.staff_admin",
+      "noraFields": [
+        "one_fix_wish"
+      ],
+      "pack": "staff_admin",
+      "softEscape": {
+        "enabled": true,
+        "labels": [
+          "Skip",
+          "Not sure"
+        ],
+        "noraFlag": "thin_evidence",
+        "note": "Thin-evidence escape — do not block; Nora flags thin evidence"
+      },
+      "requiredMode": "soft",
+      "resultQLock": "map-useful ROIA outcomes only — never ask what AI to build"
+    },
+    {
+      "id": "ADMIN-DAY",
+      "tag": "E",
+      "type": "checkboxes",
+      "required": false,
+      "prompt": "Which parts of the week are you usually on?",
+      "options": [
+        "Lunch",
+        "Dinner",
+        "Weekends",
+        "Private events",
+        "Weekday office hours",
+        "Other",
+        "Prefer not to say"
+      ],
+      "next": [
+        {
+          "if": "always",
+          "then": "ADMIN-MGR"
+        }
+      ],
+      "noraFields": [
+        "daypart"
+      ],
+      "pack": "staff_admin"
+    },
+    {
+      "id": "ADMIN-MGR",
+      "tag": "M",
+      "type": "checkbox",
+      "required": false,
+      "prompt": "Check if this fits: I’m a manager / lead / department lead.",
+      "options": [
+        "Yes — I'm a manager or lead"
+      ],
+      "next": [
+        {
+          "if": "checked",
+          "then": "ADMIN-M1"
+        },
+        {
+          "if": "else",
+          "then": "ADMIN-WALK"
+        }
+      ],
+      "noraFields": [
+        "manager_vs_frontline"
+      ],
+      "pack": "staff_admin"
+    },
+    {
+      "id": "ADMIN-M1",
+      "tag": "M",
+      "type": "mc",
+      "required": true,
+      "prompt": "How is next week’s schedule usually decided?",
+      "options": [
+        "Same as last week",
+        "Sales forecast",
+        "Manager gut",
+        "Mix",
+        "Not sure"
+      ],
+      "next": [
+        {
+          "if": "always",
+          "then": "ADMIN-M2"
+        }
+      ],
+      "showIf": "ADMIN-MGR checked",
+      "noraFields": [
+        "leak_hints"
+      ],
+      "pack": "staff_admin"
+    },
+    {
+      "id": "ADMIN-M2",
+      "tag": "M",
+      "type": "mc",
+      "required": true,
+      "prompt": "How much of a manager’s day goes into shift swaps and day-of texts?",
+      "options": [
+        "Almost none",
+        "Some",
+        "A lot",
+        "Constant"
+      ],
+      "next": [
+        {
+          "if": "always",
+          "then": "ADMIN-M3"
+        }
+      ],
+      "noraFields": [
+        "time_sinks"
+      ],
+      "pack": "staff_admin"
+    },
+    {
+      "id": "ADMIN-M3",
+      "tag": "M",
+      "type": "paragraph",
+      "required": true,
+      "prompt": "Across locations, what feels most inconsistent?",
+      "next": [
+        {
+          "if": "always",
+          "then": "ADMIN-WALK"
+        }
+      ],
+      "noraFields": [
+        "leak_hints",
+        "staff_quotes"
+      ],
+      "pack": "staff_admin",
+      "softEscape": {
+        "enabled": true,
+        "labels": [
+          "Skip",
+          "Not sure"
+        ],
+        "noraFlag": "thin_evidence",
+        "note": "Thin-evidence escape — do not block; Nora flags thin evidence"
+      },
+      "requiredMode": "soft"
+    },
+    {
+      "id": "ADMIN-WALK",
+      "tag": "E",
+      "type": "paragraph",
+      "required": false,
+      "prompt": "In a few sentences, walk through a normal busy ops day.",
+      "next": [
+        {
+          "if": "always",
+          "then": "QS"
+        }
+      ],
+      "noraFields": [
+        "walk_your_day",
+        "staff_quotes"
+      ],
+      "pack": "staff_admin"
+    },
+    {
+      "id": "FOH-P1",
+      "tag": "E",
+      "type": "checkboxes",
+      "required": true,
+      "prompt": "Where do guest-facing moments go sideways?",
+      "options": [
+        "Missed calls or inquiries",
+        "Phones during rush",
+        "Booking / reservation friction",
+        "Walk-in wait chaos",
+        "POS fights (comps/splits/slow)",
+        "Handoffs to kitchen break",
+        "Items run out mid-service",
+        "Other"
+      ],
+      "next": [
+        {
+          "if": "always",
+          "then": "FOH-SYS"
+        }
+      ],
+      "tonyHook": "pain_q.staff_foh",
+      "noraFields": [
+        "guest_friction",
+        "time_sinks",
+        "leak_hints"
+      ],
+      "pack": "staff_foh"
+    },
+    {
+      "id": "FOH-SYS",
+      "tag": "E",
+      "type": "checkboxes",
+      "required": true,
+      "prompt": "Which tools do you personally use on a normal shift? Type exact names in Other when you can.",
+      "options": [
+        "POS (order / pay)",
+        "Reservations app",
+        "Scheduling app",
+        "Texts / GroupMe",
+        "Paper / binder",
+        "Spreadsheets",
+        "Other (type exact name)",
+        "Prefer not to say"
+      ],
+      "next": [
+        {
+          "if": "always",
+          "then": "FOH-POS"
+        }
+      ],
+      "noraFields": [
+        "software_stack"
+      ],
+      "pack": "staff_foh",
+      "productNameFollowUp": {
+        "type": "short",
+        "prompt": "Type the product name.",
+        "exportField": "productName",
+        "trigger": "whenCategoryChecked",
+        "perCheckedCategory": true,
+        "skipForOptions": [
+          "Prefer not to say"
+        ],
+        "otherRule": {
+          "optionMatches": [
+            "Other (type exact name)",
+            "Other"
+          ],
+          "textRequired": true,
+          "notSkippableAlone": true,
+          "note": "If Other is checked, typed product text is required — Other alone without text is invalid"
+        },
+        "encodeNote": "After any SYS category chip is checked (except Prefer not to say), force short follow-up. Export productName per checked category."
+      },
+      "exportFields": [
+        "software_stack",
+        "productName"
+      ],
+      "notes": "v1.1: forced short \"Type the product name.\" per checked category → productName; Other text required"
+    },
+    {
+      "id": "FOH-POS",
+      "tag": "E",
+      "type": "checkboxes",
+      "required": true,
+      "prompt": "Where does the order / pay system fight you most?",
+      "options": [
+        "Items that run out mid-service",
+        "Comps / voids",
+        "Splitting checks",
+        "System slow or offline",
+        "Training / unclear buttons",
+        "Menu / price mistakes",
+        "Other",
+        "It mostly works"
+      ],
+      "next": [
+        {
+          "if": "always",
+          "then": "FOH-PHONE"
+        }
+      ],
+      "noraFields": [
+        "guest_friction",
+        "leak_hints"
+      ],
+      "notes": "no 86/expo labels",
+      "pack": "staff_foh"
+    },
+    {
+      "id": "FOH-PHONE",
+      "tag": "E",
+      "type": "paragraph",
+      "required": true,
+      "prompt": "When the phone rings during a rush for a big party or private dining, what usually happens?",
+      "next": [
+        {
+          "if": "always",
+          "then": "FOH-RES"
+        }
+      ],
+      "noraFields": [
+        "guest_friction",
+        "staff_quotes"
+      ],
+      "pack": "staff_foh",
+      "softEscape": {
+        "enabled": true,
+        "labels": [
+          "Skip",
+          "Not sure"
+        ],
+        "noraFlag": "thin_evidence",
+        "note": "Thin-evidence escape — do not block; Nora flags thin evidence"
+      },
+      "requiredMode": "soft"
+    },
+    {
+      "id": "FOH-RES",
+      "tag": "E",
+      "type": "paragraph",
+      "required": true,
+      "prompt": "How do reservations get confirmed, and what happens when people don’t show?",
+      "next": [
+        {
+          "if": "always",
+          "then": "FOH-WAIT"
+        }
+      ],
+      "noraFields": [
+        "leak_hints",
+        "staff_quotes"
+      ],
+      "pack": "staff_foh",
+      "softEscape": {
+        "enabled": true,
+        "labels": [
+          "Skip",
+          "Not sure"
+        ],
+        "noraFlag": "thin_evidence",
+        "note": "Thin-evidence escape — do not block; Nora flags thin evidence"
+      },
+      "requiredMode": "soft"
+    },
+    {
+      "id": "FOH-WAIT",
+      "tag": "E",
+      "type": "paragraph",
+      "required": true,
+      "prompt": "During the busiest part of service, where do guests wait longest — and what makes that worse?",
+      "next": [
+        {
+          "if": "always",
+          "then": "FOH-86"
+        }
+      ],
+      "noraFields": [
+        "guest_friction",
+        "staff_quotes"
+      ],
+      "pack": "staff_foh",
+      "softEscape": {
+        "enabled": true,
+        "labels": [
+          "Skip",
+          "Not sure"
+        ],
+        "noraFlag": "thin_evidence",
+        "note": "Thin-evidence escape — do not block; Nora flags thin evidence"
+      },
+      "requiredMode": "soft"
+    },
+    {
+      "id": "FOH-86",
+      "tag": "E",
+      "type": "paragraph",
+      "required": true,
+      "prompt": "When something runs out and you can’t sell it anymore, how does that reach the floor and the next order?",
+      "next": [
+        {
+          "if": "always",
+          "then": "FOH-R1"
+        }
+      ],
+      "noraFields": [
+        "guest_friction",
+        "leak_hints",
+        "staff_quotes"
+      ],
+      "pack": "staff_foh",
+      "softEscape": {
+        "enabled": true,
+        "labels": [
+          "Skip",
+          "Not sure"
+        ],
+        "noraFlag": "thin_evidence",
+        "note": "Thin-evidence escape — do not block; Nora flags thin evidence"
+      },
+      "requiredMode": "soft"
+    },
+    {
+      "id": "FOH-R1",
+      "tag": "E",
+      "type": "paragraph",
+      "required": true,
+      "prompt": "What would make the front-of-house day smoother?",
+      "next": [
+        {
+          "if": "always",
+          "then": "FOH-DAY"
+        }
+      ],
+      "tonyHook": "result_q.staff_foh",
+      "noraFields": [
+        "one_fix_wish"
+      ],
+      "pack": "staff_foh",
+      "softEscape": {
+        "enabled": true,
+        "labels": [
+          "Skip",
+          "Not sure"
+        ],
+        "noraFlag": "thin_evidence",
+        "note": "Thin-evidence escape — do not block; Nora flags thin evidence"
+      },
+      "requiredMode": "soft",
+      "resultQLock": "map-useful ROIA outcomes only — never ask what AI to build"
+    },
+    {
+      "id": "FOH-DAY",
+      "tag": "E",
+      "type": "checkboxes",
+      "required": false,
+      "prompt": "Which parts of the week are you usually on?",
+      "options": [
+        "Lunch",
+        "Dinner",
+        "Weekends",
+        "Private events",
+        "Weekday office hours",
+        "Other",
+        "Prefer not to say"
+      ],
+      "next": [
+        {
+          "if": "always",
+          "then": "FOH-MGR"
+        }
+      ],
+      "noraFields": [
+        "daypart"
+      ],
+      "pack": "staff_foh"
+    },
+    {
+      "id": "FOH-MGR",
+      "tag": "M",
+      "type": "checkbox",
+      "required": false,
+      "prompt": "Check if this fits: I’m a manager / lead / GM / bar manager.",
+      "options": [
+        "Yes — I'm a manager or lead"
+      ],
+      "next": [
+        {
+          "if": "checked",
+          "then": "FOH-M1"
+        },
+        {
+          "if": "else",
+          "then": "FOH-WALK"
+        }
+      ],
+      "noraFields": [
+        "manager_vs_frontline"
+      ],
+      "pack": "staff_foh"
+    },
+    {
+      "id": "FOH-M1",
+      "tag": "M",
+      "type": "mc",
+      "required": true,
+      "prompt": "How is next week’s schedule usually decided?",
+      "options": [
+        "Same as last week",
+        "Sales forecast",
+        "Manager gut",
+        "Mix",
+        "Not sure"
+      ],
+      "next": [
+        {
+          "if": "always",
+          "then": "FOH-M2"
+        }
+      ],
+      "showIf": "FOH-MGR checked",
+      "pack": "staff_foh"
+    },
+    {
+      "id": "FOH-M2",
+      "tag": "M",
+      "type": "mc",
+      "required": true,
+      "prompt": "How much of a manager’s day goes into shift swaps and day-of texts?",
+      "options": [
+        "Almost none",
+        "Some",
+        "A lot",
+        "Constant"
+      ],
+      "next": [
+        {
+          "if": "always",
+          "then": "FOH-WALK"
+        }
+      ],
+      "noraFields": [
+        "time_sinks"
+      ],
+      "pack": "staff_foh"
+    },
+    {
+      "id": "FOH-WALK",
+      "tag": "E",
+      "type": "paragraph",
+      "required": false,
+      "prompt": "In a few sentences, walk through a normal busy shift for you.",
+      "next": [
+        {
+          "if": "always",
+          "then": "QS"
+        }
+      ],
+      "noraFields": [
+        "walk_your_day",
+        "staff_quotes"
+      ],
+      "pack": "staff_foh"
+    },
+    {
+      "id": "BOH-P1",
+      "tag": "E",
+      "type": "checkboxes",
+      "required": true,
+      "prompt": "Where does floor work stall or lose the handoff?",
+      "options": [
+        "Ticket rail jammed",
+        "Prep / station imbalance",
+        "Inventory handoffs weak",
+        "Runs-out communication to floor",
+        "Ordering / count cadence gaps",
+        "Waiting around then slammed",
+        "Other"
+      ],
+      "next": [
+        {
+          "if": "always",
+          "then": "BOH-SYS"
+        }
+      ],
+      "tonyHook": "pain_q.staff_boh",
+      "noraFields": [
+        "time_sinks",
+        "leak_hints"
+      ],
+      "pack": "staff_boh"
+    },
+    {
+      "id": "BOH-SYS",
+      "tag": "E",
+      "type": "checkboxes",
+      "required": true,
+      "prompt": "Which tools do you personally use on a normal shift? Exact names in Other help.",
+      "options": [
+        "Ticket / KDS screen",
+        "Paper tickets",
+        "Inventory / ordering app",
+        "Spreadsheets",
+        "Texts",
+        "POS (if you use it)",
+        "Other (type exact name)"
+      ],
+      "next": [
+        {
+          "if": "always",
+          "then": "BOH-86"
+        }
+      ],
+      "noraFields": [
+        "software_stack"
+      ],
+      "pack": "staff_boh",
+      "productNameFollowUp": {
+        "type": "short",
+        "prompt": "Type the product name.",
+        "exportField": "productName",
+        "trigger": "whenCategoryChecked",
+        "perCheckedCategory": true,
+        "skipForOptions": [
+          "Prefer not to say"
+        ],
+        "otherRule": {
+          "optionMatches": [
+            "Other (type exact name)",
+            "Other"
+          ],
+          "textRequired": true,
+          "notSkippableAlone": true,
+          "note": "If Other is checked, typed product text is required — Other alone without text is invalid"
+        },
+        "encodeNote": "After any SYS category chip is checked (except Prefer not to say), force short follow-up. Export productName per checked category."
+      },
+      "exportFields": [
+        "software_stack",
+        "productName"
+      ],
+      "notes": "v1.1: forced short \"Type the product name.\" per checked category → productName; Other text required"
+    },
+    {
+      "id": "BOH-86",
+      "tag": "E",
+      "type": "paragraph",
+      "required": true,
+      "prompt": "When something runs out mid-service, how does that get to the floor and onto the next order?",
+      "next": [
+        {
+          "if": "always",
+          "then": "BOH-INV"
+        }
+      ],
+      "noraFields": [
+        "guest_friction",
+        "leak_hints",
+        "staff_quotes"
+      ],
+      "pack": "staff_boh",
+      "notes": "v1.1 Nora: runs-out → guest_friction (floor/guest impact)",
+      "softEscape": {
+        "enabled": true,
+        "labels": [
+          "Skip",
+          "Not sure"
+        ],
+        "noraFlag": "thin_evidence",
+        "note": "Thin-evidence escape — do not block; Nora flags thin evidence"
+      },
+      "requiredMode": "soft"
+    },
+    {
+      "id": "BOH-INV",
+      "tag": "E",
+      "type": "mc",
+      "required": true,
+      "prompt": "How often is there a real inventory count vs “we’ll catch it next week”?",
+      "options": [
+        "Every shift",
+        "A few times a week",
+        "Weekly",
+        "Monthly",
+        "Rarely",
+        "Not my job",
+        "Not sure"
+      ],
+      "next": [
+        {
+          "if": "always",
+          "then": "BOH-OG"
+        }
+      ],
+      "noraFields": [
+        "leak_hints"
+      ],
+      "pack": "staff_boh"
+    },
+    {
+      "id": "BOH-OG",
+      "tag": "M",
+      "type": "mc",
+      "required": true,
+      "prompt": "Do you help with ordering or inventory counts?",
+      "options": [
+        "Yes",
+        "No",
+        "Prefer not to say"
+      ],
+      "next": [
+        {
+          "if": "Yes",
+          "then": "BOH-ORD"
+        },
+        {
+          "if": "else",
+          "then": "BOH-RAIL"
+        }
+      ],
+      "pack": "staff_boh"
+    },
+    {
+      "id": "BOH-ORD",
+      "tag": "M",
+      "type": "short",
+      "required": false,
+      "prompt": "Who places Sysco / US Foods / local orders, and who checks invoices — as you understand it?",
+      "next": [
+        {
+          "if": "always",
+          "then": "BOH-RAIL"
+        }
+      ],
+      "noraFields": [
+        "leak_hints"
+      ],
+      "showIf": "BOH-OG==Yes",
+      "pack": "staff_boh"
+    },
+    {
+      "id": "BOH-RAIL",
+      "tag": "E",
+      "type": "paragraph",
+      "required": true,
+      "prompt": "On a slammed ticket rail, what slows the kitchen down most?",
+      "next": [
+        {
+          "if": "always",
+          "then": "BOH-LABOR"
+        }
+      ],
+      "noraFields": [
+        "time_sinks",
+        "staff_quotes"
+      ],
+      "pack": "staff_boh",
+      "softEscape": {
+        "enabled": true,
+        "labels": [
+          "Skip",
+          "Not sure"
+        ],
+        "noraFlag": "thin_evidence",
+        "note": "Thin-evidence escape — do not block; Nora flags thin evidence"
+      },
+      "requiredMode": "soft"
+    },
+    {
+      "id": "BOH-LABOR",
+      "tag": "E",
+      "type": "paragraph",
+      "required": true,
+      "prompt": "Where are you slammed vs waiting around?",
+      "next": [
+        {
+          "if": "always",
+          "then": "BOH-R1"
+        }
+      ],
+      "noraFields": [
+        "time_sinks",
+        "staff_quotes"
+      ],
+      "pack": "staff_boh",
+      "softEscape": {
+        "enabled": true,
+        "labels": [
+          "Skip",
+          "Not sure"
+        ],
+        "noraFlag": "thin_evidence",
+        "note": "Thin-evidence escape — do not block; Nora flags thin evidence"
+      },
+      "requiredMode": "soft"
+    },
+    {
+      "id": "BOH-R1",
+      "tag": "E",
+      "type": "paragraph",
+      "required": true,
+      "prompt": "What would make back-of-house execution cleaner?",
+      "next": [
+        {
+          "if": "always",
+          "then": "BOH-DAY"
+        }
+      ],
+      "tonyHook": "result_q.staff_boh",
+      "noraFields": [
+        "one_fix_wish"
+      ],
+      "pack": "staff_boh",
+      "softEscape": {
+        "enabled": true,
+        "labels": [
+          "Skip",
+          "Not sure"
+        ],
+        "noraFlag": "thin_evidence",
+        "note": "Thin-evidence escape — do not block; Nora flags thin evidence"
+      },
+      "requiredMode": "soft",
+      "resultQLock": "map-useful ROIA outcomes only — never ask what AI to build"
+    },
+    {
+      "id": "BOH-DAY",
+      "tag": "E",
+      "type": "checkboxes",
+      "required": false,
+      "prompt": "Which parts of the week are you usually on?",
+      "options": [
+        "Lunch",
+        "Dinner",
+        "Weekends",
+        "Private events",
+        "Weekday office hours",
+        "Other",
+        "Prefer not to say"
+      ],
+      "next": [
+        {
+          "if": "always",
+          "then": "BOH-MGR"
+        }
+      ],
+      "noraFields": [
+        "daypart"
+      ],
+      "pack": "staff_boh"
+    },
+    {
+      "id": "BOH-MGR",
+      "tag": "M",
+      "type": "checkbox",
+      "required": false,
+      "prompt": "Check if this fits: I’m a manager / lead / chef / sous / kitchen lead.",
+      "options": [
+        "Yes — I'm a manager or lead"
+      ],
+      "next": [
+        {
+          "if": "checked",
+          "then": "BOH-M1"
+        },
+        {
+          "if": "else",
+          "then": "BOH-WALK"
+        }
+      ],
+      "noraFields": [
+        "manager_vs_frontline"
+      ],
+      "pack": "staff_boh"
+    },
+    {
+      "id": "BOH-M1",
+      "tag": "M",
+      "type": "mc",
+      "required": true,
+      "prompt": "How is next week’s schedule usually decided?",
+      "options": [
+        "Same as last week",
+        "Sales forecast",
+        "Manager gut",
+        "Mix",
+        "Not sure"
+      ],
+      "next": [
+        {
+          "if": "always",
+          "then": "BOH-M4"
+        }
+      ],
+      "showIf": "BOH-MGR checked",
+      "pack": "staff_boh"
+    },
+    {
+      "id": "BOH-M4",
+      "tag": "M",
+      "type": "paragraph",
+      "required": false,
+      "prompt": "Distributor credits, shortages, substitutions — who tracks them, and what gets left on the table?",
+      "next": [
+        {
+          "if": "always",
+          "then": "BOH-WALK"
+        }
+      ],
+      "noraFields": [
+        "leak_hints"
+      ],
+      "pack": "staff_boh"
+    },
+    {
+      "id": "BOH-WALK",
+      "tag": "E",
+      "type": "paragraph",
+      "required": false,
+      "prompt": "In a few sentences, walk through a normal busy kitchen shift.",
+      "next": [
+        {
+          "if": "always",
+          "then": "QS"
+        }
+      ],
+      "noraFields": [
+        "walk_your_day",
+        "staff_quotes"
+      ],
+      "pack": "staff_boh"
+    },
+    {
+      "id": "OTHER-P1",
+      "tag": "E",
+      "type": "checkboxes",
+      "required": true,
+      "prompt": "Where does work get stuck or leak time in your seat?",
+      "options": [
+        "Too much admin / paperwork",
+        "Handoffs break between people/tools",
+        "Missed calls or inquiries",
+        "Scheduling / booking friction",
+        "Support or inbox overload",
+        "Other"
+      ],
+      "next": [
+        {
+          "if": "always",
+          "then": "OTHER-SYS"
+        }
+      ],
+      "tonyHook": "pain_q.staff_admin",
+      "noraFields": [
+        "time_sinks",
+        "leak_hints"
+      ],
+      "pack": "staff_other"
+    },
+    {
+      "id": "OTHER-SYS",
+      "tag": "E",
+      "type": "checkboxes",
+      "required": true,
+      "prompt": "Which systems do you personally touch in a normal week? Exact names help.",
+      "options": [
+        "Email",
+        "Spreadsheets",
+        "Accounting / QuickBooks (or similar)",
+        "Scheduling",
+        "Reservations / events software",
+        "POS reports (not ringing tickets)",
+        "POS (order / pay)",
+        "Ticket / KDS screen",
+        "Slack / text / GroupMe",
+        "Shared drives",
+        "Other (type exact name)"
+      ],
+      "next": [
+        {
+          "if": "always",
+          "then": "OTHER-MIX1"
+        }
+      ],
+      "noraFields": [
+        "software_stack"
+      ],
+      "pack": "staff_other",
+      "productNameFollowUp": {
+        "type": "short",
+        "prompt": "Type the product name.",
+        "exportField": "productName",
+        "trigger": "whenCategoryChecked",
+        "perCheckedCategory": true,
+        "skipForOptions": [
+          "Prefer not to say"
+        ],
+        "otherRule": {
+          "optionMatches": [
+            "Other (type exact name)",
+            "Other"
+          ],
+          "textRequired": true,
+          "notSkippableAlone": true,
+          "note": "If Other is checked, typed product text is required — Other alone without text is invalid"
+        },
+        "encodeNote": "After any SYS category chip is checked (except Prefer not to say), force short follow-up. Export productName per checked category."
+      },
+      "exportFields": [
+        "software_stack",
+        "productName"
+      ],
+      "notes": "v1.1: forced short \"Type the product name.\" per checked category → productName; Other text required"
+    },
+    {
+      "id": "OTHER-MIX1",
+      "tag": "E",
+      "type": "paragraph",
+      "required": false,
+      "prompt": "During the busiest part of service (or your busiest hour), where do guests or internal customers wait longest — and what makes that worse?",
+      "next": [
+        {
+          "if": "always",
+          "then": "OTHER-MIX2"
+        }
+      ],
+      "noraFields": [
+        "guest_friction",
+        "staff_quotes"
+      ],
+      "pack": "staff_other"
+    },
+    {
+      "id": "OTHER-MIX2",
+      "tag": "E",
+      "type": "paragraph",
+      "required": false,
+      "prompt": "When something runs out mid-service, how does that get to the floor and onto the next order?",
+      "next": [
+        {
+          "if": "always",
+          "then": "OTHER-R1"
+        }
+      ],
+      "noraFields": [
+        "leak_hints",
+        "staff_quotes"
+      ],
+      "pack": "staff_other"
+    },
+    {
+      "id": "OTHER-R1",
+      "tag": "E",
+      "type": "paragraph",
+      "required": true,
+      "prompt": "What would help your seat most as we map the ROIA?",
+      "next": [
+        {
+          "if": "always",
+          "then": "QS"
+        }
+      ],
+      "tonyHook": "result_q.staff_admin",
+      "noraFields": [
+        "one_fix_wish"
+      ],
+      "pack": "staff_other",
+      "softEscape": {
+        "enabled": true,
+        "labels": [
+          "Skip",
+          "Not sure"
+        ],
+        "noraFlag": "thin_evidence",
+        "note": "Thin-evidence escape — do not block; Nora flags thin evidence"
+      },
+      "requiredMode": "soft",
+      "resultQLock": "map-useful ROIA outcomes only — never ask what AI to build"
+    },
+    {
+      "id": "QS",
+      "tag": "Both",
+      "type": "summary",
+      "required": true,
+      "prompt": "Here’s your discovery summary. Edit anything, go back, or send it for the ROIA team.",
+      "options": [
+        "Looks good — submit",
+        "Edit answers"
+      ],
+      "next": [
+        {
+          "if": "Looks good — submit",
+          "then": "T_OK"
+        },
+        {
+          "if": "Edit answers",
+          "then": "LOOP_PREV"
+        }
+      ],
+      "tonyHook": "STATE_PROMPT.SUMMARY staff"
+    },
+    {
+      "id": "T_OK",
+      "tag": "Both",
+      "type": "terminal",
+      "required": false,
+      "prompt": "Thank you. Your answers are with the ROIA team for discovery.",
+      "tonyHook": "submit_done staff"
+    },
+    {
+      "id": "T_SOFT",
+      "tag": "Both",
+      "type": "terminal",
+      "required": false,
+      "prompt": "Thanks — pause anytime and resume in this browser."
+    },
+    {
+      "id": "T_DEAD",
+      "tag": "Both",
+      "type": "terminal",
+      "required": false,
+      "prompt": "Session ended before we had your contact — you can start again anytime."
+    }
+  ],
+  "changelog": [
+    {
+      "version": "1.2.0",
+      "date": "2026-09-21",
+      "timezone": "America/Los_Angeles (PT)",
+      "summary": "Vince locks Diggler 7 defaults — Bob PR3 source-of-truth",
+      "changes": [
+        "Locations locked: Fashion Island / Santa Monica / Westlake / Irvine HQ / Other",
+        "FOH/BOH workPhone soft-optional (NOT required) in nodes + contactFields; HQ seats stay required",
+        "staff_ceo exec-only invite path (not on all-staff links) → invitePolicy.staff_ceo=execOnly",
+        "Quotes: named by default + opt-in anonymous (keep role) → quotePolicy + Q4c",
+        "Staff links ALWAYS carry client/invoice id → staffLinkPolicy + Q0 + noraCaptureMap",
+        "Encode all 7 packs; soft-launch invite subset CEO+Admin+FOH+BOH first",
+        "Wire now: Tony polished-v1.1 OK; doNotSend=true until Vince+Rick+CFO massage + audience list",
+        "Preserved Nora v1.1 encode: productName, exportContract, guest_friction, Skip/Not sure",
+        "Preserved Mary WELCOME / result_q / chrome locks"
+      ],
+      "vinceLocks": true
+    },
+    {
+      "version": "1.1.0-tony",
+      "date": "2026-09-21",
+      "timezone": "America/Los_Angeles (PT)",
+      "summary": "Tony Traffic voice polish v1.1 on Diggler/Nora 1.1.0 — voice only; Nora encode blockers preserved",
+      "changes": [
+        "Q1 WELCOME: Mary lock — maps time/friction so leadership can see how work runs; NOT performance review; NOT cutting jobs; Tony pause/finish-later",
+        "Re-applied v1 voice rules: SALES/FIN/OTHER result_q → “as we map the ROIA”; FOH guest-facing; FOH/OTHER inquiries; SALES stalling; HR people-ops; terminal warmth",
+        "CEO-GUEST light voice polish; CEO-R1 Mary map-useful result_q kept",
+        "PRESERVED: productNameFollowUp, exportContract, softEscape Skip/Not sure, guest_friction tags, IFTTT keys, node ids, required flags",
+        "Supersedes onb1-staff-packs-polished.json (v1) — Bob: prefer this over v1"
+      ]
+    },
+    {
+      "version": "1.1.0",
+      "date": "2026-09-21",
+      "timezone": "America/Los_Angeles (PT)",
+      "summary": "Nora ROIA check 2026-09-21 — four encode blockers + Mary GTM handoff locks",
+      "changes": [
+        "SYS category chips: forced short follow-up \"Type the product name.\" → export productName; Other requires text (not skippable alone)",
+        "exportContract: Bob emits per paragraph {speaker_role, quote_text, location, anonymity, node_id, lens}",
+        "CEO-P1 + BOH-86 tagged guest_friction; light optional CEO-GUEST para when reputation/guest chip selected",
+        "Required paragraphs: soft Skip / Not sure thin-evidence escape",
+        "Mary GTM: welcome calm line; result_q map-useful only; phone HQ required / FOH-BOH soft-optional; no prospect chrome; ship CEO+Admin+FOH+BOH first"
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "date": "2026-09-21",
+      "summary": "Initial MAP-READY staff employee-interview map"
+    }
+  ],
+  "exportContract": {
+    "owner": "Bob PR3",
+    "staffQuotes": {
+      "description": "Per paragraph answer that yields a usable quote, Bob MUST emit one object with these fields.",
+      "requiredFields": [
+        "speaker_role",
+        "quote_text",
+        "location",
+        "anonymity",
+        "node_id",
+        "lens"
+      ],
+      "fieldNotes": {
+        "speaker_role": "Resolved staff_* role pack id (e.g. staff_foh)",
+        "quote_text": "Verbatim paragraph text; empty/skip/not-sure → omit object or flag thin_evidence",
+        "location": "From Q3 / Q3o",
+        "anonymity": "From Q4c (or default)",
+        "node_id": "Stable node id that produced the paragraph",
+        "lens": "Role lens matching roleBranches.*.lens"
+      },
+      "noraField": "staff_quotes"
+    },
+    "softwareStack": {
+      "description": "SYS category selection + productName short follow-ups",
+      "fields": [
+        "category",
+        "productName"
+      ],
+      "noraField": "software_stack"
+    }
+  },
+  "encodeRules": {
+    "sysProductNameFollowUp": {
+      "type": "short",
+      "prompt": "Type the product name.",
+      "exportField": "productName",
+      "trigger": "whenCategoryChecked",
+      "perCheckedCategory": true,
+      "skipForOptions": [
+        "Prefer not to say"
+      ],
+      "otherRule": {
+        "optionMatches": [
+          "Other (type exact name)",
+          "Other"
+        ],
+        "textRequired": true,
+        "notSkippableAlone": true,
+        "note": "If Other is checked, typed product text is required — Other alone without text is invalid"
+      },
+      "encodeNote": "After any SYS category chip is checked (except Prefer not to say), force short follow-up. Export productName per checked category."
+    },
+    "requiredParagraphSoftEscape": {
+      "labels": [
+        "Skip",
+        "Not sure"
+      ],
+      "noraFlag": "thin_evidence",
+      "note": "Required paragraphs stay in flow but soft Skip / Not sure allowed so thin evidence does not block submit"
+    },
+    "resultQLock": {
+      "nodes": [
+        "CEO-R1",
+        "HR-R1",
+        "SALES-R1",
+        "FIN-R1",
+        "ADMIN-R1",
+        "FOH-R1",
+        "BOH-R1",
+        "OTHER-R1"
+      ],
+      "rule": "Map-useful ROIA outcomes only — never ask what AI to build / free consulting"
+    }
+  },
+  "maryGtmLocks": {
+    "welcomeCalmLine": {
+      "stateKey": "WELCOME",
+      "intent": "Maps time/friction for leadership so they can see how work runs — NOT a performance review, NOT cutting jobs. 10× / humans-out-front without saying “AI employee.” Especially FOH / BOH / HR.",
+      "appliesHardest": [
+        "staff_foh",
+        "staff_boh",
+        "staff_hr"
+      ],
+      "polishedPromptNode": "Q1"
+    },
+    "resultQ": {
+      "rule": "CEO-R1 and all result_q nodes: map-useful outcomes only — never “what AI should we build” (free consulting)."
+    },
+    "phone": {
+      "hqRequired": [
+        "staff_ceo",
+        "staff_hr",
+        "staff_sales",
+        "staff_finance",
+        "staff_admin"
+      ],
+      "fohBoh": "soft-optional",
+      "fohBohNotRequired": true,
+      "vinceLock": true,
+      "note": "Vince lock 2: FOH/BOH work phone soft-optional (NOT required); HQ seats stay required"
+    },
+    "neverOnStaffMode": [
+      "prospect UI wording",
+      "buy / purchase chrome",
+      "$1k / pricing chips",
+      "chatbot demo chrome",
+      "budget_*",
+      "timeline_*"
+    ],
+    "shipOrderIfCapacityBound": [
+      "staff_ceo",
+      "staff_admin",
+      "staff_foh",
+      "staff_boh"
+    ],
+    "shipOrderDeferred": [
+      "staff_hr",
+      "staff_sales",
+      "staff_finance",
+      "staff_other"
+    ],
+    "vinceSoftLaunch": [
+      "staff_ceo",
+      "staff_admin",
+      "staff_foh",
+      "staff_boh"
+    ]
+  },
+  "shipOrder": {
+    "ifCapacityBound": [
+      "staff_ceo",
+      "staff_admin",
+      "staff_foh",
+      "staff_boh"
+    ],
+    "softLaunchRoles": [
+      "staff_ceo",
+      "staff_admin",
+      "staff_foh",
+      "staff_boh"
+    ],
+    "softLaunchLater": [
+      "staff_hr",
+      "staff_sales",
+      "staff_finance",
+      "staff_other"
+    ],
+    "encodeAll": true,
+    "source": "Vince lock 2026-09-21 (supersedes Mary capacity-bound ship order; same subset)"
+  },
+  "vinceLocks": {
+    "lockedAt": "2026-09-21",
+    "timezone": "America/Los_Angeles (PT)",
+    "source": "Vince — Diggler 7 defaults for Red O staff ONB1 packs",
+    "locks": [
+      {
+        "id": 1,
+        "key": "locations",
+        "lock": "keep Fashion Island / Santa Monica / Westlake / Irvine HQ / Other",
+        "status": "LOCKED",
+        "encodedIn": [
+          "packPayload.red-o.locations",
+          "nodes.Q3.options"
+        ]
+      },
+      {
+        "id": 2,
+        "key": "workPhone",
+        "lock": "FOH/BOH work phone soft-optional (NOT required); HQ seats (ceo/hr/sales/finance/admin) stay required",
+        "status": "LOCKED",
+        "encodedIn": [
+          "contactFields.workPhone.requiredByRole",
+          "nodes.Q2.fields.workPhone",
+          "nodes.Q2.phoneRule",
+          "maryGtmLocks.phone"
+        ]
+      },
+      {
+        "id": 3,
+        "key": "staff_ceo_invite",
+        "lock": "staff_ceo exec-only invite path (not on all-staff links)",
+        "status": "LOCKED",
+        "encodedIn": [
+          "invitePolicy.staff_ceo"
+        ]
+      },
+      {
+        "id": 4,
+        "key": "quotes",
+        "lock": "named by default + opt-in anonymous (keep role)",
+        "status": "LOCKED",
+        "encodedIn": [
+          "quotePolicy",
+          "nodes.Q4c"
+        ]
+      },
+      {
+        "id": 5,
+        "key": "staffLinks",
+        "lock": "Staff links ALWAYS carry client/invoice id",
+        "status": "LOCKED",
+        "encodedIn": [
+          "staffLinkPolicy",
+          "nodes.Q0",
+          "noraCaptureMap.client_invoice_id"
+        ]
+      },
+      {
+        "id": 6,
+        "key": "encodeSoftLaunch",
+        "lock": "Encode all 7 packs in code; soft-launch invite subset CEO+Admin+FOH+BOH first",
+        "status": "LOCKED",
+        "encodedIn": [
+          "invitePolicy.encodeAll",
+          "invitePolicy.softLaunchRoles",
+          "shipOrder"
+        ]
+      },
+      {
+        "id": 7,
+        "key": "wireDoNotSend",
+        "lock": "Wire now — Tony polished-v1.1 OK; still do-not-send staff to Red O until Vince+Rick+CFO massage + audience list",
+        "status": "LOCKED",
+        "encodedIn": [
+          "invitePolicy.doNotSend",
+          "invitePolicy.tonyPolishedOk",
+          "invitePolicy.doNotSendUntil"
+        ]
+      }
+    ]
+  },
+  "invitePolicy": {
+    "staff_ceo": "execOnly",
+    "execOnlyRoles": [
+      "staff_ceo"
+    ],
+    "execOnlyNote": "staff_ceo is NOT on all-staff invite links — separate exec invite path only",
+    "softLaunchRoles": [
+      "staff_ceo",
+      "staff_admin",
+      "staff_foh",
+      "staff_boh"
+    ],
+    "encodeAll": true,
+    "encodeAllRoles": [
+      "staff_ceo",
+      "staff_hr",
+      "staff_sales",
+      "staff_finance",
+      "staff_admin",
+      "staff_foh",
+      "staff_boh"
+    ],
+    "encodeAlso": [
+      "staff_other"
+    ],
+    "softLaunchLater": [
+      "staff_hr",
+      "staff_sales",
+      "staff_finance",
+      "staff_other"
+    ],
+    "doNotSend": true,
+    "doNotSendUntil": "Vince + Rick + CFO massage + audience list",
+    "tonyPolishedOk": "v1.1",
+    "wireNow": true,
+    "note": "Bob: encode all packs now; invite soft-launch subset only; do NOT send staff links to Red O until cleared"
+  },
+  "quotePolicy": {
+    "default": "named",
+    "defaultLabel": "First name + role + location is fine",
+    "optInAnonymous": true,
+    "anonymousKeepsRole": true,
+    "anonymousLabel": "Role + location only (no name)",
+    "preferNotToSay": true,
+    "vinceLock": true,
+    "note": "Quotes named by default; anonymous is opt-in and still keeps role"
+  },
+  "staffLinkPolicy": {
+    "alwaysCarryClientInvoiceId": true,
+    "requiredParams": [
+      "clientInvoiceId"
+    ],
+    "alsoAccept": [
+      "c",
+      "slug",
+      "inviteToken"
+    ],
+    "vinceLock": true,
+    "note": "Every staff invite/unique link MUST carry client/invoice id — Bob encode; Q0 resolves from link"
+  },
+  "voicePolish": {
+    "source": "onb1-staff-packs-polished-v1.1",
+    "status": "folded into Diggler canon v1.2",
+    "vinceWireOk": true
+  }
+}

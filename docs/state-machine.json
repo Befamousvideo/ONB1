@@ -1,20 +1,37 @@
 ﻿{
   "mode": "staff",
+  "packVersion": "1.2.0",
+  "staffSource": "docs/staff-packs/ONB1-RedO-Employee-Interview-Map-v1.2.json",
+  "staff": {
+    "description": "PR3 pack walker. Conversation.state is a pack node id.",
+    "flow": ["Q0", "Q0b?", "Q1", "Q2", "Q3", "Q3o?", "Q4", "Q4c", "staff_* ROLE_PACK", "QS", "T_OK"],
+    "roles": ["staff_ceo", "staff_hr", "staff_sales", "staff_finance", "staff_admin", "staff_foh", "staff_boh", "staff_other"],
+    "vinceLocks": {
+      "locations": ["Fashion Island", "Santa Monica", "Westlake", "Irvine HQ", "Other"],
+      "workPhone": "HQ required; FOH/BOH soft-optional",
+      "staff_ceo": "execOnly",
+      "quotes": "named default; opt-in anonymous_keep_role",
+      "staffLinks": "always client_invoice_id",
+      "encodeAll": true,
+      "doNotSend": true,
+      "softLaunchRoles": ["staff_ceo", "staff_admin", "staff_foh", "staff_boh"]
+    }
+  },
   "states": [
     {
       "name": "WELCOME",
-      "description": "Initial greeting. Copy pack depends on mode (staff vs exploring).",
+      "description": "Exploring greeting. Staff uses pack node Q1 instead.",
       "required_fields": []
     },
     {
       "name": "MODE_SELECT",
-      "description": "Audience mode plus seat. Staff posts role; exploring posts mode=prospect and an evaluating/CEO seat.",
+      "description": "Exploring audience/seat. Staff uses Q4 (CEO hidden unless invite=exec).",
       "required_fields": ["role"],
       "accepts": ["role", "mode"]
     },
     {
       "name": "IDENTITY",
-      "description": "Collect name, work email, optional phone and company/location.",
+      "description": "Exploring name/email. Staff uses Q2; work_phone role-gated.",
       "required_fields": ["full_name", "email"]
     },
     {
@@ -42,12 +59,12 @@
     },
     {
       "name": "SUMMARY",
-      "description": "Confirm discovery summary.",
+      "description": "Confirm discovery summary. Staff uses pack node QS.",
       "required_fields": ["summary"]
     },
     {
       "name": "SUBMIT",
-      "description": "Finalize and send.",
+      "description": "Finalize and send. Staff terminal T_OK.",
       "required_fields": []
     }
   ],

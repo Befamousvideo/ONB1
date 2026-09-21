@@ -24,7 +24,7 @@ One command starts the in-memory API on port **8000** and the intake UI on port 
 ./scripts/dev.sh
 ```
 
-Then open [http://127.0.0.1:3000](http://127.0.0.1:3000). Click **Begin discovery**. Use `?mode=prospect` for the exploring path.
+Then open [http://127.0.0.1:3000](http://127.0.0.1:3000). Staff links always include a client/invoice id, e.g. `/?mode=staff&client=red-o&invoice=202609-22-RED-111`. Exec-only CEO: `?invite=exec`. Use `?mode=prospect` for the exploring path. **doNotSend:** do not send staff links to Red O.
 
 Manual equivalent (two terminals):
 
@@ -57,11 +57,13 @@ From the repo root, against the in-memory API:
 This exits 0 only after:
 
 1. `GET /health` with `persistence=postgres`
-2. `POST /api/conversations` staff
-3. Identity step with name, email, and required `work_phone`
-4. `GET /api/conversations/{id}` showing that identity
-5. A fresh API process still returns the same staff conversation
-6. Exploring `mode: "prospect"` starts without breaking staff
+2. `GET /api/staff-packs` v1.2.0 (all role packs + Vince locations)
+3. `POST /api/conversations` staff with `client` / `invoice` + `pack=staff_admin`
+4. Pack Q1 → Q2 identity (name, email, HQ `work_phone`)
+5. `GET /api/conversations/{id}` showing that identity and `client_invoice_id`
+6. A fresh API process still returns the same staff conversation
+7. FOH pack advances Q2 without `work_phone`; exec invite locks `staff_ceo`
+8. Exploring `mode: "prospect"` starts without breaking staff
 
 Smoke starts Postgres (Docker Compose or a local cluster) and applies `db/migrations` when `DATABASE_URL` is not already reachable.
 
@@ -101,11 +103,11 @@ npm run build
 
 ## Current MVP Scope
 
-- Staff (`mode: "staff"`) and exploring (`mode: "prospect"`) paths with one-question-at-a-time state transitions
-- Role chips and role-aware staff prompts; budget/timeline only on the exploring path
-- Durable Postgres staff identity (`work_phone` required) so answers survive API restart
-- Local handoff summary generation and a Slack-ready stub
-- Scheduling captured as preference text instead of calendar integration
+- Staff (`mode: "staff"`) v1.2 pack walker (7 role packs + other) and exploring (`mode: "prospect"`) linear path
+- Vince locks: locations, FOH/BOH soft-optional phone, exec-only CEO, named-default quotes, client/invoice on every staff link
+- Durable Postgres staff identity so answers survive API restart
+- Nora `staff_quotes` / `guest_friction` / `software_stack` export — no invented $ savings
+- Local handoff summary generation and a Slack-ready stub (`invitePolicy.doNotSend=true`)
 
 ## Documentation Discipline Gate
 

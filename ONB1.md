@@ -25,12 +25,26 @@ This document is the single source of truth for project scope, architecture, and
 
 - `mode: "staff"` (aliases: omitted / `employee`) is the Red-O default. `mode: "prospect"` is the exploring / pre-hire path.
 - URL `?mode=staff|prospect` plus optional “How are you joining today?” chips select the audience. Staff UI never shows the word “prospect”.
-- Staff path: role chips including Owner/CEO, Admin/Ops, Sales, HR/People, Finance, FOH, BOH, Other. Role-aware `STATE_PROMPTS` overlays (default Admin/Ops). No budget or timeline chips.
 - Exploring path: separate hero/chrome and `PROSPECT_STATE_PROMPTS`. Budget, timing, and sales-path scheduling copy are restored only here. Staff Owner/CEO copy is not reused.
-- Interview states: `WELCOME → MODE_SELECT → IDENTITY → BUSINESS_CONTEXT → ARCHETYPE → PAIN_POINTS → SCHEDULING → SUMMARY → SUBMIT`. `NEEDS` remains an alias of `PAIN_POINTS`.
-- Category/subtype labels stay the 9 ONB1 archetypes. This pass is chrome + prompts only — no Diggler deep question packs.
-- Staff identity is durable in Postgres (`DATABASE_URL`): name, email, required `work_phone`, role, company/location, and conversation answers survive an API restart. `db/migrations/0016_staff_work_phone.sql` adds `contacts.work_phone`. Exploring mode may still persist when Postgres is on; staff is the required path.
-- `./scripts/smoke.sh` starts/uses Postgres, applies `db/migrations`, and proves a fresh API process can reload the same staff conversation.
+- Exploring interview states stay `WELCOME → MODE_SELECT → IDENTITY → BUSINESS_CONTEXT → ARCHETYPE → PAIN_POINTS → SCHEDULING → SUMMARY → SUBMIT`. `NEEDS` remains an alias of `PAIN_POINTS`.
+- Staff identity is durable in Postgres (`DATABASE_URL`): name, email, role-gated `work_phone`, role, company/location, and conversation answers survive an API restart. `db/migrations/0016_staff_work_phone.sql` adds `contacts.work_phone`.
+
+## Staff packs v1.2 (PR3)
+
+- Source of truth: `docs/staff-packs/ONB1-RedO-Employee-Interview-Map-v1.2.json` (Diggler/Vince locks v1.2.0). Not polished v1.1.
+- Runtime walker: `server/app/staff_packs.py`. Staff conversations use pack node ids (`Q1`…role pack…`QS`/`T_OK`). Prospect stays on the linear machine.
+- Catalog: `GET /api/staff-packs` and `GET /api/staff-packs/{staff_*}`. All 7 role packs plus `staff_other` are loadable.
+- Vince locks encoded:
+  1. Locations: Fashion Island / Santa Monica / Westlake / Irvine HQ / Other (`Q3` also keeps Prefer not to say as a soft escape).
+  2. `work_phone` HQ required (ceo/hr/sales/finance/admin/other); **FOH/BOH soft-optional** — does not block Q2 or submit.
+  3. `staff_ceo` is **exec-only** (`?invite=exec`). Not on general staff role chips / all-staff links.
+  4. Quotes named by default; opt-in `anonymous_keep_role` still keeps role (`Q4c`).
+  5. Staff links **always** carry `client` + `invoice` / `clientInvoiceId` (example `red-o/202609-22-RED-111`).
+  6. Encode all packs now. Soft-launch invite subset later: CEO+Admin+FOH+BOH (`invitePolicy.softLaunchRoles`). HR/Sales/Finance/Other later.
+  7. `invitePolicy.doNotSend=true` — do **not** send links to Red O staff until Vince+Rick+CFO + audience list.
+- Nora `exportContract` is emitted on paragraph answers: `{speaker_role, quote_text, location, anonymity, node_id, lens}`. SYS nodes force `productName`. Soft Skip/Not sure → `thin_evidence`. No invented $ savings.
+- Mary WELCOME lock is Q1: maps time/friction for how work runs — not a performance review, not cutting jobs.
+- Staff UI: `web/app/staff-node-form.tsx` renders pack nodes. Resume/invite URLs rewrite `client` + `invoice` + `clientInvoiceId`.
 
 ## Local Launch And Smoke (PR1)
 
@@ -187,6 +201,7 @@ Prospect: "...how did you know that?"
 
 ## Changelog
 
+- 2026-09-21: PR3 encodes Red O staff packs **v1.2.0** (Vince locks). Pack JSON walker on the staff path; FOH/BOH `work_phone` soft-optional; `staff_ceo` exec-only; named-default quotes; staff links always carry client/invoice id; Nora exportContract; `doNotSend`. Exploring dual-mode from PR2 is unchanged.
 - 2026-09-21: PR2 employee/ROIA discovery copy (Tony v1–v3) plus durable staff identity. Staff vs exploring modes, role chips including Owner/CEO, role-aware staff `STATE_PROMPTS`, prospect-only budget/timeline, default `mode=staff`. Postgres persistence for staff name/email/`work_phone`/answers; smoke proves restart resume.
 - 2026-09-21: PR1 reproducible Linux/WSL launch + smoke. Aligned API/UI to port 8000, quarantined Pages `/local` and `smoke_test.ps1`, added `scripts/dev.sh` and `scripts/smoke.sh` for the in-memory intake API.
 - 2026-02-23: Added RAG Intelligence Layer for voice agent (Sarah) personalization

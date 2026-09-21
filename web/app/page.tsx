@@ -1,8 +1,20 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { StaffNodeForm, type StaffNode } from "./staff-node-form";
 
 const STORAGE_KEY = "onb1-local-conversation";
+const DEFAULT_CLIENT_ID = "red-o";
+const DEFAULT_INVOICE_ID = "202609-22-RED-111";
+const GENERAL_STAFF_PACKS = [
+  { id: "staff_admin", label: "Admin / Ops" },
+  { id: "staff_foh", label: "Front of house" },
+  { id: "staff_boh", label: "Back of house / Ops floor" },
+  { id: "staff_hr", label: "HR / People" },
+  { id: "staff_sales", label: "Sales" },
+  { id: "staff_finance", label: "Finance" },
+  { id: "staff_other", label: "Other / several seats" },
+];
 const STEP_ORDER = [
   "WELCOME",
   "MODE_SELECT",
@@ -286,11 +298,25 @@ type Conversation = {
   state: string;
   normalized_fields: Record<string, string>;
   messages: ConversationMessage[];
+  current_node?: StaffNode | null;
+  staff_link?: {
+    client_id?: string;
+    invoice_id?: string;
+    client_invoice_id?: string;
+    invite?: string;
+    pack?: string | null;
+    url?: string;
+    do_not_send?: boolean;
+  } | null;
+  nora_export?: Record<string, unknown> | null;
+  pack_version?: string;
   intake_brief?: {
     summary: string;
     goals: string[];
     constraints: string[];
     recommended_next_steps?: string[];
+    client_invoice_id?: string;
+    do_not_send?: boolean;
   } | null;
 };
 
@@ -301,12 +327,58 @@ function readModeFromSearch(): AudienceMode {
   return new URLSearchParams(window.location.search).get("mode") === "prospect" ? "prospect" : "staff";
 }
 
-function writeModeToSearch(mode: AudienceMode) {
+function readStaffLinkFromSearch() {
+  if (typeof window === "undefined") {
+    return {
+      clientId: DEFAULT_CLIENT_ID,
+      invoiceId: DEFAULT_INVOICE_ID,
+      invite: "",
+      pack: "",
+    };
+  }
+  const params = new URLSearchParams(window.location.search);
+  const combined = params.get("clientInvoiceId") || params.get("client_invoice_id") || "";
+  let clientId = params.get("client") || params.get("client_id") || params.get("c") || params.get("slug") || "";
+  let invoiceId = params.get("invoice") || params.get("invoice_id") || "";
+  if (combined.includes("/")) {
+    const [left, right] = combined.split("/", 2);
+    clientId = clientId || left;
+    invoiceId = invoiceId || right;
+  }
+  return {
+    clientId: clientId || DEFAULT_CLIENT_ID,
+    invoiceId: invoiceId || DEFAULT_INVOICE_ID,
+    invite: params.get("invite") === "exec" ? "exec" : "",
+    pack: params.get("pack") || "",
+  };
+}
+
+function writeAudienceToSearch(
+  mode: AudienceMode,
+  link?: { clientId?: string; invoiceId?: string; invite?: string; pack?: string },
+) {
   if (typeof window === "undefined") {
     return;
   }
   const url = new URL(window.location.href);
   url.searchParams.set("mode", mode);
+  if (mode === "staff") {
+    const clientId = link?.clientId || DEFAULT_CLIENT_ID;
+    const invoiceId = link?.invoiceId || DEFAULT_INVOICE_ID;
+    url.searchParams.set("client", clientId);
+    url.searchParams.set("invoice", invoiceId);
+    url.searchParams.set("clientInvoiceId", `${clientId}/${invoiceId}`);
+    if (link?.invite === "exec") {
+      url.searchParams.set("invite", "exec");
+    } else {
+      url.searchParams.delete("invite");
+    }
+    if (link?.pack && link.pack !== "staff_ceo") {
+      url.searchParams.set("pack", link.pack);
+    } else {
+      url.searchParams.delete("pack");
+    }
+  }
   window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
 }
 
@@ -455,6 +527,13 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [showAllCategories, setShowAllCategories] = useState(false);
+  const [staffLink, setStaffLink] = useState({
+    clientId: DEFAULT_CLIENT_ID,
+    invoiceId: DEFAULT_INVOICE_ID,
+    invite: "",
+    pack: "",
+  });
+  const [nodeDraft, setNodeDraft] = useState<Record<string, string>>({});
 
   const activeMode = canonicalMode(fields.mode || audienceMode);
   const copy = COPY[activeMode];
@@ -470,12 +549,22 @@ export default function HomePage() {
 
   useEffect(() => {
     const initialMode = readModeFromSearch();
+    const link = readStaffLinkFromSearch();
     setAudienceMode(initialMode);
-    setFields(defaultFields(initialMode));
+    setStaffLink(link);
+    setFields({
+      ...defaultFields(initialMode),
+      client_id: link.clientId,
+      invoice_id: link.invoiceId,
+      client_invoice_id: `${link.clientId}/${link.invoiceId}`,
+      invite: link.invite,
+      pack: link.pack,
+    });
     setHydrated(true);
+    writeAudienceToSearch(initialMode, link);
     const storedConversationId = window.localStorage.getItem(STORAGE_KEY);
     if (storedConversationId) {
-      void resumeConversation(storedConversationId);
+      void resumeConversation(storedConversationId, initialMode);
     }
   }, []);
 
@@ -486,7 +575,17 @@ export default function HomePage() {
     setFields((current) => ({ ...current, ...conversation.normalized_fields }));
     const nextMode = canonicalMode(conversation.normalized_fields.mode);
     setAudienceMode(nextMode);
-    writeModeToSearch(nextMode);
+    const nextLink = {
+      clientId: conversation.staff_link?.client_id || conversation.normalized_fields.client_id || staffLink.clientId,
+      invoiceId: conversation.staff_link?.invoice_id || conversation.normalized_fields.invoice_id || staffLink.invoiceId,
+      invite: conversation.staff_link?.invite === "exec" || conversation.normalized_fields.invite === "exec" ? "exec" : "",
+      pack: conversation.staff_link?.pack || conversation.normalized_fields.pack || staffLink.pack,
+    };
+    setStaffLink(nextLink);
+    writeAudienceToSearch(nextMode, nextLink);
+    setNodeDraft({ summary: conversation.normalized_fields.summary || "" });
+    // staffLink is only a fallback for missing conversation fields
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversation]);
 
   useEffect(() => {
@@ -500,6 +599,12 @@ export default function HomePage() {
   }, [conversation, fields, summaryDraft]);
 
   function chooseAudience(nextMode: AudienceMode) {
+    if (conversation && canonicalMode(conversation.normalized_fields.mode) !== nextMode) {
+      window.localStorage.removeItem(STORAGE_KEY);
+      setConversation(null);
+      setNodeDraft({});
+      setSummaryDraft("");
+    }
     setAudienceMode(nextMode);
     setFields((current) => {
       const nextRole = current.role || "";
@@ -510,13 +615,16 @@ export default function HomePage() {
         role: allowed.includes(nextRole) ? nextRole : "",
       };
     });
-    writeModeToSearch(nextMode);
+    writeAudienceToSearch(nextMode, staffLink);
   }
 
-  async function resumeConversation(conversationId: string) {
+  async function resumeConversation(conversationId: string, expectedMode?: AudienceMode) {
     try {
       const response = await fetch(`${getApiBase()}/api/conversations/${conversationId}`);
       const payload = (await parseJson(response)) as Conversation;
+      if (expectedMode && canonicalMode(payload.normalized_fields.mode) !== expectedMode) {
+        return;
+      }
       setConversation(payload);
       setError("");
     } catch {
@@ -532,7 +640,18 @@ export default function HomePage() {
       const response = await fetch(`${getApiBase()}/api/conversations`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode: activeMode }),
+        body: JSON.stringify(
+          activeMode === "staff"
+            ? {
+                mode: "staff",
+                client_id: staffLink.clientId,
+                invoice_id: staffLink.invoiceId,
+                client_invoice_id: `${staffLink.clientId}/${staffLink.invoiceId}`,
+                invite: staffLink.invite || undefined,
+                pack: staffLink.invite === "exec" ? "staff_ceo" : staffLink.pack || undefined,
+              }
+            : { mode: "prospect" },
+        ),
       });
       const payload = (await parseJson(response)) as Conversation;
       setConversation(payload);
@@ -581,7 +700,7 @@ export default function HomePage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          summary: summaryDraft || buildSummary(fields),
+          summary: fields.summary || summaryDraft || buildSummary(fields),
           notes: fields.notes || "",
         }),
       });
@@ -601,14 +720,58 @@ export default function HomePage() {
   function resetConversation() {
     window.localStorage.removeItem(STORAGE_KEY);
     setConversation(null);
-    setFields(defaultFields(audienceMode));
+    setFields({
+      ...defaultFields(audienceMode),
+      client_id: staffLink.clientId,
+      invoice_id: staffLink.invoiceId,
+      client_invoice_id: `${staffLink.clientId}/${staffLink.invoiceId}`,
+      invite: staffLink.invite,
+      pack: staffLink.pack,
+    });
+    setNodeDraft({});
     setSummaryDraft("");
     setError("");
+    writeAudienceToSearch(audienceMode, staffLink);
   }
 
   function renderForm() {
     if (!conversation) {
       return null;
+    }
+
+    if (activeMode === "staff" && conversation.current_node) {
+      return (
+        <StaffNodeForm
+          fields={{ ...fields, ...nodeDraft }}
+          loading={loading}
+          node={conversation.current_node}
+          onField={(key, value) => {
+            if (key === "full_name" || key === "email" || key === "work_phone" || key === "summary") {
+              updateField(key, value);
+            }
+            setNodeDraft((current) => ({ ...current, [key]: value }));
+          }}
+          onSubmit={(payload, content) => {
+            if (conversation.current_node?.id === "QS" && String(payload.answer) === "Looks good — submit") {
+              void submitAnswers();
+              return;
+            }
+            void advanceConversation(
+              {
+                ...fields,
+                ...nodeDraft,
+                ...Object.fromEntries(
+                  Object.entries(payload).filter(([, value]) => value !== undefined).map(([key, value]) => [
+                    key,
+                    typeof value === "string" ? value : JSON.stringify(value),
+                  ]),
+                ),
+              },
+              content,
+            );
+          }}
+        />
+      );
     }
 
     if (currentState === "WELCOME") {
@@ -1036,10 +1199,22 @@ export default function HomePage() {
     );
   }
 
-  const progressValue = conversation ? Math.max(1, selectedStepIndex(currentState) + 1) : 1;
-  const progressMax = STEP_ORDER.length;
-  const flowLabel =
-    currentState === "SUMMARY" ? "Your discovery summary" : conversation ? "This question" : "Your earlier answers";
+  const staffNode = conversation?.current_node;
+  const progressValue = staffNode
+    ? Math.max(1, (conversation?.messages.length || 1))
+    : conversation
+      ? Math.max(1, selectedStepIndex(currentState) + 1)
+      : 1;
+  const progressMax = staffNode ? 12 : STEP_ORDER.length;
+  const flowLabel = staffNode
+    ? staffNode.id === "QS" || staffNode.id === "T_OK"
+      ? "Your discovery summary"
+      : "This question"
+    : currentState === "SUMMARY"
+      ? "Your discovery summary"
+      : conversation
+        ? "This question"
+        : "Your earlier answers";
 
   return (
     <main className="page-shell">
@@ -1066,7 +1241,7 @@ export default function HomePage() {
         <div className="panel-header">
           <div>
             <p className="eyebrow">{flowLabel}</p>
-            <h2 className="panel-title">{conversation ? "This question" : "Ready when you are"}</h2>
+            <h2 className="panel-title">{staffNode ? staffNode.id : conversation ? "This question" : "Ready when you are"}</h2>
           </div>
           {hydrated && !conversation ? (
             <button className="primary-button" disabled={loading} onClick={startConversation} type="button">
@@ -1080,7 +1255,7 @@ export default function HomePage() {
             <span style={{ width: `${(progressValue / progressMax) * 100}%` }} />
           </div>
           <span className="progress-copy">
-            Step {progressValue} of {progressMax}
+            {staffNode ? `Node ${staffNode.id}` : `Step ${progressValue} of ${progressMax}`}
           </span>
         </div>
 
@@ -1104,11 +1279,65 @@ export default function HomePage() {
                   : "I’m on a company ROIA (team member)"
               }
             />
-            <p className="muted-copy">
-              {audienceMode === "staff"
-                ? "You’ll answer from your seat to help discovery."
-                : "Short path so we understand your business before an Automation ROI Analysis."}
-            </p>
+            {audienceMode === "staff" ? (
+              <>
+                <p className="muted-copy">You’ll answer from your seat to help discovery. Invite links always carry a client / invoice id.</p>
+                <label className="field-group">
+                  <span className="field-label">Client id</span>
+                  <input
+                    className="text-input"
+                    onChange={(event) => {
+                      const clientId = event.target.value || DEFAULT_CLIENT_ID;
+                      const next = { ...staffLink, clientId };
+                      setStaffLink(next);
+                      writeAudienceToSearch("staff", next);
+                    }}
+                    value={staffLink.clientId}
+                  />
+                </label>
+                <label className="field-group">
+                  <span className="field-label">Invoice id</span>
+                  <input
+                    className="text-input"
+                    onChange={(event) => {
+                      const invoiceId = event.target.value || DEFAULT_INVOICE_ID;
+                      const next = { ...staffLink, invoiceId };
+                      setStaffLink(next);
+                      writeAudienceToSearch("staff", next);
+                    }}
+                    value={staffLink.invoiceId}
+                  />
+                </label>
+                <p className="hint-copy">
+                  Resume / invite shape: {staffLink.clientId} / {staffLink.invoiceId}
+                  {staffLink.invite === "exec" ? " · exec invite" : ""}
+                </p>
+                <ChipGroup
+                  label="I work in…"
+                  onChange={(nextValue) => {
+                    const pack = GENERAL_STAFF_PACKS.find((item) => item.label === nextValue)?.id || "";
+                    const next = { ...staffLink, pack, invite: "" };
+                    setStaffLink(next);
+                    writeAudienceToSearch("staff", next);
+                  }}
+                  options={GENERAL_STAFF_PACKS.map((item) => item.label)}
+                  value={GENERAL_STAFF_PACKS.find((item) => item.id === staffLink.pack)?.label || ""}
+                />
+                <button
+                  className="secondary-button"
+                  onClick={() => {
+                    const next = { ...staffLink, invite: staffLink.invite === "exec" ? "" : "exec", pack: staffLink.invite === "exec" ? staffLink.pack : "staff_ceo" };
+                    setStaffLink(next);
+                    writeAudienceToSearch("staff", next);
+                  }}
+                  type="button"
+                >
+                  {staffLink.invite === "exec" ? "Using exec invite (Owner / CEO)" : "Exec-only Owner / CEO path"}
+                </button>
+              </>
+            ) : (
+              <p className="muted-copy">Short path so we understand your business before an Automation ROI Analysis.</p>
+            )}
           </div>
         ) : (
           <>
