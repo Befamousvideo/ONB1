@@ -27,9 +27,9 @@ def test_canonical_mode_defaults_to_staff():
 
 
 def test_staff_ceo_prompts_differ_from_prospect_ceo():
-    staff = main.prompt_for_state("SUBMIT", {"mode": "staff", "role": "Owner / CEO"})
+    staff = main.prompt_for_state("T_OK", {"mode": "staff", "role": "staff_ceo", "invite": "exec"})
     prospect = main.prompt_for_state("SUBMIT", {"mode": "prospect", "role": "Owner / CEO"})
-    assert "executive view" in staff
+    assert "ROIA" in staff
     assert "Automation ROI Analysis" in prospect
     assert staff != prospect
     assert "prospect" not in staff.lower()
@@ -44,17 +44,34 @@ def test_mode_select_accepts_role_or_mode():
     assert excinfo.value.detail["fields"] == ["role"]
 
 
-def test_staff_identity_requires_work_phone():
+def test_staff_identity_work_phone_is_role_gated():
     main.validate_required_fields(
         "IDENTITY",
-        {"mode": "staff", "full_name": "Ada", "email": "ada@example.com", "work_phone": "555-0100"},
+        {
+            "mode": "staff",
+            "role": "staff_admin",
+            "full_name": "Ada",
+            "email": "ada@example.com",
+            "work_phone": "555-0100",
+        },
     )
-    aliased = {"mode": "staff", "full_name": "Ada", "email": "ada@example.com", "phone": "555-0199"}
+    aliased = {
+        "mode": "staff",
+        "role": "Admin / Ops",
+        "full_name": "Ada",
+        "email": "ada@example.com",
+        "phone": "555-0199",
+    }
     main.validate_required_fields("IDENTITY", aliased)
     assert aliased["work_phone"] == "555-0199"
+    main.validate_required_fields(
+        "IDENTITY",
+        {"mode": "staff", "role": "staff_foh", "full_name": "Pat", "email": "pat@example.com"},
+    )
     with pytest.raises(HTTPException) as excinfo:
         main.validate_required_fields(
-            "IDENTITY", {"mode": "staff", "full_name": "Ada", "email": "ada@example.com"}
+            "IDENTITY",
+            {"mode": "staff", "role": "staff_admin", "full_name": "Ada", "email": "ada@example.com"},
         )
     assert excinfo.value.detail["fields"] == ["work_phone"]
 
@@ -79,12 +96,20 @@ def test_validate_required_fields_scheduling():
     assert "timezone" in detail["fields"]
 
 
-def test_end_and_send_staff_requires_work_phone(monkeypatch):
+def test_end_and_send_staff_hq_requires_work_phone(monkeypatch):
     conversation_id = uuid4()
     row = {
         "id": conversation_id,
         "state": "SUMMARY",
-        "normalized_fields": json.dumps({"mode": "staff", "full_name": "Ada", "email": "ada@example.com"}),
+        "normalized_fields": json.dumps(
+            {
+                "mode": "staff",
+                "staff_role": "staff_admin",
+                "full_name": "Ada",
+                "email": "ada@example.com",
+                "client_invoice_id": "red-o/202609-22-RED-111",
+            }
+        ),
     }
 
     class FakeConn:

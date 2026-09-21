@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Staff/exploring smoke against FastAPI + durable Postgres.
-# Required: health, staff create, identity (name/email/work_phone), get,
-# restart-resume, exploring create. Optional --with-web.
+# Required: health, v1.2 staff packs, staff create with client/invoice,
+# Q1→Q2 identity (name/email/work_phone for HQ), get, restart-resume,
+# FOH without phone, exec invite, exploring create. Optional --with-web.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -20,17 +21,22 @@ API_PID=""
 SMOKE_NAME="Smoke Tester"
 SMOKE_EMAIL="smoke@example.com"
 SMOKE_PHONE="555-0100"
+SMOKE_CLIENT="red-o"
+SMOKE_INVOICE="202609-22-RED-111"
 
 usage() {
   cat <<'EOF'
 Usage: scripts/smoke.sh [--with-web]
 
-  Proves durable staff discovery + exploring mode:
+  Proves v1.2 staff packs + durable identity + exploring mode:
     GET  /health (persistence=postgres)
-    POST /api/conversations staff
-    POST .../message  (WELCOME -> MODE_SELECT role -> IDENTITY with work_phone)
+    GET  /api/staff-packs (v1.2.0, 8 packs, Vince locations)
+    POST /api/conversations staff with client/invoice + pack=staff_admin
+    POST .../message  (Q1 welcome -> Q2 identity with work_phone)
     GET  /api/conversations/{id}
-    Restart (or a fresh API process) still returns the same staff identity
+    Restart still returns the same staff identity + client/invoice id
+    FOH pack advances Q2 without work_phone
+    Exec invite locks staff_ceo
     POST /api/conversations prospect (starts, does not break staff)
 
   Starts Postgres (Docker or local) when DATABASE_URL is not already reachable,
@@ -167,33 +173,44 @@ printf '%s' "$health_body" | python3 -c 'import json,sys; data=json.loads(sys.st
   || fail "health body was not {status: ok, persistence: postgres}: $health_body"
 pass "GET /health persistence=postgres"
 
-create_raw="$(http_json POST "$API_BASE/api/conversations" '{"mode":"staff"}')"
+packs_raw="$(http_json GET "$API_BASE/api/staff-packs")"
+packs_status="$(printf '%s' "$packs_raw" | json_field status)"
+packs_body="$(printf '%s' "$packs_raw" | json_field body)"
+[[ "$packs_status" == "200" ]] || fail "staff-packs status $packs_status body=$packs_body"
+printf '%s' "$packs_body" | python3 -c 'import json,sys; d=json.loads(sys.stdin.read()); assert d.get("version")=="1.2.0"; ids=[p["id"] for p in d["packs"]]; assert ids==["staff_ceo","staff_hr","staff_sales","staff_finance","staff_admin","staff_foh","staff_boh","staff_other"]; assert "Fashion Island" in d["locations"]; assert d.get("doNotSend") is True; assert d["invitePolicy"]["staff_ceo"]=="execOnly"' \
+  || fail "staff-packs catalog was not v1.2 Vince-locked: $packs_body"
+pass "GET /api/staff-packs v1.2.0 encodeAll + Vince locks"
+
+create_payload="$(python3 -c 'import json; print(json.dumps({"mode":"staff","pack":"staff_admin","client_id":"red-o","invoice_id":"202609-22-RED-111"}))')"
+create_raw="$(http_json POST "$API_BASE/api/conversations" "$create_payload")"
 create_status="$(printf '%s' "$create_raw" | json_field status)"
 create_body="$(printf '%s' "$create_raw" | json_field body)"
 [[ "$create_status" == "201" ]] || fail "create conversation status $create_status body=$create_body"
 CONV_ID="$(printf '%s' "$create_body" | python3 -c 'import json,sys; print(json.loads(sys.stdin.read())["id"])')"
 [[ -n "$CONV_ID" ]] || fail "create conversation missing id"
 create_mode="$(printf '%s' "$create_body" | python3 -c 'import json,sys; print(json.loads(sys.stdin.read()).get("normalized_fields", {}).get("mode", ""))')"
+create_state="$(printf '%s' "$create_body" | json_field state)"
+create_invoice="$(printf '%s' "$create_body" | python3 -c 'import json,sys; print(json.loads(sys.stdin.read()).get("staff_link", {}).get("client_invoice_id",""))')"
 [[ "$create_mode" == "staff" ]] || fail "staff create expected mode=staff got $create_mode"
-pass "POST /api/conversations staff id=$CONV_ID"
+[[ "$create_state" == "Q1" ]] || fail "staff create expected Q1 got $create_state"
+[[ "$create_invoice" == "${SMOKE_CLIENT}/${SMOKE_INVOICE}" ]] || fail "staff create missing client/invoice got $create_invoice"
+pass "POST /api/conversations staff id=$CONV_ID client/invoice=$create_invoice"
 
-welcome_raw="$(http_json POST "$API_BASE/api/conversations/${CONV_ID}/message" '{"content":"Ready to start.","fields":{}}')"
+welcome_raw="$(http_json POST "$API_BASE/api/conversations/${CONV_ID}/message" '{"content":"Begin discovery","fields":{}}')"
 welcome_status="$(printf '%s' "$welcome_raw" | json_field status)"
-[[ "$welcome_status" == "201" ]] || fail "welcome advance status $welcome_status"
-
-mode_raw="$(http_json POST "$API_BASE/api/conversations/${CONV_ID}/message" '{"content":"Admin / Ops","fields":{"mode":"staff","role":"Admin / Ops"}}')"
-mode_status="$(printf '%s' "$mode_raw" | json_field status)"
-mode_body="$(printf '%s' "$mode_raw" | json_field body)"
-[[ "$mode_status" == "201" ]] || fail "mode select status $mode_status body=$mode_body"
-mode_state="$(printf '%s' "$mode_body" | json_field state)"
-[[ "$mode_state" == "IDENTITY" ]] || fail "expected IDENTITY after mode select, got $mode_state"
+welcome_body="$(printf '%s' "$welcome_raw" | json_field body)"
+[[ "$welcome_status" == "201" ]] || fail "Q1 advance status $welcome_status body=$welcome_body"
+welcome_state="$(printf '%s' "$welcome_body" | json_field state)"
+[[ "$welcome_state" == "Q2" ]] || fail "expected Q2 after Q1, got $welcome_state"
 
 identity_payload="$(python3 -c 'import json; print(json.dumps({"content":"Smoke Tester | smoke@example.com","fields":{"full_name":"Smoke Tester","email":"smoke@example.com","work_phone":"555-0100"}}))')"
 identity_raw="$(http_json POST "$API_BASE/api/conversations/${CONV_ID}/message" "$identity_payload")"
 identity_status="$(printf '%s' "$identity_raw" | json_field status)"
 identity_body="$(printf '%s' "$identity_raw" | json_field body)"
 [[ "$identity_status" == "201" ]] || fail "identity status $identity_status body=$identity_body"
-pass "POST identity name=$SMOKE_NAME email=$SMOKE_EMAIL work_phone=$SMOKE_PHONE"
+identity_state="$(printf '%s' "$identity_body" | json_field state)"
+[[ "$identity_state" == "Q3" ]] || fail "expected Q3 after Q2, got $identity_state"
+pass "POST Q2 identity name=$SMOKE_NAME email=$SMOKE_EMAIL work_phone=$SMOKE_PHONE"
 
 get_raw="$(http_json GET "$API_BASE/api/conversations/${CONV_ID}")"
 get_status="$(printf '%s' "$get_raw" | json_field status)"
@@ -266,6 +283,27 @@ prospect_mode="$(printf '%s' "$prospect_body" | python3 -c 'import json,sys; pri
 prospect_welcome="$(printf '%s' "$prospect_body" | python3 -c 'import json,sys; msgs=json.loads(sys.stdin.read()).get("messages", []); print(msgs[0]["content"] if msgs else "")')"
 printf '%s' "$prospect_welcome" | grep -q "Automation ROI Analysis" || fail "prospect WELCOME did not use exploring pack"
 pass "POST /api/conversations prospect mode=prospect starts"
+
+foh_payload="$(python3 -c 'import json; print(json.dumps({"mode":"staff","pack":"staff_foh","client_id":"red-o","invoice_id":"202609-22-RED-111"}))')"
+foh_raw="$(http_json POST "$API_BASE/api/conversations" "$foh_payload")"
+foh_id="$(printf '%s' "$foh_raw" | json_field body | python3 -c 'import json,sys; print(json.loads(sys.stdin.read())["id"])')"
+http_json POST "$API_BASE/api/conversations/${foh_id}/message" '{"content":"Begin discovery","fields":{}}' >/dev/null
+foh_q2_payload="$(python3 -c 'import json; print(json.dumps({"content":"Pat | pat@example.com","fields":{"full_name":"Pat","email":"pat@example.com"}}))')"
+foh_q2_raw="$(http_json POST "$API_BASE/api/conversations/${foh_id}/message" "$foh_q2_payload")"
+foh_q2_status="$(printf '%s' "$foh_q2_raw" | json_field status)"
+foh_q2_state="$(printf '%s' "$foh_q2_raw" | json_field body | json_field state)"
+[[ "$foh_q2_status" == "201" ]] || fail "FOH Q2 without phone should not block, status $foh_q2_status"
+[[ "$foh_q2_state" == "Q3" ]] || fail "FOH Q2 expected Q3 got $foh_q2_state"
+pass "FOH work_phone soft-optional (Q2 advances without phone)"
+
+exec_payload="$(python3 -c 'import json; print(json.dumps({"mode":"staff","invite":"exec","client_id":"red-o","invoice_id":"202609-22-RED-111"}))')"
+exec_raw="$(http_json POST "$API_BASE/api/conversations" "$exec_payload")"
+exec_body="$(printf '%s' "$exec_raw" | json_field body)"
+exec_role="$(printf '%s' "$exec_body" | python3 -c 'import json,sys; print(json.loads(sys.stdin.read()).get("normalized_fields",{}).get("staff_role",""))')"
+exec_invite="$(printf '%s' "$exec_body" | python3 -c 'import json,sys; print(json.loads(sys.stdin.read()).get("staff_link",{}).get("invite",""))')"
+[[ "$exec_role" == "staff_ceo" ]] || fail "exec invite expected staff_ceo got $exec_role"
+[[ "$exec_invite" == "exec" ]] || fail "exec invite expected invite=exec got $exec_invite"
+pass "exec invite path locks staff_ceo (not general staff)"
 
 if [[ "$WITH_WEB" == "1" ]]; then
   web_html="$(python3 - "$WEB_BASE" <<'PY'
