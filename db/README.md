@@ -18,6 +18,13 @@ $env:DATABASE_URL = "postgresql://onb1:onb1_dev_password@localhost:5432/onb1"
 .\db\migrate.ps1
 ```
 
+Linux / WSL (used by `./scripts/smoke.sh` and `./scripts/dev.sh`):
+
+```bash
+export DATABASE_URL="postgresql://onb1:onb1_dev_password@127.0.0.1:5432/onb1"
+python3 scripts/migrate.py
+```
+
 ## Run Seed
 ```powershell
 $env:DATABASE_URL = "postgresql://onb1:onb1_dev_password@localhost:5432/onb1"

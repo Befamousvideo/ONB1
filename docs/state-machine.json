@@ -1,57 +1,64 @@
 ﻿{
-  "mode": "prospect",
+  "mode": "staff",
   "states": [
     {
       "name": "WELCOME",
-      "description": "Initial greeting state.",
+      "description": "Initial greeting. Copy pack depends on mode (staff vs exploring).",
       "required_fields": []
     },
     {
       "name": "MODE_SELECT",
-      "description": "User selects engagement mode (prospect or client).",
-      "required_fields": ["mode"]
+      "description": "Audience mode plus seat. Staff posts role; exploring posts mode=prospect and an evaluating/CEO seat.",
+      "required_fields": ["role"],
+      "accepts": ["role", "mode"]
     },
     {
       "name": "IDENTITY",
-      "description": "Collect identity details.",
+      "description": "Collect name, work email, optional phone and company/location.",
       "required_fields": ["full_name", "email"]
     },
     {
       "name": "BUSINESS_CONTEXT",
-      "description": "Collect business context.",
+      "description": "Collect company name, optional website, team/area size.",
       "required_fields": ["business_name"]
     },
     {
-      "name": "NEEDS",
-      "description": "Collect needs and goals.",
+      "name": "ARCHETYPE",
+      "description": "Confirm company category and optional subtypes.",
+      "required_fields": ["archetype"]
+    },
+    {
+      "name": "PAIN_POINTS",
+      "description": "Seat-aware discovery notes. Budget/timeline only when mode=prospect.",
       "required_fields": ["needs_summary"],
-      "skip_rules": ["skip_scheduling == true"]
+      "skip_rules": ["skip_scheduling == true"],
+      "alias": "NEEDS"
     },
     {
       "name": "SCHEDULING",
-      "description": "Collect scheduling preferences.",
+      "description": "Optional clarification windows. Staff skip is finish-on-your-own; exploring skip emails.",
       "required_fields": [],
-      "rules": ["scheduling_option=link OR preferred_times+timezone"]
+      "rules": ["scheduling_option=link|skip OR preferred_times+timezone"]
     },
     {
       "name": "SUMMARY",
-      "description": "Confirm summary and scope.",
+      "description": "Confirm discovery summary.",
       "required_fields": ["summary"]
     },
     {
       "name": "SUBMIT",
-      "description": "Finalize and submit.",
+      "description": "Finalize and send.",
       "required_fields": []
     }
   ],
   "transitions": [
     {"from": "WELCOME", "to": "MODE_SELECT"},
-    {"from": "MODE_SELECT", "to": "IDENTITY", "when": "mode=prospect"},
-    {"from": "MODE_SELECT", "to": "SUBMIT", "when": "mode=client"},
+    {"from": "MODE_SELECT", "to": "IDENTITY"},
     {"from": "IDENTITY", "to": "BUSINESS_CONTEXT"},
-    {"from": "BUSINESS_CONTEXT", "to": "NEEDS"},
-    {"from": "NEEDS", "to": "SCHEDULING", "skip_if": "skip_scheduling == true"},
-    {"from": "NEEDS", "to": "SUMMARY", "when_skipped": "skip_scheduling == true"},
+    {"from": "BUSINESS_CONTEXT", "to": "ARCHETYPE"},
+    {"from": "ARCHETYPE", "to": "PAIN_POINTS"},
+    {"from": "PAIN_POINTS", "to": "SCHEDULING", "skip_if": "skip_scheduling == true"},
+    {"from": "PAIN_POINTS", "to": "SUMMARY", "when_skipped": "skip_scheduling == true"},
     {"from": "SCHEDULING", "to": "SUMMARY"},
     {"from": "SUMMARY", "to": "SUBMIT"}
   ],

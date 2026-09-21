@@ -1,6 +1,6 @@
 # ONB1 Local-First MVP
 
-ONB1 is a StorenTech AI onboarding intake app. The current repo runs a local-first prospect intake MVP with:
+ONB1 is a StorenTech AI onboarding discovery app. The current repo runs a local-first staff/exploring MVP with:
 
 - `web/` — Next.js 14 App Router frontend (`web/app/page.tsx`, route `/`)
 - `server/` — FastAPI backend with a **local in-memory** conversation/state machine (not durable Postgres)
@@ -24,7 +24,7 @@ One command starts the in-memory API on port **8000** and the intake UI on port 
 ./scripts/dev.sh
 ```
 
-Then open [http://127.0.0.1:3000](http://127.0.0.1:3000). Click **Launch Intake**.
+Then open [http://127.0.0.1:3000](http://127.0.0.1:3000). Click **Begin discovery**. Use `?mode=prospect` for the exploring path.
 
 Manual equivalent (two terminals):
 
@@ -56,10 +56,14 @@ From the repo root, against the in-memory API:
 
 This exits 0 only after:
 
-1. `GET /health`
-2. `POST /api/conversations`
-3. Identity step with name + email
+1. `GET /health` with `persistence=postgres`
+2. `POST /api/conversations` staff
+3. Identity step with name, email, and required `work_phone`
 4. `GET /api/conversations/{id}` showing that identity
+5. A fresh API process still returns the same staff conversation
+6. Exploring `mode: "prospect"` starts without breaking staff
+
+Smoke starts Postgres (Docker Compose or a local cluster) and applies `db/migrations` when `DATABASE_URL` is not already reachable.
 
 `./scripts/smoke.sh` starts a temporary API if nothing healthy is listening on `API_BASE` (default `http://127.0.0.1:8000`). API deps install into `server/.venv` when `python3-venv` is available, otherwise into `server/.deps`.
 
@@ -97,9 +101,10 @@ npm run build
 
 ## Current MVP Scope
 
-- Prospect mode intake with one-question-at-a-time state transitions
+- Staff (`mode: "staff"`) and exploring (`mode: "prospect"`) paths with one-question-at-a-time state transitions
+- Role chips and role-aware staff prompts; budget/timeline only on the exploring path
+- Durable Postgres staff identity (`work_phone` required) so answers survive API restart
 - Local handoff summary generation and a Slack-ready stub
-- Existing-client mode held as a placeholder until OAuth is added
 - Scheduling captured as preference text instead of calendar integration
 
 ## Documentation Discipline Gate

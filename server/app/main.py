@@ -17,6 +17,15 @@ from pydantic import BaseModel, Field
 UTC = timezone.utc
 EMAIL_RE = re.compile(r"^\S+@\S+\.\S+$")
 SLACK_WEBHOOK_URL = os.getenv("SLACK_WEBHOOK_URL")
+DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
+DEFAULT_ACCOUNT_NAME = "ONB1 ROIA workspace"
+
+try:
+    import psycopg
+    from psycopg.rows import dict_row
+except ImportError:  # pragma: no cover - memory-only unit tests
+    psycopg = None
+    dict_row = None
 LOCAL_CORS_ORIGIN_REGEX = (
     r"^https?://("
     r"localhost|"
@@ -28,20 +37,157 @@ LOCAL_CORS_ORIGIN_REGEX = (
 )
 
 STATE_PROMPTS = {
-    "WELCOME": "Welcome to StorenTech AI. We can scope your intake in a few quick steps.",
-    "MODE_SELECT": "Are you a new prospect or an existing client?",
-    "IDENTITY": "Great. What is your full name, work email, and optional phone number?",
-    "BUSINESS_CONTEXT": "Tell me about your business so we can tailor the intake.",
-    "NEEDS": "What are you trying to accomplish with AI right now?",
-    "SCHEDULING": "Want to book time now or share a few windows that work for you?",
-    "SUMMARY": "Here is the current draft of your intake. Review it, edit anything needed, or send it now.",
-    "SUBMIT": "Your intake is queued. We will review it and follow up with next steps.",
+    "WELCOME": (
+        "Welcome — this is discovery for your company’s ROIA with StorenTech AI. "
+        "About 3–8 minutes. Pause anytime and finish tomorrow or on your phone."
+    ),
+    "MODE_SELECT": (
+        "Which seat are you answering from? Owner/CEO, Admin, Sales, HR, Finance, "
+        "front of house, or back of house."
+    ),
+    "IDENTITY": "Thanks. Your name and work email so we file this with the right ROIA.",
+    "BUSINESS_CONTEXT": "Quick company check — name and roughly how big your team or area is.",
+    "ARCHETYPE": "Confirm the company category so we route your answers correctly.",
+    "PAIN_POINTS": "Where do coordination, tools, or handoffs create extra work in ops?",
+    "NEEDS": "Where do coordination, tools, or handoffs create extra work in ops?",
+    "SCHEDULING": (
+        "Want a live clarification later, or skip and finish on your own? "
+        "You can always resume in this browser."
+    ),
+    "SUMMARY": "Ops discovery summary.",
+    "SUBMIT": "Received. Your ops answers are in for the ROIA.",
+}
+
+ROLE_ADMIN = "Admin / Ops"
+ROLE_CEO = "Owner / CEO"
+ROLE_SALES = "Sales"
+ROLE_HR = "HR / People"
+ROLE_FINANCE = "Finance"
+ROLE_FOH = "Front of house"
+ROLE_BOH = "Back of house / Ops floor"
+ROLE_OTHER = "Other / several seats"
+
+ROLE_ALIASES = {
+    "owner / ceo": ROLE_CEO,
+    "owner/ceo": ROLE_CEO,
+    "ceo": ROLE_CEO,
+    "admin / ops": ROLE_ADMIN,
+    "admin/ops": ROLE_ADMIN,
+    "admin": ROLE_ADMIN,
+    "ops": ROLE_ADMIN,
+    "sales": ROLE_SALES,
+    "hr / people": ROLE_HR,
+    "hr/people": ROLE_HR,
+    "hr": ROLE_HR,
+    "people": ROLE_HR,
+    "finance": ROLE_FINANCE,
+    "front of house": ROLE_FOH,
+    "foh": ROLE_FOH,
+    "back of house / ops floor": ROLE_BOH,
+    "back of house": ROLE_BOH,
+    "boh": ROLE_BOH,
+    "other / several seats": ROLE_OTHER,
+    "other": ROLE_OTHER,
+}
+
+# Role → STATE_PROMPTS overlays. Missing keys fall back to Admin/Ops (STATE_PROMPTS).
+ROLE_PROMPT_OVERLAYS: dict[str, dict[str, str]] = {
+    ROLE_CEO: {
+        "MODE_SELECT": (
+            "Which seat are you answering from? Owner/CEO sees company-wide stakes; "
+            "other seats go deep on their lane."
+        ),
+        "IDENTITY": "Your name and work email — so we attach this to the right ROIA.",
+        "BUSINESS_CONTEXT": "Company snapshot from your view: name, scale, and how work is organized.",
+        "ARCHETYPE": "Confirm the business category so we frame the analysis correctly.",
+        "PAIN_POINTS": "Where does the company lose time, money, or follow-through — from your vantage point?",
+        "NEEDS": "Where does the company lose time, money, or follow-through — from your vantage point?",
+        "SCHEDULING": (
+            "Prefer to finish later, or leave a window if the ROIA lead needs a short clarification with you."
+        ),
+        "SUMMARY": "Company-level discovery summary. Edit freely, then send.",
+        "SUBMIT": "Received. Your executive view is in for the ROIA.",
+    },
+    ROLE_HR: {
+        "MODE_SELECT": "Which seat? HR/People — hiring, onboarding, coverage, and handoffs.",
+        "IDENTITY": "Name and work email for the ROIA file.",
+        "BUSINESS_CONTEXT": "Quick company check, then we’ll focus on people workflows.",
+        "ARCHETYPE": "Confirm company category (helps us understand staffing patterns).",
+        "PAIN_POINTS": (
+            "Where do people processes leak time — hiring, scheduling coverage, training, or internal requests?"
+        ),
+        "NEEDS": (
+            "Where do people processes leak time — hiring, scheduling coverage, training, or internal requests?"
+        ),
+        "SCHEDULING": "Pause anytime. Optional: when you’re free if we need one clarification.",
+        "SUMMARY": "People-seat discovery summary. Adjust anything, then send.",
+        "SUBMIT": "Received. Your HR/People answers are in for the ROIA.",
+    },
+    ROLE_SALES: {
+        "PAIN_POINTS": "Where do leads, follow-ups, or handoffs break in sales?",
+        "NEEDS": "Where do leads, follow-ups, or handoffs break in sales?",
+        "SUMMARY": "Sales-seat discovery summary.",
+        "SUBMIT": "Received. Your sales answers are in for the ROIA.",
+    },
+    ROLE_FINANCE: {
+        "PAIN_POINTS": "Where do billing, collections, approvals, or reporting create rework?",
+        "NEEDS": "Where do billing, collections, approvals, or reporting create rework?",
+        "SUMMARY": "Finance-seat discovery summary.",
+        "SUBMIT": "Received. Your finance answers are in for the ROIA.",
+    },
+    ROLE_ADMIN: {
+        "PAIN_POINTS": "Where do coordination, tools, or handoffs create extra work in ops?",
+        "NEEDS": "Where do coordination, tools, or handoffs create extra work in ops?",
+        "SUMMARY": "Ops discovery summary.",
+        "SUBMIT": "Received. Your ops answers are in for the ROIA.",
+    },
+    ROLE_FOH: {
+        "PAIN_POINTS": (
+            "Where do guest/customer-facing moments break — phones, booking, walk-ins, handoffs to the back?"
+        ),
+        "NEEDS": (
+            "Where do guest/customer-facing moments break — phones, booking, walk-ins, handoffs to the back?"
+        ),
+        "SUMMARY": "Front-of-house discovery summary.",
+        "SUBMIT": "Received. Your front-of-house answers are in for the ROIA.",
+    },
+    ROLE_BOH: {
+        "PAIN_POINTS": (
+            "Where does floor/back-of-house work jam — tickets, prep, inventory handoffs, or updates to the front?"
+        ),
+        "NEEDS": (
+            "Where does floor/back-of-house work jam — tickets, prep, inventory handoffs, or updates to the front?"
+        ),
+        "SUMMARY": "Back-of-house discovery summary.",
+        "SUBMIT": "Received. Your back-of-house answers are in for the ROIA.",
+    },
+}
+
+# Prospect / exploring path — separate pack. Staff Owner/CEO overlays must never be used here.
+PROSPECT_STATE_PROMPTS = {
+    "WELCOME": (
+        "Welcome to StorenTech AI. In a few minutes we’ll map how the business runs "
+        "so an Automation ROI Analysis would be useful — if it’s a fit."
+    ),
+    "MODE_SELECT": (
+        "Are you exploring StorenTech for your company, or joining a ROIA your company already started?"
+    ),
+    "IDENTITY": "Your name and best email.",
+    "BUSINESS_CONTEXT": "Tell us about the business — name, scale, how work is organized.",
+    "ARCHETYPE": "What best describes the business? Closest fit is fine.",
+    "PAIN_POINTS": "Where does time, follow-up, or ops break down today?",
+    "NEEDS": "Where does time, follow-up, or ops break down today?",
+    "SCHEDULING": "Prefer a time to connect, or skip and we’ll follow up by email.",
+    "SUMMARY": "Here’s your summary. Edit anything, then send.",
+    "SUBMIT": "Received. We’ll review and follow up about an Automation ROI Analysis.",
 }
 
 STATE_FIELDS = {
-    "MODE_SELECT": ["mode"],
+    "MODE_SELECT": ["role"],
     "IDENTITY": ["full_name", "email"],
     "BUSINESS_CONTEXT": ["business_name"],
+    "ARCHETYPE": ["archetype"],
+    "PAIN_POINTS": ["needs_summary"],
     "NEEDS": ["needs_summary"],
     "SUMMARY": ["summary"],
 }
@@ -49,7 +195,7 @@ STATE_FIELDS = {
 app = FastAPI(
     title="ONB1 API",
     version="0.1.0",
-    description="Local-first intake API for ONB1.",
+    description="Local-first ROIA discovery API for ONB1.",
 )
 
 app.add_middleware(
@@ -80,7 +226,8 @@ class Attachment(BaseModel):
 class CreateConversationRequest(BaseModel):
     participant_name: str | None = None
     participant_email: str | None = None
-    mode: str = "prospect"
+    mode: str = "staff"
+    role: str | None = None
 
 
 class CreateMessageRequest(BaseModel):
@@ -151,6 +298,29 @@ class LocalConnection:
         return LocalCursor()
 
 
+class PgConnection:
+    def __init__(self, conn: Any) -> None:
+        self._conn = conn
+
+    def __enter__(self) -> PgConnection:
+        return self
+
+    def __exit__(self, exc_type, exc, tb) -> bool:
+        if exc_type:
+            self._conn.rollback()
+        else:
+            self._conn.commit()
+        self._conn.close()
+        return False
+
+    def cursor(self) -> Any:
+        return self._conn.cursor()
+
+
+def persistence_backend() -> str:
+    return "postgres" if DATABASE_URL else "memory"
+
+
 def utc_now() -> datetime:
     return datetime.now(tz=UTC)
 
@@ -193,46 +363,108 @@ def parse_normalized_fields(payload: Any) -> dict[str, str]:
     return {}
 
 
+def canonical_mode(fields: dict[str, str] | str | None) -> str:
+    if isinstance(fields, dict):
+        raw = clean_text(fields.get("mode"))
+    else:
+        raw = clean_text(fields)
+    if raw.lower() == "prospect":
+        return "prospect"
+    return "staff"
+
+
+def canonical_role(fields: dict[str, str]) -> str:
+    raw = clean_text(fields.get("role"))
+    if not raw:
+        return ROLE_ADMIN
+    mapped = ROLE_ALIASES.get(raw.lower())
+    if mapped == ROLE_OTHER:
+        return ROLE_ADMIN
+    if mapped:
+        return mapped
+    if raw in ROLE_PROMPT_OVERLAYS:
+        return raw
+    return ROLE_ADMIN
+
+
 def build_summary(fields: dict[str, str]) -> str:
     lines: list[str] = []
     if fields.get("full_name"):
         lines.append(f"Name: {fields['full_name']}")
     if fields.get("email"):
         lines.append(f"Email: {fields['email']}")
-    if fields.get("phone"):
+    if fields.get("work_phone"):
+        lines.append(f"Work phone: {fields['work_phone']}")
+    elif fields.get("phone"):
         lines.append(f"Phone: {fields['phone']}")
+    if fields.get("role"):
+        lines.append(f"Seat: {fields['role']}")
+    if fields.get("company_location"):
+        lines.append(f"Company / location: {fields['company_location']}")
     if fields.get("business_name"):
-        lines.append(f"Business: {fields['business_name']}")
-    if fields.get("industry"):
-        lines.append(f"Industry: {fields['industry']}")
+        lines.append(f"Company: {fields['business_name']}")
+    if fields.get("business_url"):
+        lines.append(f"Website: {fields['business_url']}")
+    if fields.get("archetype"):
+        lines.append(f"Category: {fields['archetype']}")
+    if fields.get("subtypes"):
+        lines.append(f"Work types: {fields['subtypes']}")
+    if fields.get("industry") and not fields.get("archetype"):
+        lines.append(f"Category: {fields['industry']}")
     if fields.get("company_size"):
-        lines.append(f"Company Size: {fields['company_size']}")
+        lines.append(f"Team / area size: {fields['company_size']}")
+    if fields.get("first_contact"):
+        lines.append(f"How work arrives: {fields['first_contact']}")
+    if fields.get("pain_points"):
+        lines.append(f"Where work gets stuck: {fields['pain_points']}")
+    if fields.get("result_priority"):
+        lines.append(f"What would help most: {fields['result_priority']}")
     if fields.get("needs_summary"):
-        lines.append(f"Primary Need: {fields['needs_summary']}")
+        lines.append(f"Workflow: {fields['needs_summary']}")
     if fields.get("solution_interest"):
-        lines.append(f"Solution Interest: {fields['solution_interest']}")
-    if fields.get("timeline"):
-        lines.append(f"Timeline: {fields['timeline']}")
-    if fields.get("budget_band"):
-        lines.append(f"Budget: {fields['budget_band']}")
+        lines.append(f"Theme: {fields['solution_interest']}")
+    if canonical_mode(fields) == "prospect":
+        if fields.get("timeline"):
+            lines.append(f"Timing: {fields['timeline']}")
+        if fields.get("budget_band"):
+            lines.append(f"Budget: {fields['budget_band']}")
     if fields.get("preferred_times"):
         timezone_value = fields.get("timezone")
         suffix = f" ({timezone_value})" if timezone_value else ""
         lines.append(f"Availability: {fields['preferred_times']}{suffix}")
     if fields.get("preferred_contact_channel"):
-        lines.append(f"Preferred Contact: {fields['preferred_contact_channel']}")
+        lines.append(f"Best way to reach you: {fields['preferred_contact_channel']}")
     if fields.get("notes"):
         lines.append(f"Notes: {fields['notes']}")
     return "\n".join(lines)
 
 
 def build_intake_brief(fields: dict[str, str], notes: str | None = None) -> dict[str, Any]:
-    summary = clean_text(fields.get("summary")) or build_summary(fields) or "Prospect requested a StorenTech AI intake."
-    goals = [clean_text(fields.get("needs_summary"))] if fields.get("needs_summary") else ["Clarify fit and next steps."]
+    prospect = canonical_mode(fields) == "prospect"
+    summary = (
+        clean_text(fields.get("summary"))
+        or build_summary(fields)
+        or (
+            "Exploring StorenTech — notes for an Automation ROI Analysis."
+            if prospect
+            else "Staff discovery notes for the company ROIA."
+        )
+    )
+    goals = (
+        [clean_text(fields.get("needs_summary"))]
+        if fields.get("needs_summary")
+        else (
+            ["Clarify fit for an Automation ROI Analysis."]
+            if prospect
+            else ["Capture how work runs in this seat for ROIA discovery."]
+        )
+    )
     constraints: list[str] = []
-    if fields.get("timeline"):
-        constraints.append(f"Timeline: {fields['timeline']}")
-    if fields.get("budget_band"):
+    if fields.get("role"):
+        constraints.append(f"Seat: {fields['role']}")
+    if prospect and fields.get("timeline"):
+        constraints.append(f"Timing: {fields['timeline']}")
+    if prospect and fields.get("budget_band"):
         constraints.append(f"Budget: {fields['budget_band']}")
     if fields.get("preferred_contact_channel"):
         constraints.append(f"Contact via {fields['preferred_contact_channel']}")
@@ -242,39 +474,55 @@ def build_intake_brief(fields: dict[str, str], notes: str | None = None) -> dict
         constraints.append(f"Availability: {fields['preferred_times']}{suffix}")
     if notes:
         constraints.append(f"Operator note: {notes}")
-    next_steps = [
-        "Review the intake summary.",
-        "Prepare a follow-up recommendation.",
-    ]
-    if fields.get("preferred_times"):
-        next_steps.append("Offer a call during the preferred windows.")
+    if prospect:
+        next_steps = [
+            "Review the summary.",
+            "Follow up about an Automation ROI Analysis.",
+        ]
+        if fields.get("preferred_times"):
+            next_steps.append("Offer a time during the preferred windows.")
+        else:
+            next_steps.append("Follow up by email.")
     else:
-        next_steps.append("Follow up by email to schedule a discovery call.")
+        next_steps = [
+            "Review the discovery summary.",
+            "Use these notes in ROIA discovery — not a final recommendation.",
+        ]
+        if fields.get("preferred_times"):
+            next_steps.append("Optional clarification during the preferred windows.")
+        else:
+            next_steps.append("No live follow-up requested; finish from the written answers.")
     return {
         "summary": summary,
         "goals": goals,
         "constraints": constraints or ["No additional constraints captured yet."],
-        "timeline": fields.get("timeline"),
-        "budget": fields.get("budget_band"),
         "recommended_next_steps": next_steps,
     }
 
 
 def prompt_for_state(state: str, fields: dict[str, str]) -> str:
+    if canonical_mode(fields) == "prospect":
+        text = PROSPECT_STATE_PROMPTS.get(state) or STATE_PROMPTS.get(state, "")
+    else:
+        role = canonical_role(fields)
+        overlays = ROLE_PROMPT_OVERLAYS.get(role, {})
+        text = overlays.get(state) or STATE_PROMPTS.get(state, "")
     if state == "SUMMARY":
         summary = build_summary(fields)
         if summary:
-            return f"{STATE_PROMPTS[state]}\n\n{summary}"
-    if state == "SUBMIT" and fields.get("mode") == "client":
-        return "Existing-client intake is queued for the next build. Leave a note and we will follow up manually."
-    return STATE_PROMPTS[state]
+            return f"{text}\n\n{summary}"
+    return text
 
 
 def summarize_step_response(state: str, fields: dict[str, str]) -> str:
     if state == "WELCOME":
         return "Ready to start."
     if state == "MODE_SELECT":
-        return "Existing client" if fields.get("mode") == "client" else "New prospect"
+        if clean_text(fields.get("role")):
+            return fields["role"]
+        if canonical_mode(fields) == "prospect":
+            return "I’m exploring StorenTech for my company"
+        return "I’m on a company ROIA (team member)"
     if state == "IDENTITY":
         pieces = [fields.get("full_name", "")]
         if fields.get("email"):
@@ -282,15 +530,22 @@ def summarize_step_response(state: str, fields: dict[str, str]) -> str:
         return " | ".join(piece for piece in pieces if piece)
     if state == "BUSINESS_CONTEXT":
         pieces = [fields.get("business_name", "")]
-        if fields.get("industry"):
+        if fields.get("archetype"):
+            pieces.append(fields["archetype"])
+        elif fields.get("industry"):
             pieces.append(fields["industry"])
         return " | ".join(piece for piece in pieces if piece)
-    if state == "NEEDS":
+    if state == "ARCHETYPE":
+        pieces = [fields.get("archetype", "")]
+        if fields.get("subtypes"):
+            pieces.append(fields["subtypes"])
+        return " | ".join(piece for piece in pieces if piece)
+    if state in {"NEEDS", "PAIN_POINTS"}:
         return fields.get("needs_summary", "")
     if state == "SCHEDULING":
         if fields.get("preferred_times"):
             return fields["preferred_times"]
-        return fields.get("scheduling_option", "Skipped scheduling")
+        return fields.get("scheduling_option", "Skip for now — I’ll finish on my own.")
     if state == "SUMMARY":
         return fields.get("summary", build_summary(fields))
     return ""
@@ -300,12 +555,14 @@ def next_state(current_state: str, fields: dict[str, str]) -> str:
     if current_state == "WELCOME":
         return "MODE_SELECT"
     if current_state == "MODE_SELECT":
-        return "SUBMIT" if clean_text(fields.get("mode")).lower() == "client" else "IDENTITY"
+        return "IDENTITY"
     if current_state == "IDENTITY":
         return "BUSINESS_CONTEXT"
     if current_state == "BUSINESS_CONTEXT":
-        return "NEEDS"
-    if current_state == "NEEDS":
+        return "ARCHETYPE"
+    if current_state == "ARCHETYPE":
+        return "PAIN_POINTS"
+    if current_state in {"NEEDS", "PAIN_POINTS"}:
         return "SUMMARY" if as_bool(fields.get("skip_scheduling")) else "SCHEDULING"
     if current_state == "SCHEDULING":
         return "SUMMARY"
@@ -316,20 +573,31 @@ def next_state(current_state: str, fields: dict[str, str]) -> str:
 
 def validate_required_fields(state: str, fields: dict[str, str]) -> None:
     if state == "SCHEDULING":
-        if clean_text(fields.get("scheduling_option")).lower() == "link":
+        if clean_text(fields.get("scheduling_option")).lower() in {"link", "skip"}:
             return
         required = [field for field in ["preferred_times", "timezone"] if not clean_text(fields.get(field))]
         if required:
             raise HTTPException(status_code=400, detail={"error": "missing_fields", "fields": required})
         return
 
+    if state == "MODE_SELECT":
+        if clean_text(fields.get("role")) or clean_text(fields.get("mode")):
+            return
+        raise HTTPException(status_code=400, detail={"error": "missing_fields", "fields": ["role"]})
+
     required_fields = STATE_FIELDS.get(state, [])
     missing = [field for field in required_fields if not clean_text(fields.get(field))]
     if missing:
         raise HTTPException(status_code=400, detail={"error": "missing_fields", "fields": missing})
 
-    if state == "IDENTITY" and not EMAIL_RE.match(clean_text(fields.get("email"))):
-        raise HTTPException(status_code=400, detail={"error": "invalid_email"})
+    if state == "IDENTITY":
+        if not EMAIL_RE.match(clean_text(fields.get("email"))):
+            raise HTTPException(status_code=400, detail={"error": "invalid_email"})
+        if canonical_mode(fields) == "staff":
+            work_phone = clean_text(fields.get("work_phone")) or clean_text(fields.get("phone"))
+            if not work_phone:
+                raise HTTPException(status_code=400, detail={"error": "missing_fields", "fields": ["work_phone"]})
+            fields["work_phone"] = work_phone
 
 
 def new_message(conversation_id: UUID, role: str, content: str, attachments: list[Attachment] | None = None) -> dict[str, Any]:
@@ -343,8 +611,164 @@ def new_message(conversation_id: UUID, role: str, content: str, attachments: lis
     }
 
 
-def get_conn() -> LocalConnection:
+def get_conn() -> LocalConnection | PgConnection:
+    if DATABASE_URL:
+        if psycopg is None or dict_row is None:
+            raise HTTPException(status_code=503, detail="postgres_driver_missing")
+        return PgConnection(psycopg.connect(DATABASE_URL, row_factory=dict_row))
     return LocalConnection()
+
+
+def ensure_default_account(conn: Any) -> UUID:
+    with conn.cursor() as cursor:
+        cursor.execute("SELECT id FROM accounts WHERE name = %s", (DEFAULT_ACCOUNT_NAME,))
+        row = cursor.fetchone()
+        if row:
+            return row["id"]
+        cursor.execute(
+            "INSERT INTO accounts (name, status) VALUES (%s, %s) RETURNING id",
+            (DEFAULT_ACCOUNT_NAME, "active"),
+        )
+        created = cursor.fetchone()
+    return created["id"]
+
+
+def upsert_contact(conn: Any, account_id: UUID, fields: dict[str, str]) -> UUID | None:
+    email = clean_text(fields.get("email"))
+    if not email:
+        return None
+    work_phone = clean_text(fields.get("work_phone")) or clean_text(fields.get("phone"))
+    with conn.cursor() as cursor:
+        cursor.execute(
+            """
+            INSERT INTO contacts (
+                account_id, full_name, email, phone, work_phone, role, company_location
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (account_id, email) DO UPDATE SET
+                full_name = EXCLUDED.full_name,
+                phone = COALESCE(EXCLUDED.phone, contacts.phone),
+                work_phone = COALESCE(EXCLUDED.work_phone, contacts.work_phone),
+                role = COALESCE(EXCLUDED.role, contacts.role),
+                company_location = COALESCE(EXCLUDED.company_location, contacts.company_location),
+                updated_at = now()
+            RETURNING id
+            """,
+            (
+                account_id,
+                clean_text(fields.get("full_name")) or email,
+                email,
+                work_phone or None,
+                work_phone or None,
+                clean_text(fields.get("role")) or None,
+                clean_text(fields.get("company_location")) or None,
+            ),
+        )
+        row = cursor.fetchone()
+    return row["id"] if row else None
+
+
+def insert_message_row(cursor: Any, message: dict[str, Any]) -> None:
+    attachments = message.get("attachments") or []
+    cursor.execute(
+        """
+        INSERT INTO messages (
+            id, conversation_id, sender_type, body, role, content, attachments, created_at
+        )
+        VALUES (%s, %s, %s, %s, %s, %s, %s::jsonb, %s)
+        ON CONFLICT (id) DO NOTHING
+        """,
+        (
+            message["id"],
+            message["conversation_id"],
+            message.get("role") or "assistant",
+            message.get("content") or "",
+            message.get("role") or "assistant",
+            message.get("content") or "",
+            json.dumps(attachments),
+            message.get("created_at") or utc_now(),
+        ),
+    )
+
+
+def persist_new_conversation(conn: Any, conversation: dict[str, Any]) -> None:
+    fields = conversation.get("normalized_fields") or {}
+    account_id = ensure_default_account(conn)
+    contact_id = upsert_contact(conn, account_id, fields)
+    conversation["account_id"] = account_id
+    conversation["contact_id"] = contact_id
+    with conn.cursor() as cursor:
+        cursor.execute(
+            """
+            INSERT INTO conversations (
+                id, account_id, contact_id, channel, subject, mode, state,
+                normalized_fields, status, participant_name, participant_email,
+                slack_post_id, created_at, updated_at
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s, %s, %s, %s, %s, %s)
+            """,
+            (
+                conversation["id"],
+                account_id,
+                contact_id,
+                "web",
+                "ROIA discovery",
+                canonical_mode(fields),
+                conversation.get("state", "WELCOME"),
+                json.dumps(fields),
+                conversation.get("status", "active"),
+                conversation.get("participant_name") or fields.get("full_name"),
+                conversation.get("participant_email") or fields.get("email"),
+                conversation.get("slack_post_id"),
+                conversation.get("created_at") or utc_now(),
+                conversation.get("updated_at") or utc_now(),
+            ),
+        )
+        for message in conversation.get("messages") or []:
+            insert_message_row(cursor, message)
+
+
+def persist_conversation_update(
+    conn: Any,
+    conversation_id: UUID,
+    fields: dict[str, str],
+    state: str | None = None,
+    status: str | None = None,
+    messages: list[dict[str, Any]] | None = None,
+    attachments: list[Attachment] | None = None,
+) -> None:
+    account_id = ensure_default_account(conn)
+    contact_id = upsert_contact(conn, account_id, fields)
+    with conn.cursor() as cursor:
+        cursor.execute(
+            """
+            UPDATE conversations SET
+                state = COALESCE(%s, state),
+                status = COALESCE(%s, status),
+                normalized_fields = %s::jsonb,
+                participant_name = COALESCE(%s, participant_name),
+                participant_email = COALESCE(%s, participant_email),
+                contact_id = COALESCE(%s, contact_id),
+                summary = COALESCE(%s, summary),
+                updated_at = %s
+            WHERE id = %s
+            """,
+            (
+                state,
+                status,
+                json.dumps(fields),
+                fields.get("full_name"),
+                fields.get("email"),
+                contact_id,
+                fields.get("summary"),
+                utc_now(),
+                conversation_id,
+            ),
+        )
+        for message in messages or []:
+            insert_message_row(cursor, message)
+    if attachments:
+        persist_attachments(conn, conversation_id, attachments)
 
 
 def fetch_conversation(conn: Any, conversation_id: UUID) -> dict[str, Any] | None:
@@ -360,7 +784,46 @@ def fetch_conversation(conn: Any, conversation_id: UUID) -> dict[str, Any] | Non
 
     with conn.cursor() as cursor:
         cursor.execute("SELECT * FROM conversations WHERE id = %s", (conversation_id,))
-        return cursor.fetchone()
+        row = cursor.fetchone()
+        if not row:
+            return None
+        cursor.execute(
+            """
+            SELECT * FROM messages
+            WHERE conversation_id = %s
+            ORDER BY created_at ASC
+            """,
+            (conversation_id,),
+        )
+        messages = []
+        for message in cursor.fetchall():
+            messages.append(
+                {
+                    "id": message["id"],
+                    "conversation_id": message["conversation_id"],
+                    "role": message.get("role") or message.get("sender_type"),
+                    "content": message.get("content") or message.get("body") or "",
+                    "attachments": message.get("attachments") or [],
+                    "created_at": message.get("created_at"),
+                }
+            )
+        cursor.execute(
+            """
+            SELECT payload, summary FROM intake_briefs
+            WHERE conversation_id = %s
+            ORDER BY created_at DESC
+            LIMIT 1
+            """,
+            (conversation_id,),
+        )
+        brief_row = cursor.fetchone()
+        payload = dict(row)
+        payload["messages"] = messages
+        if brief_row and brief_row.get("payload"):
+            payload["intake_brief"] = brief_row["payload"]
+        elif brief_row and brief_row.get("summary"):
+            payload["intake_brief"] = {"summary": brief_row["summary"]}
+        return payload
 
 
 def persist_intake_brief(conn: Any, conversation_id: UUID, brief: dict[str, Any]) -> UUID:
@@ -371,10 +834,26 @@ def persist_intake_brief(conn: Any, conversation_id: UUID, brief: dict[str, Any]
             conversation["updated_at"] = utc_now()
         return uuid4()
 
+    account_id = ensure_default_account(conn)
+    goals = brief.get("goals")
+    constraints = brief.get("constraints")
     with conn.cursor() as cursor:
         cursor.execute(
-            "INSERT INTO intake_briefs (conversation_id, payload) VALUES (%s, %s) RETURNING id",
-            (conversation_id, json.dumps(brief)),
+            """
+            INSERT INTO intake_briefs (
+                account_id, conversation_id, summary, goals, constraints, payload
+            )
+            VALUES (%s, %s, %s, %s, %s, %s::jsonb)
+            RETURNING id
+            """,
+            (
+                account_id,
+                conversation_id,
+                clean_text(brief.get("summary")) or "ROIA discovery notes",
+                json.dumps(goals) if not isinstance(goals, str) else goals,
+                json.dumps(constraints) if not isinstance(constraints, str) else constraints,
+                json.dumps(brief),
+            ),
         )
         row = cursor.fetchone()
     return row["id"] if row else uuid4()
@@ -390,9 +869,22 @@ def persist_attachments(conn: Any, conversation_id: UUID, attachments: list[Atta
 
     with conn.cursor() as cursor:
         for attachment in attachments:
+            data = attachment.model_dump()
             cursor.execute(
-                "INSERT INTO attachments (conversation_id, payload) VALUES (%s, %s)",
-                (conversation_id, json.dumps(attachment.model_dump())),
+                """
+                INSERT INTO attachments (
+                    conversation_id, file_name, content_type, size_bytes, storage_key, storage_url
+                )
+                VALUES (%s, %s, %s, %s, %s, %s)
+                """,
+                (
+                    conversation_id,
+                    data.get("file_name") or "upload",
+                    data.get("content_type") or "application/octet-stream",
+                    data.get("size_bytes") or 0,
+                    data.get("file_name") or "upload",
+                    data.get("file_url") or "",
+                ),
             )
 
 
@@ -615,9 +1107,23 @@ def end_and_send(
             fields["notes"] = clean_text(payload.notes)
         if not fields.get("summary"):
             fields["summary"] = build_summary(fields)
+        if canonical_mode(fields) == "staff":
+            work_phone = clean_text(fields.get("work_phone")) or clean_text(fields.get("phone"))
+            if not work_phone:
+                raise HTTPException(status_code=400, detail={"error": "missing_fields", "fields": ["work_phone"]})
+            fields["work_phone"] = work_phone
 
         if isinstance(conn, LocalConnection):
             update_local_conversation(
+                conversation_id,
+                fields=fields,
+                state="SUBMIT",
+                status="ended",
+                attachments=payload.attachments,
+            )
+        elif isinstance(conn, PgConnection):
+            persist_conversation_update(
+                conn,
                 conversation_id,
                 fields=fields,
                 state="SUBMIT",
@@ -646,22 +1152,26 @@ def end_and_send(
                 _CONVERSATIONS[conversation_id]["slack_post_id"] = slack_post_id
                 updated_row = dict(_CONVERSATIONS[conversation_id])
                 updated_row["normalized_fields"] = json.dumps(_CONVERSATIONS[conversation_id]["normalized_fields"])
+        elif isinstance(conn, PgConnection):
+            updated_row = fetch_conversation(conn, conversation_id) or updated_row
 
         return to_conversation_model(updated_row)
 
 
 @app.get("/health")
 def health() -> dict[str, str]:
-    return {"status": "ok"}
+    return {"status": "ok", "persistence": persistence_backend()}
 
 
 @app.post("/api/conversations", status_code=201)
 def create_conversation(payload: CreateConversationRequest) -> dict[str, Any]:
+    mode = canonical_mode(payload.mode)
     fields = normalize_fields(
         {
             "full_name": payload.participant_name,
             "email": payload.participant_email,
-            "mode": payload.mode,
+            "mode": mode,
+            "role": payload.role,
         }
     )
     conversation_id = uuid4()
@@ -681,15 +1191,22 @@ def create_conversation(payload: CreateConversationRequest) -> dict[str, Any]:
         "created_at": now,
         "updated_at": now,
     }
-    with _STORE_LOCK:
-        _CONVERSATIONS[conversation_id] = conversation
-    return to_conversation_model(conversation)
+    with get_conn() as conn:
+        if isinstance(conn, LocalConnection):
+            with _STORE_LOCK:
+                _CONVERSATIONS[conversation_id] = conversation
+            return to_conversation_model(conversation)
+        persist_new_conversation(conn, conversation)
+        stored = fetch_conversation(conn, conversation_id)
+        if not stored:
+            raise HTTPException(status_code=500, detail="conversation_persist_failed")
+        return to_conversation_model(stored)
 
 
 @app.get("/api/conversations/{conversation_id}")
 def get_conversation(conversation_id: UUID) -> dict[str, Any]:
-    with _STORE_LOCK:
-        conversation = _CONVERSATIONS.get(conversation_id)
+    with get_conn() as conn:
+        conversation = fetch_conversation(conn, conversation_id)
         if not conversation:
             raise HTTPException(status_code=404, detail="conversation_not_found")
         return to_conversation_model(conversation)
@@ -697,33 +1214,49 @@ def get_conversation(conversation_id: UUID) -> dict[str, Any]:
 
 @app.post("/api/conversations/{conversation_id}/message", status_code=201)
 def create_conversation_message(conversation_id: UUID, payload: CreateMessageRequest) -> dict[str, Any]:
-    with _STORE_LOCK:
-        conversation = _CONVERSATIONS.get(conversation_id)
+    with get_conn() as conn:
+        conversation = fetch_conversation(conn, conversation_id)
         if not conversation:
             raise HTTPException(status_code=404, detail="conversation_not_found")
         current_state = conversation["state"]
-        existing_fields = dict(conversation["normalized_fields"])
+        existing_fields = parse_normalized_fields(conversation.get("normalized_fields"))
 
-    incoming_fields = normalize_fields(payload.fields)
-    merged_fields = {**existing_fields, **incoming_fields}
-    if current_state == "SUBMIT":
-        return to_conversation_model(conversation)
+        incoming_fields = normalize_fields(payload.fields)
+        merged_fields = {**existing_fields, **incoming_fields}
+        if current_state == "SUBMIT":
+            return to_conversation_model(conversation)
 
-    validate_required_fields(current_state, merged_fields)
-    if not merged_fields.get("summary"):
-        merged_fields["summary"] = build_summary(merged_fields)
+        validate_required_fields(current_state, merged_fields)
+        if not merged_fields.get("summary"):
+            merged_fields["summary"] = build_summary(merged_fields)
 
-    user_content = clean_text(payload.content) or summarize_step_response(current_state, merged_fields)
-    next_step = next_state(current_state, merged_fields) if payload.advance else current_state
-
-    updated = update_local_conversation(conversation_id, fields=merged_fields, state=next_step)
-    with _STORE_LOCK:
+        user_content = clean_text(payload.content) or summarize_step_response(current_state, merged_fields)
+        next_step = next_state(current_state, merged_fields) if payload.advance else current_state
+        new_messages: list[dict[str, Any]] = []
         if user_content:
-            updated["messages"].append(new_message(conversation_id, "user", user_content, payload.attachments))
-        updated["messages"].append(new_message(conversation_id, "assistant", prompt_for_state(next_step, merged_fields)))
-        updated["updated_at"] = utc_now()
-        _CONVERSATIONS[conversation_id] = updated
-        return to_conversation_model(updated)
+            new_messages.append(new_message(conversation_id, "user", user_content, payload.attachments))
+        new_messages.append(new_message(conversation_id, "assistant", prompt_for_state(next_step, merged_fields)))
+
+        if isinstance(conn, LocalConnection):
+            updated = update_local_conversation(conversation_id, fields=merged_fields, state=next_step)
+            with _STORE_LOCK:
+                updated["messages"].extend(new_messages)
+                updated["updated_at"] = utc_now()
+                _CONVERSATIONS[conversation_id] = updated
+                return to_conversation_model(updated)
+
+        persist_conversation_update(
+            conn,
+            conversation_id,
+            fields=merged_fields,
+            state=next_step,
+            messages=new_messages,
+            attachments=payload.attachments,
+        )
+        stored = fetch_conversation(conn, conversation_id)
+        if not stored:
+            raise HTTPException(status_code=404, detail="conversation_not_found")
+        return to_conversation_model(stored)
 
 
 @app.post("/api/conversations/{conversation_id}/end-and-send")
