@@ -3,6 +3,9 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=lib/onb1-api.sh
+ONB1_ROOT="$ROOT"
+. "$ROOT/scripts/lib/onb1-api.sh"
 API_HOST="${API_HOST:-0.0.0.0}"
 API_PORT="${API_PORT:-8000}"
 WEB_PORT="${WEB_PORT:-3000}"
@@ -46,11 +49,7 @@ if ! command -v npm >/dev/null; then
   exit 1
 fi
 
-if [[ ! -x "$ROOT/server/.venv/bin/uvicorn" ]]; then
-  echo "Installing API dependencies into server/.venv ..."
-  python3 -m venv "$ROOT/server/.venv"
-  "$ROOT/server/.venv/bin/pip" install -q -r "$ROOT/server/requirements-dev.txt"
-fi
+onb1_ensure_api_python
 
 if [[ ! -d "$ROOT/web/node_modules" ]]; then
   echo "Installing web dependencies ..."
@@ -58,10 +57,7 @@ if [[ ! -d "$ROOT/web/node_modules" ]]; then
 fi
 
 echo "Starting in-memory FastAPI on ${API_HOST}:${API_PORT} ..."
-(
-  cd "$ROOT/server"
-  exec .venv/bin/uvicorn app.main:app --reload --host "$API_HOST" --port "$API_PORT"
-) >/tmp/onb1-dev-api.log 2>&1 &
+onb1_run_uvicorn "$API_HOST" "$API_PORT" --reload >/tmp/onb1-dev-api.log 2>&1 &
 API_PID=$!
 
 for _ in $(seq 1 40); do

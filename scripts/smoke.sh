@@ -5,6 +5,9 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=lib/onb1-api.sh
+ONB1_ROOT="$ROOT"
+. "$ROOT/scripts/lib/onb1-api.sh"
 API_HOST="${API_HOST:-127.0.0.1}"
 API_PORT="${API_PORT:-8000}"
 API_BASE="${API_BASE:-http://${API_HOST}:${API_PORT}}"
@@ -25,7 +28,8 @@ Usage: scripts/smoke.sh [--with-web]
     POST /api/conversations/{id}/message  (WELCOME -> MODE_SELECT -> IDENTITY)
     GET  /api/conversations/{id}
 
-  Reuses a healthy API on API_BASE, or starts uvicorn from server/.venv.
+  Reuses a healthy API on API_BASE, or starts in-memory uvicorn
+  (server/.venv, or server/.deps if python3-venv is unavailable).
 
   --with-web   Also GET WEB_BASE (default http://127.0.0.1:3000) and require
                the App Router intake markers. Does not start Next.js.
@@ -116,22 +120,10 @@ health_ok() {
   [[ "$status" == "200" && "$body" == *'"status"'*'"ok"'* ]]
 }
 
-ensure_python_deps() {
-  local venv="$ROOT/server/.venv"
-  if [[ ! -x "$venv/bin/uvicorn" ]]; then
-    echo "Installing API dependencies into server/.venv ..."
-    python3 -m venv "$venv"
-    "$venv/bin/pip" install -q -r "$ROOT/server/requirements-dev.txt"
-  fi
-}
-
 start_api() {
-  ensure_python_deps
+  onb1_ensure_api_python
   echo "Starting in-memory FastAPI on ${API_HOST}:${API_PORT} ..."
-  (
-    cd "$ROOT/server"
-    exec .venv/bin/uvicorn app.main:app --host "$API_HOST" --port "$API_PORT"
-  ) >/tmp/onb1-smoke-api.log 2>&1 &
+  onb1_run_uvicorn "$API_HOST" "$API_PORT" >/tmp/onb1-smoke-api.log 2>&1 &
   API_PID=$!
   STARTED_API=1
 
@@ -218,8 +210,8 @@ except Exception as exc:
     sys.exit(1)
 PY
 )" || fail "web is not reachable at $WEB_BASE (start ./scripts/dev.sh, then rerun --with-web)"
-printf '%s' "$web_html" | grep -q "Launch Intake" || fail "web page at $WEB_BASE is missing 'Launch Intake' (is Pages /local still shadowing App Router?)"
-printf '%s' "$web_html" | grep -q "Prospect intake" || fail "web page at $WEB_BASE is missing intake copy"
+printf '%s' "$web_html" | grep -q "Prospect intake" || fail "web page at $WEB_BASE is missing App Router intake copy (is Pages /local still shadowing /?)"
+printf '%s' "$web_html" | grep -q "No active intake yet" || fail "web page at $WEB_BASE is missing the empty intake state"
 pass "GET $WEB_BASE App Router intake"
 else
   if python3 - "$WEB_BASE" <<'PY' >/dev/null 2>&1
@@ -232,7 +224,7 @@ import sys, urllib.request
 print(urllib.request.urlopen(sys.argv[1], timeout=8).read().decode(errors="replace"))
 PY
 )"
-    if printf '%s' "$web_html" | grep -q "Launch Intake"; then
+    if printf '%s' "$web_html" | grep -q "Prospect intake"; then
       pass "GET $WEB_BASE App Router intake (optional, web already running)"
     else
       echo "note  web is running at $WEB_BASE but did not look like the App Router intake"

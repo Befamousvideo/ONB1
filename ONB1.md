@@ -23,7 +23,7 @@ This document is the single source of truth for project scope, architecture, and
 
 ## Local Launch And Smoke (PR1)
 
-- Supported launch (Linux/WSL): `./scripts/dev.sh` starts in-memory FastAPI on `:8000` and Next.js on `:3000`.
+- Supported launch (Linux/WSL): `./scripts/dev.sh` starts in-memory FastAPI on `:8000` and Next.js on `:3000`. API deps use `server/.venv` when `python3-venv` exists, otherwise a local `server/.deps` pip target.
 - Supported smoke: `./scripts/smoke.sh` (API: health, create conversation, identity name/email, get conversation). Add `--with-web` when the UI is already running.
 - Quarantined: Pages Router `/local` (`web/legacy/pages-local-ux/`) and `smoke_test.ps1` (stale `account_id` / `sender_type` contract). `/local` now serves a notice that links to `/`.
 - Dual `web/next.config.js` + `web/next.config.mjs` collapsed to `web/next.config.mjs` so Next.js has one config.

@@ -61,7 +61,7 @@ This exits 0 only after:
 3. Identity step with name + email
 4. `GET /api/conversations/{id}` showing that identity
 
-`./scripts/smoke.sh` starts a temporary API if nothing healthy is listening on `API_BASE` (default `http://127.0.0.1:8000`).
+`./scripts/smoke.sh` starts a temporary API if nothing healthy is listening on `API_BASE` (default `http://127.0.0.1:8000`). API deps install into `server/.venv` when `python3-venv` is available, otherwise into `server/.deps`.
 
 To also require the web intake page (after `./scripts/dev.sh` is running):
 
