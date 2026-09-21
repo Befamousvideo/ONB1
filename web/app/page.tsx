@@ -88,9 +88,9 @@ function getApiBase() {
     return configuredBase.replace(/\/$/, "");
   }
   if (typeof window !== "undefined") {
-    return `${window.location.protocol}//${window.location.hostname}:8011`;
+    return `${window.location.protocol}//${window.location.hostname}:8000`;
   }
-  return "http://localhost:8011";
+  return "http://localhost:8000";
 }
 
 async function parseJson(response: Response) {

@@ -2,31 +2,18 @@ param(
   [string]$BaseUrl = "http://localhost:8000"
 )
 
-$accountId = "11111111-1111-1111-1111-111111111111"
+Write-Host @"
+QUARANTINED: smoke_test.ps1
 
-$createBody = @{
-  account_id = $accountId
-  channel = "web"
-  subject = "Smoke test"
-} | ConvertTo-Json
+This script posts a stale conversation contract (account_id / sender_type / body)
+and does not prove the current in-memory identity intake.
 
-$create = Invoke-WebRequest -Uri "$BaseUrl/api/conversations" -Method Post -Body $createBody -ContentType "application/json"
-$createJson = $create.Content | ConvertFrom-Json
-$conversationId = $createJson.id
+Use the Linux/WSL smoke instead:
 
-$messageBody = @{
-  sender_type = "contact"
-  body = "Hello from smoke test"
-} | ConvertTo-Json
+  ./scripts/smoke.sh
+  ./scripts/smoke.sh --with-web
 
-$message = Invoke-WebRequest -Uri "$BaseUrl/api/conversations/$conversationId/message" -Method Post -Body $messageBody -ContentType "application/json"
+API base would have been: $BaseUrl
+"@
 
-$getBefore = Invoke-WebRequest -Uri "$BaseUrl/api/conversations/$conversationId" -Method Get
-
-$endBody = @{
-  summary = "Smoke test summary"
-} | ConvertTo-Json
-
-$end = Invoke-WebRequest -Uri "$BaseUrl/api/conversations/$conversationId/end-and-send" -Method Post -Body $endBody -ContentType "application/json"
-
-Write-Host "create:$($create.StatusCode) message:$($message.StatusCode) get:$($getBefore.StatusCode) end:$($end.StatusCode) conv:$conversationId"
+exit 1

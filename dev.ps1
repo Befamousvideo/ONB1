@@ -1,3 +1,6 @@
+# NOT the PR1 local-first path. This script boots Postgres via docker-compose.
+# For in-memory intake on Linux/WSL use: ./scripts/dev.sh
+# For smoke: ./scripts/smoke.sh
 param(
   [string]$DatabaseUrl = "postgresql://onb1:onb1_dev_password@localhost:5432/onb1",
   [int]$Port = 8000

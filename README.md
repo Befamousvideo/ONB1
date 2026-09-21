@@ -1,25 +1,35 @@
 # ONB1 Local-First MVP
 
-ONB1 is a StorenTech AI onboarding intake app. The current repo now runs a local-first prospect intake MVP with:
+ONB1 is a StorenTech AI onboarding intake app. The current repo runs a local-first prospect intake MVP with:
 
-- `web/` — Next.js 14 App Router frontend for the interview flow
-- `server/` — FastAPI backend with a local in-memory conversation/state machine
+- `web/` — Next.js 14 App Router frontend (`web/app/page.tsx`, route `/`)
+- `server/` — FastAPI backend with a **local in-memory** conversation/state machine (not durable Postgres)
 - `docs/question-flow.md` — source flow for the MVP interview steps
 - `ONB1.md` — living specification and implementation notes
 
-OAuth, payments, and RAG are intentionally deferred until the intake flow is stable locally.
+OAuth, payments, RAG, Diggler, red-o pack, ROIA export, LLM, mic, Stripe, OTP, and deploy are out of scope for this launch path.
 
 ## Prerequisites
 
 - Node.js 20+
 - npm 10+
 - Python 3.11+
+- Linux or WSL is the supported launch environment
 
-## Local Run
+## Quick start (Linux / WSL)
 
-Backend:
+One command starts the in-memory API on port **8000** and the intake UI on port **3000**:
 
 ```bash
+./scripts/dev.sh
+```
+
+Then open [http://127.0.0.1:3000](http://127.0.0.1:3000). Click **Launch Intake**.
+
+Manual equivalent (two terminals):
+
+```bash
+# Terminal 1 — in-memory API
 cd server
 python3 -m venv .venv
 source .venv/bin/activate
@@ -27,15 +37,45 @@ pip install -r requirements-dev.txt
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Frontend:
-
 ```bash
+# Terminal 2 — App Router intake
 cd web
 npm install
-npm run dev
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8000 npm run dev
 ```
 
-Set `NEXT_PUBLIC_API_BASE_URL=http://localhost:8000` if you are not using the default backend URL.
+The UI defaults to `http://<hostname>:8000` when `NEXT_PUBLIC_API_BASE_URL` is unset, so WSL/LAN browsers still hit the same API host. Do not use port 8011.
+
+## Smoke
+
+From the repo root, against the in-memory API:
+
+```bash
+./scripts/smoke.sh
+```
+
+This exits 0 only after:
+
+1. `GET /health`
+2. `POST /api/conversations`
+3. Identity step with name + email
+4. `GET /api/conversations/{id}` showing that identity
+
+`./scripts/smoke.sh` starts a temporary API if nothing healthy is listening on `API_BASE` (default `http://127.0.0.1:8000`).
+
+To also require the web intake page (after `./scripts/dev.sh` is running):
+
+```bash
+./scripts/smoke.sh --with-web
+```
+
+## Quarantined / do not use for intake
+
+| Path | Why |
+| --- | --- |
+| `/local` | Old Pages Router tools. Stale API body (`account_id` / `sender_type`). Now a notice that links to `/`. Source moved to `web/legacy/pages-local-ux/`. |
+| `smoke_test.ps1` | Same stale contract. Exits 1 and points here. Original copy: `scripts/legacy/smoke_test.ps1`. |
+| `dev.ps1` | Boots Docker Postgres. Not the local-first in-memory path. |
 
 ## Validation
 
