@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
-# Linux/WSL launch path for the local-first in-memory intake (API :8000 + web :3000).
+# Linux/WSL launch path for discovery (API :8000 + web :3000) with Postgres when available.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # shellcheck source=lib/onb1-api.sh
 ONB1_ROOT="$ROOT"
 . "$ROOT/scripts/lib/onb1-api.sh"
+# shellcheck source=lib/onb1-db.sh
+. "$ROOT/scripts/lib/onb1-db.sh"
 API_HOST="${API_HOST:-0.0.0.0}"
 API_PORT="${API_PORT:-8000}"
 WEB_PORT="${WEB_PORT:-3000}"
@@ -20,8 +22,8 @@ Usage: scripts/dev.sh
     FastAPI in-memory API on :8000
     Next.js App Router intake UI on :3000
 
-  This is the supported local launch path. Do not use dev.ps1 (Postgres) or
-  /local for PR1 intake.
+  This is the supported local launch path. Postgres is used for durable staff
+  identity when Docker or a local cluster is available. /local stays quarantined.
 
   Ctrl-C stops both processes.
 EOF
@@ -50,13 +52,19 @@ if ! command -v npm >/dev/null; then
 fi
 
 onb1_ensure_api_python
+if onb1_ensure_postgres && onb1_migrate; then
+  echo "Durable Postgres enabled ($DATABASE_URL)"
+  export DATABASE_URL
+else
+  echo "WARNING: Postgres unavailable — staff identity will not survive API restart." >&2
+fi
 
 if [[ ! -d "$ROOT/web/node_modules" ]]; then
   echo "Installing web dependencies ..."
   (cd "$ROOT/web" && npm install)
 fi
 
-echo "Starting in-memory FastAPI on ${API_HOST}:${API_PORT} ..."
+echo "Starting FastAPI on ${API_HOST}:${API_PORT} ..."
 onb1_run_uvicorn "$API_HOST" "$API_PORT" --reload >/tmp/onb1-dev-api.log 2>&1 &
 API_PID=$!
 

@@ -14,12 +14,23 @@ This document is the single source of truth for project scope, architecture, and
 
 ## Local-First MVP Baseline
 
-- Prospect intake flow is implemented as a local-first MVP before OAuth, payments, and RAG.
-- The backend uses a FastAPI state machine with local in-memory persistence for conversation progress. Postgres / `dev.ps1` is not part of the supported local launch.
-- The frontend uses a single App Router intake UI (`web/app/page.tsx`, route `/`) that resumes from browser-local conversation state.
+- Two first-class discovery modes are implemented as a local-first MVP before OAuth, payments, and RAG.
+- The backend uses a FastAPI state machine. When `DATABASE_URL` is set (smoke and `./scripts/dev.sh` now try to provide it), staff conversations persist in Postgres. Unit tests still use the in-memory store.
+- The frontend uses a single App Router discovery UI (`web/app/page.tsx`, route `/`) that resumes from browser-local conversation state.
 - API and UI share port **8000** for FastAPI (`NEXT_PUBLIC_API_BASE_URL=http://localhost:8000`). The previous UI fallback of `8011` is retired.
 - Slack handoff is stubbed locally unless a real webhook is provided through environment configuration.
-- Existing-client mode is intentionally a placeholder until authentication is added.
+- Staff mode is the default (`?mode=staff`). Exploring mode is `?mode=prospect` on the API key only.
+
+## Employee / ROIA Discovery Copy (PR2)
+
+- `mode: "staff"` (aliases: omitted / `employee`) is the Red-O default. `mode: "prospect"` is the exploring / pre-hire path.
+- URL `?mode=staff|prospect` plus optional “How are you joining today?” chips select the audience. Staff UI never shows the word “prospect”.
+- Staff path: role chips including Owner/CEO, Admin/Ops, Sales, HR/People, Finance, FOH, BOH, Other. Role-aware `STATE_PROMPTS` overlays (default Admin/Ops). No budget or timeline chips.
+- Exploring path: separate hero/chrome and `PROSPECT_STATE_PROMPTS`. Budget, timing, and sales-path scheduling copy are restored only here. Staff Owner/CEO copy is not reused.
+- Interview states: `WELCOME → MODE_SELECT → IDENTITY → BUSINESS_CONTEXT → ARCHETYPE → PAIN_POINTS → SCHEDULING → SUMMARY → SUBMIT`. `NEEDS` remains an alias of `PAIN_POINTS`.
+- Category/subtype labels stay the 9 ONB1 archetypes. This pass is chrome + prompts only — no Diggler deep question packs.
+- Staff identity is durable in Postgres (`DATABASE_URL`): name, email, required `work_phone`, role, company/location, and conversation answers survive an API restart. `db/migrations/0016_staff_work_phone.sql` adds `contacts.work_phone`. Exploring mode may still persist when Postgres is on; staff is the required path.
+- `./scripts/smoke.sh` starts/uses Postgres, applies `db/migrations`, and proves a fresh API process can reload the same staff conversation.
 
 ## Local Launch And Smoke (PR1)
 
@@ -176,6 +187,7 @@ Prospect: "...how did you know that?"
 
 ## Changelog
 
+- 2026-09-21: PR2 employee/ROIA discovery copy (Tony v1–v3) plus durable staff identity. Staff vs exploring modes, role chips including Owner/CEO, role-aware staff `STATE_PROMPTS`, prospect-only budget/timeline, default `mode=staff`. Postgres persistence for staff name/email/`work_phone`/answers; smoke proves restart resume.
 - 2026-09-21: PR1 reproducible Linux/WSL launch + smoke. Aligned API/UI to port 8000, quarantined Pages `/local` and `smoke_test.ps1`, added `scripts/dev.sh` and `scripts/smoke.sh` for the in-memory intake API.
 - 2026-02-23: Added RAG Intelligence Layer for voice agent (Sarah) personalization
 - 2026-03-22: Implemented the local-first prospect intake MVP with FastAPI state transitions and a Next.js App Router UI.
