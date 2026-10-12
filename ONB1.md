@@ -199,8 +199,18 @@ Prospect: "...how did you know that?"
 4. Sarah prompt injection on qualifying answers
 5. Live business search integration
 
+## Public interview (ONB1 step 1)
+
+- The public app is the generic prospect interview in `web/` (`/` choice screen, `/interview` standalone URL). It is the Vercel deploy. Root Directory is `web`.
+- Question bank: `docs/ONB1-spec-v1.1.md` and `web/data/onb1-qbank.v1.1.json` (`onb1.qbank.v1.1`).
+- Selection order: follow-up rules, then industry or core starters, then a prefetched AI choice for generic flex slots, then the generic pool. The answer request never waits on the model.
+- xAI is called only from the server (`XAI_API_KEY`, `XAI_MODEL`, default `grok-4-fast-non-reasoning`, base `https://api.x.ai/v1`). No key means rules + pool.
+- Transcripts: Postgres via `DATABASE_URL`, otherwise SQLite, otherwise a JSON file.
+- Client-specific staff packs and the previous staff UI are under `private/legacy/` and are not part of the public bundle. The FastAPI loader reads the pack from that folder.
+
 ## Changelog
 
+- 2026-10-12: Public interview is the generic ONB1 step 1 flow (10-question cap, four industry packs, rules then pool, server-side xAI). Staff packs moved to `private/legacy/` so they are not served or bundled with the public app.
 - 2026-09-21: PR3 encodes Red O staff packs **v1.2.0** (Vince locks). Pack JSON walker on the staff path; FOH/BOH `work_phone` soft-optional; `staff_ceo` exec-only; named-default quotes; staff links always carry client/invoice id; Nora exportContract; `doNotSend`. Exploring dual-mode from PR2 is unchanged.
 - 2026-09-21: PR2 employee/ROIA discovery copy (Tony v1–v3) plus durable staff identity. Staff vs exploring modes, role chips including Owner/CEO, role-aware staff `STATE_PROMPTS`, prospect-only budget/timeline, default `mode=staff`. Postgres persistence for staff name/email/`work_phone`/answers; smoke proves restart resume.
 - 2026-09-21: PR1 reproducible Linux/WSL launch + smoke. Aligned API/UI to port 8000, quarantined Pages `/local` and `smoke_test.ps1`, added `scripts/dev.sh` and `scripts/smoke.sh` for the in-memory intake API.

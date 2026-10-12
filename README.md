@@ -1,10 +1,27 @@
-# ONB1 Local-First MVP
+# ONB1
 
-ONB1 is a StorenTech AI onboarding discovery app. The current repo runs a local-first staff/exploring MVP with:
+The public interview is a Next.js app in `web/`. `/` is the choice screen (answer questions, or skip to the calendar). `/interview` is the standalone interview URL to paste into the Google Calendar booking description.
 
-- `web/` — Next.js 14 App Router frontend (`web/app/page.tsx`, route `/`)
-- `server/` — FastAPI backend with a **local in-memory** conversation/state machine (not durable Postgres)
-- `docs/question-flow.md` — source flow for the MVP interview steps
+```bash
+cd web
+npm install
+npm test
+npm run build
+npm run dev
+```
+
+Open [http://127.0.0.1:3000/interview](http://127.0.0.1:3000/interview). Env vars are in `.env.example` and `web/.env.example`. Vercel Root Directory is `web`.
+
+With no `XAI_API_KEY`, the interview runs on the rules engine and the generic question pool. Transcripts go to Postgres when `DATABASE_URL` is set, otherwise SQLite or a local JSON file.
+
+Client-specific staff packs from the earlier local MVP are archived in `private/legacy/` and are not part of this UI or the Vercel bundle. The legacy FastAPI path is still documented below.
+
+## Legacy local MVP
+
+ONB1 also keeps a local FastAPI path for the archived packs:
+
+- `server/` — FastAPI conversation API. Staff pack JSON loads from `private/legacy/`.
+- `docs/question-flow.md` — earlier prospect flow notes
 - `ONB1.md` — living specification and implementation notes
 
 OAuth, payments, RAG, Diggler, red-o pack, ROIA export, LLM, mic, Stripe, OTP, and deploy are out of scope for this launch path.

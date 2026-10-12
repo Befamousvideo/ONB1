@@ -8,8 +8,7 @@ export default function LocalQuarantinePage() {
         <h1 className="panel-title">/local is not the discovery UI</h1>
         <p className="muted-copy">
           The old Pages Router tools page talked to a stale API contract and could shadow the App Router
-          home page. Use the home page for ROIA discovery, and <code>scripts/smoke.sh</code> for the local
-          API smoke.
+          home page. Use the home page to start the interview.
         </p>
         <p>
           <Link className="primary-button" href="/">

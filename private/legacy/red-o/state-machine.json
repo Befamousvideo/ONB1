@@ -1,7 +1,7 @@
 ﻿{
   "mode": "staff",
   "packVersion": "1.2.0",
-  "staffSource": "docs/staff-packs/ONB1-RedO-Employee-Interview-Map-v1.2.json",
+  "staffSource": "private/legacy/red-o/staff-packs/ONB1-RedO-Employee-Interview-Map-v1.2.json",
   "staff": {
     "description": "PR3 pack walker. Conversation.state is a pack node id.",
     "flow": ["Q0", "Q0b?", "Q1", "Q2", "Q3", "Q3o?", "Q4", "Q4c", "staff_* ROLE_PACK", "QS", "T_OK"],

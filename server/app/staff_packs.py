@@ -1,7 +1,8 @@
-"""Red O staff interview packs — Diggler/Vince v1.2 source of truth.
+"""Legacy staff interview packs — Diggler/Vince v1.2 source of truth.
 
-Loads docs/staff-packs/ONB1-RedO-Employee-Interview-Map-v1.2.json and walks
-role trees for mode=staff. Prospect / exploring stays on the linear machine.
+Loads private/legacy/red-o/staff-packs/ONB1-RedO-Employee-Interview-Map-v1.2.json
+and walks role trees for mode=staff. This module is not part of the public
+Next.js interview. Prospect / exploring stays on the linear machine.
 """
 
 from __future__ import annotations
@@ -53,7 +54,7 @@ def _repo_root() -> Path:
 
 
 def pack_json_path() -> Path:
-    return _repo_root() / "docs" / "staff-packs" / PACK_FILENAME
+    return _repo_root() / "private" / "legacy" / "red-o" / "staff-packs" / PACK_FILENAME
 
 
 @lru_cache(maxsize=1)
