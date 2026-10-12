@@ -1,26 +1,102 @@
 {
   "spec_version": "onb1.qbank.v1.1",
-  "limits": {
+  "source": {
+    "document_id": "19xKKFlRgnC0YkzyCMdFRp9FUIg_yfRNg9nHlmVXgy1A",
+    "title": "ONB1 – AI Onboarding Interview Question Bank v1.1 (DRAFT 2026-10-11)",
+    "revision_id": "AHj4eMQgfOSE537aREeovEgyKgar3o63xv4Jr7HFpXTkGLt_jsIK5bb6MfUp0B2KTnfrg93Y3IRziOaM92Zh2uJjYTwuiW6_vDHZX2kfuFU"
+  },
+  "conventions": {
+    "option_ids": "Option id = the number shown in the doc. Options marked (non-ordinal) in the doc have ordinal=false and are excluded from option_gte/option_lte.",
+    "followup_goal_and_required": "The doc does not state goal/required for follow-up questions; per the appendix example, follow-ups are required=true and carry the goal of the question whose answer triggers them.",
+    "child_rule_ids": "Depth-2 branch rules are named <parent rule id> + \"a\" (appendix convention, e.g. GEN-R1a).",
+    "swap_ins": "A swap-in inherits the slot, slot_class and drop_priority of the generic question it replaces."
+  },
+  "budget": {
     "max_questions": 10,
     "max_followups": 3,
     "max_chain_depth": 2,
-    "time_cap_ms": 600000
+    "core_slots": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      10
+    ],
+    "flex_slots_drop_order": [
+      9,
+      8,
+      7
+    ],
+    "on_no_budget": "skip_and_log",
+    "locations_sizing_only": true,
+    "reserved_location_followup_slots": 0,
+    "never_trigger_from_slots": [
+      8,
+      9
+    ]
   },
-  "core_slots": [
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    10
+  "goals": [
+    {
+      "id": "G1",
+      "goal": "Business type",
+      "covered_by_generic": [
+        "GEN_BUSINESS_TYPE"
+      ]
+    },
+    {
+      "id": "G2",
+      "goal": "Size: revenue band and locations",
+      "covered_by_generic": [
+        "GEN_LOCATIONS",
+        "GEN_REVENUE_BAND"
+      ]
+    },
+    {
+      "id": "G3",
+      "goal": "Team: headcount and roles",
+      "covered_by_generic": [
+        "GEN_HEADCOUNT",
+        "GEN_ROLES"
+      ]
+    },
+    {
+      "id": "G4",
+      "goal": "Current tools and software",
+      "covered_by_generic": [
+        "GEN_TOOLS"
+      ]
+    },
+    {
+      "id": "G5",
+      "goal": "Email / inbound message load",
+      "covered_by_generic": [
+        "GEN_EMAIL_LOAD"
+      ]
+    },
+    {
+      "id": "G6",
+      "goal": "Biggest pain or time sink",
+      "covered_by_generic": [
+        "GEN_PAIN"
+      ]
+    },
+    {
+      "id": "G7",
+      "goal": "90-day goals",
+      "covered_by_generic": [
+        "GEN_GOALS_90D"
+      ]
+    },
+    {
+      "id": "G8",
+      "goal": "Contact details and best time to reach them",
+      "covered_by_generic": [
+        "GEN_CONTACT"
+      ]
+    }
   ],
-  "flex_slots_drop_order": [
-    9,
-    8,
-    7
-  ],
-  "on_no_budget": "skip_and_log",
   "industry_map": {
     "1": "restaurant",
     "2": "professional_services",
@@ -31,32 +107,222 @@
     "7": "generic",
     "8": "generic"
   },
-  "goals": {
-    "G1": "What kind of business this is",
-    "G2": "How big the operation is, including locations and revenue",
-    "G3": "Who does the work",
-    "G4": "Which tools the team uses",
-    "G5": "How much inbound demand arrives",
-    "G6": "Where time goes today",
-    "G7": "What they want to be easier in 90 days",
-    "G8": "How to reach the person booking the call"
-  },
-  "medical_free_text_notice": "Please describe how things work. No patient names or health details.",
-  "notes": [
-    "Starter-question tables and the goals section were empty in the exported ONB1 spec v1.1. Follow-up prompts, the restaurant pain question, GEN_LOCATIONS, the slot budget, the industry map, and the worked example are encoded as written.",
-    "Questions marked reconstructed or spec-partial use the slot map, rule triggers, and the worked example. Vincent should confirm those prompts before they are treated as final copy.",
-    "Child follow-up rules use the parent id plus b (for example RST-R3b) because the spec names the branch but not a separate rule id.",
-    "Goal ids G1-G8 are assigned from the worked example (G2 locations and revenue, G3 roles, G5 RST_INBOUND, G6 pain) plus the remaining interview jobs (business type, tools, 90-day outcome, contact)."
+  "default_path": [
+    {
+      "slot": 1,
+      "question": "GEN_BUSINESS_TYPE",
+      "status": "Core, never dropped",
+      "drop_order": null
+    },
+    {
+      "slot": 2,
+      "question": "GEN_PAIN",
+      "status": "Core, never dropped",
+      "drop_order": null
+    },
+    {
+      "slot": 3,
+      "question": "GEN_LOCATIONS",
+      "status": "Core, never dropped",
+      "drop_order": null
+    },
+    {
+      "slot": 4,
+      "question": "GEN_HEADCOUNT",
+      "status": "Core, never dropped",
+      "drop_order": null
+    },
+    {
+      "slot": 5,
+      "question": "GEN_TOOLS",
+      "status": "Core, never dropped",
+      "drop_order": null
+    },
+    {
+      "slot": 6,
+      "question": "GEN_GOALS_90D",
+      "status": "Core, never dropped",
+      "drop_order": null
+    },
+    {
+      "slot": 7,
+      "question": "GEN_EMAIL_LOAD",
+      "status": "Flex",
+      "drop_order": "Dropped 3rd"
+    },
+    {
+      "slot": 8,
+      "question": "GEN_REVENUE_BAND",
+      "status": "Flex",
+      "drop_order": "Dropped 2nd"
+    },
+    {
+      "slot": 9,
+      "question": "GEN_ROLES",
+      "status": "Flex",
+      "drop_order": "Dropped 1st"
+    },
+    {
+      "slot": 10,
+      "question": "GEN_CONTACT",
+      "status": "Core, never dropped, always last",
+      "drop_order": null
+    }
+  ],
+  "industries": [
+    {
+      "tag": "restaurant",
+      "order": 1,
+      "name": "Restaurants, bars and cafés",
+      "why": "Heavy phone and DM traffic (reservations, catering, events), shift scheduling, inventory and ordering, reviews. Lots of repetitive guest communication that AI can answer or route.",
+      "swap_ins": [
+        {
+          "question": "RST_PAIN",
+          "replaces": "GEN_PAIN",
+          "slot": 2
+        },
+        {
+          "question": "RST_TEAM",
+          "replaces": "GEN_HEADCOUNT",
+          "slot": 4
+        },
+        {
+          "question": "RST_TOOLS",
+          "replaces": "GEN_TOOLS",
+          "slot": 5
+        },
+        {
+          "question": "RST_INBOUND",
+          "replaces": "GEN_EMAIL_LOAD",
+          "slot": 7
+        },
+        {
+          "question": "RST_ROLES",
+          "replaces": "GEN_ROLES",
+          "slot": 9
+        }
+      ]
+    },
+    {
+      "tag": "professional_services",
+      "order": 2,
+      "name": "Professional services (law, accounting/tax/bookkeeping, consulting)",
+      "why": "Email-heavy, document-heavy work: intake, chasing client documents, drafting routine letters, summarizing long files, seasonal crunch. High-value staff time and clear ROI.",
+      "swap_ins": [
+        {
+          "question": "PRO_PAIN",
+          "replaces": "GEN_PAIN",
+          "slot": 2
+        },
+        {
+          "question": "PRO_PROFESSIONALS",
+          "replaces": "GEN_HEADCOUNT",
+          "slot": 4
+        },
+        {
+          "question": "PRO_TOOLS",
+          "replaces": "GEN_TOOLS",
+          "slot": 5
+        },
+        {
+          "question": "PRO_EMAIL",
+          "replaces": "GEN_EMAIL_LOAD",
+          "slot": 7
+        },
+        {
+          "question": "PRO_ROLES",
+          "replaces": "GEN_ROLES",
+          "slot": 9
+        }
+      ]
+    },
+    {
+      "tag": "home_services",
+      "order": 3,
+      "name": "Home services and trades (HVAC, plumbing, electrical, cleaning, landscaping, etc.)",
+      "why": "Missed calls are lost revenue. After-hours lead capture, booking and dispatch, estimate follow-up and invoicing are all very automatable.",
+      "swap_ins": [
+        {
+          "question": "HOME_PAIN",
+          "replaces": "GEN_PAIN",
+          "slot": 2
+        },
+        {
+          "question": "HOME_TECHS",
+          "replaces": "GEN_HEADCOUNT",
+          "slot": 4
+        },
+        {
+          "question": "HOME_TOOLS",
+          "replaces": "GEN_TOOLS",
+          "slot": 5
+        },
+        {
+          "question": "HOME_LEADS",
+          "replaces": "GEN_EMAIL_LOAD",
+          "slot": 7
+        },
+        {
+          "question": "HOME_BOOKING",
+          "replaces": "GEN_ROLES",
+          "slot": 9
+        }
+      ]
+    },
+    {
+      "tag": "medical_dental",
+      "order": 4,
+      "name": "Medical and dental clinics",
+      "why": "Front-desk phone volume, scheduling and no-shows, intake paperwork, insurance verification, faxes and referrals. Large admin load per provider. (Extra privacy guardrails apply, see §5.)",
+      "swap_ins": [
+        {
+          "question": "MED_PAIN",
+          "replaces": "GEN_PAIN",
+          "slot": 2
+        },
+        {
+          "question": "MED_PROVIDERS",
+          "replaces": "GEN_HEADCOUNT",
+          "slot": 4
+        },
+        {
+          "question": "MED_TOOLS",
+          "replaces": "GEN_TOOLS",
+          "slot": 5
+        },
+        {
+          "question": "MED_COMMS",
+          "replaces": "GEN_EMAIL_LOAD",
+          "slot": 7
+        },
+        {
+          "question": "MED_STAFF",
+          "replaces": "GEN_ROLES",
+          "slot": 9
+        }
+      ],
+      "free_text_notice": "Please describe how things work. No patient names or health details."
+    }
   ],
   "questions": [
     {
       "id": "GEN_BUSINESS_TYPE",
-      "text": "What kind of business is this?",
+      "text": "First, what kind of business do you run?",
+      "slot_note": "1 (core)",
+      "slot": 1,
+      "slot_class": "core",
+      "drop_priority": null,
       "type": "single_choice",
+      "detail_field": {
+        "label": "Want to add a few words? (e.g., 'family dental practice', 'HVAC and plumbing', 'neighborhood bistro')",
+        "type": "short_text",
+        "required": false,
+        "counts_as_question": false
+      },
       "options": [
         {
           "id": 1,
-          "label": "Restaurant, cafe, bar, or food service",
+          "label": "Restaurant, bar or café",
           "ordinal": false
         },
         {
@@ -66,12 +332,12 @@
         },
         {
           "id": 3,
-          "label": "Accounting, tax, or bookkeeping",
+          "label": "Accounting, tax or bookkeeping firm",
           "ordinal": false
         },
         {
           "id": 4,
-          "label": "Consulting or another professional service",
+          "label": "Other professional services (consulting, agency, financial advice)",
           "ordinal": false
         },
         {
@@ -86,39 +352,33 @@
         },
         {
           "id": 7,
-          "label": "Retail, ecommerce, or another store",
+          "label": "Retail or e-commerce",
           "ordinal": false
         },
         {
           "id": 8,
-          "label": "Something else",
+          "label": "Other",
           "ordinal": false
         }
       ],
       "goal": "G1",
+      "required": true,
       "industry_tags": [
         "generic"
       ],
-      "slot": 1,
-      "slot_class": "core",
-      "comment_field": {
-        "label": "Business name or a short detail (optional)",
-        "type": "short_text",
-        "required": false,
-        "counts_as_question": false
-      },
-      "provenance": "spec-partial",
-      "provenance_note": "Industry map 1-8 is from the spec. Wording of the prompt and option labels was reconstructed because the starter table was empty in the exported spec.",
-      "required": true,
       "followups": []
     },
     {
       "id": "GEN_PAIN",
-      "text": "What eats up the most time in the business right now? Pick up to two.",
+      "text": "What eats up the most time for you or your team right now? Pick up to two.",
+      "slot_note": "2 (core)",
+      "slot": 2,
+      "slot_class": "core",
+      "drop_priority": null,
       "type": "multi_choice",
       "max_selections": 2,
       "comment_field": {
-        "label": "Anything else?",
+        "label": "Anything else we should know about it?",
         "type": "long_text",
         "required": false,
         "counts_as_question": false
@@ -131,7 +391,7 @@
         },
         {
           "id": 2,
-          "label": "Phones and messages",
+          "label": "Answering calls and customer questions",
           "ordinal": false
         },
         {
@@ -141,27 +401,27 @@
         },
         {
           "id": 4,
-          "label": "Quotes, invoices, or other paperwork",
+          "label": "Data entry and copying info between tools",
           "ordinal": false
         },
         {
           "id": 5,
-          "label": "Hiring and training",
+          "label": "Quotes, invoices and getting paid",
           "ordinal": false
         },
         {
           "id": 6,
-          "label": "Chasing payments",
+          "label": "Reporting / knowing how the business is doing",
           "ordinal": false
         },
         {
           "id": 7,
-          "label": "Marketing and follow-up",
+          "label": "Hiring, training and onboarding staff",
           "ordinal": false
         },
         {
           "id": 8,
-          "label": "Reporting",
+          "label": "Marketing, reviews and follow-ups",
           "ordinal": false
         },
         {
@@ -172,19 +432,231 @@
         }
       ],
       "goal": "G6",
+      "required": true,
       "industry_tags": [
         "generic"
       ],
-      "slot": 2,
+      "followups": []
+    },
+    {
+      "id": "GEN_LOCATIONS",
+      "text": "How many locations do you operate from? Count offices, shops, restaurants or clinics. If you work from one place or from home, that's 1.",
+      "slot_note": "3 (core, sizing only, no follow-ups)",
+      "slot": 3,
       "slot_class": "core",
-      "provenance": "spec-partial",
-      "provenance_note": "Option 1 label is from the spec (GEN_PAIN option 1 = Email and inbox overload). The other options were reconstructed.",
+      "drop_priority": null,
+      "type": "number",
+      "validation": {
+        "integer": true,
+        "min": 1,
+        "max": 999
+      },
+      "sizing_only": true,
+      "options": [],
+      "goal": "G2",
+      "required": true,
+      "industry_tags": [
+        "generic"
+      ],
+      "followups": []
+    },
+    {
+      "id": "GEN_HEADCOUNT",
+      "text": "About how many people work in the business, including you?",
+      "slot_note": "4 (core)",
+      "slot": 4,
+      "slot_class": "core",
+      "drop_priority": null,
+      "type": "single_choice",
+      "options": [
+        {
+          "id": 1,
+          "label": "Just me",
+          "ordinal": true
+        },
+        {
+          "id": 2,
+          "label": "2–5",
+          "ordinal": true
+        },
+        {
+          "id": 3,
+          "label": "6–15",
+          "ordinal": true
+        },
+        {
+          "id": 4,
+          "label": "16–50",
+          "ordinal": true
+        },
+        {
+          "id": 5,
+          "label": "51–150",
+          "ordinal": true
+        },
+        {
+          "id": 6,
+          "label": "More than 150",
+          "ordinal": true
+        }
+      ],
+      "goal": "G3",
+      "required": true,
+      "industry_tags": [
+        "generic"
+      ],
+      "followups": []
+    },
+    {
+      "id": "GEN_TOOLS",
+      "text": "Which tools does your team use day to day? Pick all that apply.",
+      "slot_note": "5 (core)",
+      "slot": 5,
+      "slot_class": "core",
+      "drop_priority": null,
+      "type": "multi_choice",
+      "options": [
+        {
+          "id": 1,
+          "label": "Google Workspace (Gmail, Drive)",
+          "ordinal": false
+        },
+        {
+          "id": 2,
+          "label": "Microsoft 365 (Outlook, Teams)",
+          "ordinal": false
+        },
+        {
+          "id": 3,
+          "label": "Accounting (QuickBooks, Xero, etc.)",
+          "ordinal": false
+        },
+        {
+          "id": 4,
+          "label": "CRM (HubSpot, Salesforce, etc.)",
+          "ordinal": false
+        },
+        {
+          "id": 5,
+          "label": "Industry software (POS, practice management, field service, etc.)",
+          "ordinal": false
+        },
+        {
+          "id": 6,
+          "label": "Scheduling or booking tools",
+          "ordinal": false
+        },
+        {
+          "id": 7,
+          "label": "Phone system or answering service",
+          "ordinal": false
+        },
+        {
+          "id": 8,
+          "label": "Project or task tools (Asana, Monday, Trello, etc.)",
+          "ordinal": false
+        },
+        {
+          "id": 9,
+          "label": "Mostly spreadsheets and paper",
+          "ordinal": false
+        },
+        {
+          "id": 10,
+          "label": "Other (type it)",
+          "ordinal": false,
+          "free_text": true
+        }
+      ],
+      "goal": "G4",
+      "required": true,
+      "industry_tags": [
+        "generic"
+      ],
+      "followups": [
+        {
+          "rule_id": "GEN-R3",
+          "priority": 3,
+          "condition": {
+            "q": "GEN_TOOLS",
+            "op": "includes_any",
+            "value": [
+              9
+            ]
+          },
+          "then": "GEN_FU_TECH_COMFORT"
+        }
+      ]
+    },
+    {
+      "id": "GEN_GOALS_90D",
+      "text": "Picture 90 days from now and things went really well. What's different? (For example: 'I'm not answering email at night' or 'we never miss a lead.')",
+      "slot_note": "6 (core)",
+      "slot": 6,
+      "slot_class": "core",
+      "drop_priority": null,
+      "type": "long_text",
+      "validation": {
+        "min_chars": 10,
+        "max_chars": 1000
+      },
+      "options": [],
+      "goal": "G7",
+      "required": true,
+      "industry_tags": [
+        "generic"
+      ],
+      "followups": []
+    },
+    {
+      "id": "GEN_EMAIL_LOAD",
+      "text": "On a typical weekday, about how many emails land in your team's main inbox(es) that someone has to read or answer?",
+      "slot_note": "7 (flex, dropped 3rd)",
+      "slot": 7,
+      "slot_class": "flex",
+      "drop_priority": 3,
+      "type": "single_choice",
+      "options": [
+        {
+          "id": 1,
+          "label": "Fewer than 25",
+          "ordinal": true
+        },
+        {
+          "id": 2,
+          "label": "25–50",
+          "ordinal": true
+        },
+        {
+          "id": 3,
+          "label": "50–100",
+          "ordinal": true
+        },
+        {
+          "id": 4,
+          "label": "100–250",
+          "ordinal": true
+        },
+        {
+          "id": 5,
+          "label": "More than 250",
+          "ordinal": true
+        },
+        {
+          "id": 6,
+          "label": "Not sure",
+          "ordinal": false
+        }
+      ],
+      "goal": "G5",
+      "required": true,
+      "industry_tags": [
+        "generic"
+      ],
       "followups": [
         {
           "rule_id": "GEN-R2",
           "priority": 2,
-          "depth": 1,
-          "doc_order": 20,
           "condition": {
             "any": [
               {
@@ -206,417 +678,211 @@
           },
           "then": "GEN_FU_EMAIL_TYPES"
         }
-      ],
-      "required": true
+      ]
     },
     {
-      "id": "GEN_LOCATIONS",
-      "text": "How many locations do you operate from? Count offices, shops, restaurants or clinics. If you work from one place or from home, that's 1.",
-      "type": "number",
-      "validation": {
-        "integer": true,
-        "min": 1,
-        "max": 999
-      },
-      "goal": "G2",
-      "industry_tags": [
-        "generic"
-      ],
-      "slot": 3,
-      "slot_class": "core",
-      "sizing_only": true,
-      "provenance": "spec",
-      "options": [],
-      "required": true,
-      "followups": []
-    },
-    {
-      "id": "GEN_TEAM",
-      "text": "About how many people work in the business, including you?",
-      "type": "number",
-      "validation": {
-        "integer": true,
-        "min": 1,
-        "max": 9999
-      },
-      "goal": "G3",
-      "industry_tags": [
-        "generic"
-      ],
-      "slot": 4,
-      "slot_class": "core",
-      "provenance": "reconstructed",
-      "provenance_note": "Slot 4 is the generic team question replaced by RST_TEAM, PRO_TEAM, HOME_TECHS, and MED_TEAM.",
-      "options": [],
-      "required": true,
-      "followups": []
-    },
-    {
-      "id": "GEN_TOOLS",
-      "text": "Which tools does the team actually use on a normal day? Pick any that apply.",
-      "type": "multi_choice",
-      "options": [
-        {
-          "id": 1,
-          "label": "Email",
-          "ordinal": false
-        },
-        {
-          "id": 2,
-          "label": "Spreadsheets",
-          "ordinal": false
-        },
-        {
-          "id": 3,
-          "label": "Shared calendar",
-          "ordinal": false
-        },
-        {
-          "id": 4,
-          "label": "Accounting or invoicing software",
-          "ordinal": false
-        },
-        {
-          "id": 5,
-          "label": "A CRM or contact list",
-          "ordinal": false
-        },
-        {
-          "id": 6,
-          "label": "Scheduling or booking software",
-          "ordinal": false
-        },
-        {
-          "id": 7,
-          "label": "Website forms or online ordering",
-          "ordinal": false
-        },
-        {
-          "id": 8,
-          "label": "Text messages",
-          "ordinal": false
-        },
-        {
-          "id": 9,
-          "label": "Mostly paper, memory, or nothing connected",
-          "ordinal": false
-        }
-      ],
-      "goal": "G4",
-      "industry_tags": [
-        "generic"
-      ],
-      "slot": 5,
-      "slot_class": "core",
-      "provenance": "spec-partial",
-      "provenance_note": "GEN-R3 fires when option 9 is included. Option labels other than that role were reconstructed.",
-      "followups": [
-        {
-          "rule_id": "GEN-R3",
-          "priority": 3,
-          "depth": 1,
-          "doc_order": 30,
-          "condition": {
-            "q": "GEN_TOOLS",
-            "op": "includes_any",
-            "value": [
-              9
-            ]
-          },
-          "then": "GEN_FU_TECH_COMFORT"
-        }
-      ],
-      "required": true
-    },
-    {
-      "id": "GEN_GOALS_90D",
-      "text": "What would you most like to be easier 90 days from now?",
-      "type": "single_choice",
-      "options": [
-        {
-          "id": 1,
-          "label": "Fewer missed calls and messages",
-          "ordinal": false
-        },
-        {
-          "id": 2,
-          "label": "A calmer inbox",
-          "ordinal": false
-        },
-        {
-          "id": 3,
-          "label": "Faster booking or scheduling",
-          "ordinal": false
-        },
-        {
-          "id": 4,
-          "label": "Less paperwork",
-          "ordinal": false
-        },
-        {
-          "id": 5,
-          "label": "Clearer numbers on the business",
-          "ordinal": false
-        },
-        {
-          "id": 6,
-          "label": "Not sure",
-          "ordinal": false
-        }
-      ],
-      "goal": "G7",
-      "industry_tags": [
-        "generic"
-      ],
-      "slot": 6,
-      "slot_class": "core",
-      "provenance": "spec-partial",
-      "provenance_note": "Slot 6 id GEN_GOALS_90D is from the worked example. Prompt and options were reconstructed.",
-      "required": true,
-      "followups": []
-    },
-    {
-      "id": "GEN_EMAIL_LOAD",
-      "text": "About how many work emails does the team handle on a busy day?",
-      "type": "single_choice",
-      "options": [
-        {
-          "id": 1,
-          "label": "Under 20",
-          "ordinal": true
-        },
-        {
-          "id": 2,
-          "label": "20 to 50",
-          "ordinal": true
-        },
-        {
-          "id": 3,
-          "label": "50 to 100",
-          "ordinal": true
-        },
-        {
-          "id": 4,
-          "label": "100 to 250",
-          "ordinal": true
-        },
-        {
-          "id": 5,
-          "label": "More than 250",
-          "ordinal": true
-        },
-        {
-          "id": 6,
-          "label": "Not sure",
-          "ordinal": false
-        }
-      ],
-      "goal": "G5",
-      "industry_tags": [
-        "generic"
-      ],
-      "slot": 7,
+      "id": "GEN_REVENUE_BAND",
+      "text": "Roughly what's your annual revenue? A ballpark is fine, and you can skip this one.",
+      "slot_note": "8 (flex, dropped 2nd)",
+      "slot": 8,
       "slot_class": "flex",
-      "pool": true,
-      "provenance": "spec-partial",
-      "provenance_note": "GEN-R2 treats options 4 and 5 as the high band. Option 6 is non-ordinal. Labels were reconstructed. Slot 7 so the rule can still fire; rules never key off slots 8 or 9.",
-      "required": true,
-      "followups": []
-    },
-    {
-      "id": "GEN_REVENUE",
-      "text": "Which description is closest to yearly revenue?",
+      "drop_priority": 2,
       "type": "single_choice",
       "options": [
         {
           "id": 1,
-          "label": "Early or uneven",
-          "ordinal": false
+          "label": "Under $500K",
+          "ordinal": true
         },
         {
           "id": 2,
-          "label": "Steady but tight",
-          "ordinal": false
+          "label": "$500K–$1M",
+          "ordinal": true
         },
         {
           "id": 3,
-          "label": "Comfortable",
-          "ordinal": false
+          "label": "$1M–$5M",
+          "ordinal": true
         },
         {
           "id": 4,
-          "label": "Strong and growing",
-          "ordinal": false
+          "label": "$5M–$20M",
+          "ordinal": true
         },
         {
           "id": 5,
+          "label": "More than $20M",
+          "ordinal": true
+        },
+        {
+          "id": 6,
           "label": "Prefer not to say",
           "ordinal": false
         }
       ],
       "goal": "G2",
+      "required": false,
       "industry_tags": [
         "generic"
       ],
-      "slot": 8,
-      "slot_class": "flex",
-      "pool": true,
-      "provenance": "reconstructed",
-      "provenance_note": "Worked example defers a G2 revenue part on the dropped generic slot 8. No dollar amounts, so the price scrub never has to rewrite a bank question.",
-      "required": true,
       "followups": []
     },
     {
       "id": "GEN_ROLES",
-      "text": "Who usually handles the busywork you just described?",
-      "type": "single_choice",
-      "options": [
-        {
-          "id": 1,
-          "label": "The owner",
-          "ordinal": false
-        },
-        {
-          "id": 2,
-          "label": "An office manager or admin",
-          "ordinal": false
-        },
-        {
-          "id": 3,
-          "label": "Whoever is free",
-          "ordinal": false
-        },
-        {
-          "id": 4,
-          "label": "It is spread across the team",
-          "ordinal": false
-        },
-        {
-          "id": 5,
-          "label": "Not sure",
-          "ordinal": false
-        }
-      ],
-      "goal": "G3",
-      "industry_tags": [
-        "generic"
-      ],
+      "text": "Which roles do you have on the team? Pick all that apply.",
+      "slot_note": "9 (flex, dropped 1st)",
       "slot": 9,
       "slot_class": "flex",
-      "pool": true,
-      "provenance": "reconstructed",
-      "provenance_note": "Generic flex slot 9. No rule keys off slot 8 or 9.",
-      "required": true,
-      "followups": []
-    },
-    {
-      "id": "GEN_CONTACT",
-      "text": "Who should we reach about the call?",
-      "type": "contact_block",
-      "contact_fields": [
-        "first_name",
-        "email",
-        "phone",
-        "business_name"
-      ],
-      "goal": "G8",
-      "industry_tags": [
-        "generic"
-      ],
-      "slot": 10,
-      "slot_class": "core",
-      "provenance": "spec-partial",
-      "provenance_note": "Slot 10 id GEN_CONTACT is from the worked example. Fields match the booking form: name, email, phone, and business name.",
-      "options": [],
-      "required": true,
-      "followups": []
-    },
-    {
-      "id": "GEN_FU_EMAIL_TYPES",
-      "text": "Which kinds of email take the most time?",
+      "drop_priority": 1,
       "type": "multi_choice",
-      "max_selections": 3,
       "options": [
         {
           "id": 1,
-          "label": "Customer or client questions",
+          "label": "Owner / leadership",
           "ordinal": false
         },
         {
           "id": 2,
-          "label": "Scheduling and booking",
+          "label": "Office / admin",
           "ordinal": false
         },
         {
           "id": 3,
-          "label": "Quotes, orders or document requests",
+          "label": "Sales",
           "ordinal": false
         },
         {
           "id": 4,
-          "label": "Internal back-and-forth",
+          "label": "Customer service / front desk",
           "ordinal": false
         },
         {
           "id": 5,
-          "label": "Billing and payments",
+          "label": "Operations / field / production",
           "ordinal": false
         },
         {
           "id": 6,
-          "label": "Vendor and sales emails",
+          "label": "Finance / bookkeeping",
           "ordinal": false
         },
         {
           "id": 7,
-          "label": "Other",
+          "label": "Marketing",
           "ordinal": false
+        },
+        {
+          "id": 8,
+          "label": "IT / tech",
+          "ordinal": false
+        },
+        {
+          "id": 9,
+          "label": "Other",
+          "ordinal": false,
+          "free_text": true
         }
       ],
-      "goal": "G6",
+      "goal": "G3",
+      "required": false,
       "industry_tags": [
         "generic"
       ],
-      "slot": null,
-      "slot_class": "followup",
-      "provenance": "spec",
-      "required": true,
       "followups": []
     },
     {
-      "id": "GEN_FU_TECH_COMFORT",
-      "text": "How does your team feel about trying new tools?",
-      "type": "single_choice",
+      "id": "GEN_CONTACT",
+      "text": "Last one! How can we reach you, and when's a good time?",
+      "slot_note": "10 (core, always last)",
+      "slot": 10,
+      "slot_class": "core",
+      "drop_priority": null,
+      "type": "contact_block",
+      "fields": [
+        {
+          "label": "full name",
+          "spec": "short text, required",
+          "required": true
+        },
+        {
+          "label": "business name",
+          "spec": "short text, required",
+          "required": true
+        },
+        {
+          "label": "role/title",
+          "spec": "short text, optional",
+          "required": false
+        },
+        {
+          "label": "work email",
+          "spec": "short text, required, validated",
+          "required": true
+        },
+        {
+          "label": "phone",
+          "spec": "short text, optional, validated",
+          "required": false
+        },
+        {
+          "label": "website",
+          "spec": "short text, optional",
+          "required": false
+        },
+        {
+          "label": "best time to reach you",
+          "spec": "single choice, required",
+          "required": true
+        },
+        {
+          "label": "time zone",
+          "spec": "auto-detected, editable",
+          "required": false
+        }
+      ],
+      "counts_as_one_question": true,
       "options": [
         {
           "id": 1,
-          "label": "Excited",
+          "label": "Weekday mornings",
           "ordinal": false
         },
         {
           "id": 2,
-          "label": "Open, if it's simple",
+          "label": "Weekday afternoons",
           "ordinal": false
         },
         {
           "id": 3,
-          "label": "Prefer as little change as possible",
+          "label": "Weekday evenings",
+          "ordinal": false
+        },
+        {
+          "id": 4,
+          "label": "Weekends",
+          "ordinal": false
+        },
+        {
+          "id": 5,
+          "label": "Email is best",
           "ordinal": false
         }
       ],
-      "goal": "G4",
+      "options_apply_to": "best time to reach you",
+      "goal": "G8",
+      "required": true,
       "industry_tags": [
         "generic"
       ],
-      "slot": null,
-      "slot_class": "followup",
-      "provenance": "spec",
-      "required": true,
       "followups": []
     },
     {
       "id": "RST_PAIN",
       "text": "What eats up the most time running the restaurant right now? Pick up to two.",
+      "replaces": "GEN_PAIN",
+      "slot": 2,
+      "slot_class": "core",
+      "drop_priority": null,
       "type": "multi_choice",
       "max_selections": 2,
       "comment_field": {
@@ -674,19 +940,14 @@
         }
       ],
       "goal": "G6",
+      "required": true,
       "industry_tags": [
         "restaurant"
       ],
-      "slot": 2,
-      "slot_class": "core",
-      "replaces": "GEN_PAIN",
-      "provenance": "spec",
       "followups": [
         {
           "rule_id": "RST-R2",
           "priority": 2,
-          "depth": 1,
-          "doc_order": 40,
           "condition": {
             "any": [
               {
@@ -708,8 +969,6 @@
         {
           "rule_id": "RST-R3",
           "priority": 2,
-          "depth": 1,
-          "doc_order": 50,
           "condition": {
             "q": "RST_PAIN",
             "op": "includes_any",
@@ -722,8 +981,6 @@
         {
           "rule_id": "RST-R4",
           "priority": 3,
-          "depth": 1,
-          "doc_order": 60,
           "condition": {
             "q": "RST_PAIN",
             "op": "includes_any",
@@ -736,8 +993,6 @@
         {
           "rule_id": "RST-R5",
           "priority": 3,
-          "depth": 1,
-          "doc_order": 70,
           "condition": {
             "q": "RST_PAIN",
             "op": "includes_any",
@@ -747,97 +1002,120 @@
           },
           "then": "RST_FU_INV"
         }
-      ],
-      "required": true
+      ]
     },
     {
       "id": "RST_TEAM",
-      "text": "About how many people work in the restaurant, including managers and hourly staff?",
-      "type": "number",
-      "validation": {
-        "integer": true,
-        "min": 1,
-        "max": 9999
-      },
+      "text": "About how many people work across your restaurant(s), front and back of house combined?",
+      "replaces": "GEN_HEADCOUNT",
+      "slot": 4,
+      "slot_class": "core",
+      "drop_priority": null,
+      "type": "single_choice",
+      "options": [
+        {
+          "id": 1,
+          "label": "Fewer than 10",
+          "ordinal": true
+        },
+        {
+          "id": 2,
+          "label": "10–25",
+          "ordinal": true
+        },
+        {
+          "id": 3,
+          "label": "26–50",
+          "ordinal": true
+        },
+        {
+          "id": 4,
+          "label": "51–100",
+          "ordinal": true
+        },
+        {
+          "id": 5,
+          "label": "More than 100",
+          "ordinal": true
+        }
+      ],
       "goal": "G3",
+      "required": true,
       "industry_tags": [
         "restaurant"
       ],
-      "slot": 4,
-      "slot_class": "core",
-      "replaces": "GEN_TEAM",
-      "provenance": "spec-partial",
-      "provenance_note": "Id and slot come from the worked example (slots 4-6 are RST_TEAM, RST_TOOLS, GEN_GOALS_90D). Prompt reconstructed.",
-      "options": [],
-      "required": true,
       "followups": []
     },
     {
       "id": "RST_TOOLS",
-      "text": "Which tools does the restaurant actually use? Pick any that apply.",
+      "text": "Which tools do you use to run the restaurant? Pick all that apply.",
+      "replaces": "GEN_TOOLS",
+      "slot": 5,
+      "slot_class": "core",
+      "drop_priority": null,
       "type": "multi_choice",
       "options": [
         {
           "id": 1,
-          "label": "Reservation or waitlist system",
+          "label": "POS (Toast, Square, Clover, etc.)",
           "ordinal": false
         },
         {
           "id": 2,
-          "label": "Point of sale",
+          "label": "Reservations or waitlist (OpenTable, Resy, Tock, etc.)",
           "ordinal": false
         },
         {
           "id": 3,
-          "label": "Online ordering",
+          "label": "Online ordering or delivery apps",
           "ordinal": false
         },
         {
           "id": 4,
-          "label": "Email",
+          "label": "Staff scheduling (7shifts, HotSchedules, Homebase, etc.)",
           "ordinal": false
         },
         {
           "id": 5,
-          "label": "Spreadsheets",
+          "label": "Inventory or invoice tools (MarginEdge, xtraCHEF, etc.)",
           "ordinal": false
         },
         {
           "id": 6,
-          "label": "Staff scheduling app",
+          "label": "Accounting (QuickBooks, Xero)",
           "ordinal": false
         },
         {
           "id": 7,
-          "label": "Accounting software",
+          "label": "Email or marketing tools",
           "ordinal": false
         },
         {
           "id": 8,
-          "label": "Inventory software",
+          "label": "Google Workspace or Microsoft 365",
           "ordinal": false
         },
         {
           "id": 9,
-          "label": "Mostly paper, texts, or memory",
+          "label": "Mostly spreadsheets and paper",
           "ordinal": false
+        },
+        {
+          "id": 10,
+          "label": "Other",
+          "ordinal": false,
+          "free_text": true
         }
       ],
       "goal": "G4",
+      "required": true,
       "industry_tags": [
         "restaurant"
       ],
-      "slot": 5,
-      "slot_class": "core",
-      "replaces": "GEN_TOOLS",
-      "provenance": "spec-partial",
-      "provenance_note": "RST-R6 fires when option 9 is included. Other labels reconstructed.",
       "followups": [
         {
           "rule_id": "RST-R6",
           "priority": 4,
-          "depth": 1,
-          "doc_order": 80,
           "condition": {
             "q": "RST_TOOLS",
             "op": "includes_any",
@@ -847,32 +1125,755 @@
           },
           "then": "GEN_FU_TECH_COMFORT"
         }
-      ],
-      "required": true
+      ]
     },
     {
       "id": "RST_INBOUND",
-      "text": "About how many calls and messages come in on a busy day?",
+      "text": "On a typical day, about how many guest messages come in across phone, email, your website and social DMs? (Reservations, catering, events, questions.)",
+      "replaces": "GEN_EMAIL_LOAD",
+      "slot": 7,
+      "slot_class": "flex",
+      "drop_priority": 3,
       "type": "single_choice",
       "options": [
         {
           "id": 1,
-          "label": "Under 10",
+          "label": "Fewer than 20",
           "ordinal": true
         },
         {
           "id": 2,
-          "label": "10 to 25",
+          "label": "20–50",
           "ordinal": true
         },
         {
           "id": 3,
-          "label": "25 to 50",
+          "label": "50–100",
           "ordinal": true
         },
         {
           "id": 4,
-          "label": "50 to 100",
+          "label": "100–200",
+          "ordinal": true
+        },
+        {
+          "id": 5,
+          "label": "More than 200",
+          "ordinal": true
+        },
+        {
+          "id": 6,
+          "label": "Not sure",
+          "ordinal": false
+        }
+      ],
+      "goal": "G5",
+      "required": true,
+      "industry_tags": [
+        "restaurant"
+      ],
+      "followups": []
+    },
+    {
+      "id": "RST_ROLES",
+      "text": "Which roles do you have? Pick all that apply.",
+      "replaces": "GEN_ROLES",
+      "slot": 9,
+      "slot_class": "flex",
+      "drop_priority": 1,
+      "type": "multi_choice",
+      "options": [
+        {
+          "id": 1,
+          "label": "Owner / operator",
+          "ordinal": false
+        },
+        {
+          "id": 2,
+          "label": "General manager",
+          "ordinal": false
+        },
+        {
+          "id": 3,
+          "label": "Chef / kitchen manager",
+          "ordinal": false
+        },
+        {
+          "id": 4,
+          "label": "Front-of-house manager",
+          "ordinal": false
+        },
+        {
+          "id": 5,
+          "label": "Events or catering coordinator",
+          "ordinal": false
+        },
+        {
+          "id": 6,
+          "label": "Bookkeeper / accountant",
+          "ordinal": false
+        },
+        {
+          "id": 7,
+          "label": "Marketing / social",
+          "ordinal": false
+        },
+        {
+          "id": 8,
+          "label": "Servers, bartenders, hosts",
+          "ordinal": false
+        },
+        {
+          "id": 9,
+          "label": "Line and prep cooks",
+          "ordinal": false
+        }
+      ],
+      "goal": "G3",
+      "required": false,
+      "industry_tags": [
+        "restaurant"
+      ],
+      "followups": []
+    },
+    {
+      "id": "PRO_PAIN",
+      "text": "What eats up the most time at the firm right now? Pick up to two. (Please don't include client names or case details.)",
+      "replaces": "GEN_PAIN",
+      "slot": 2,
+      "slot_class": "core",
+      "drop_priority": null,
+      "type": "multi_choice",
+      "max_selections": 2,
+      "comment_field": {
+        "label": "Anything else?",
+        "type": "long_text",
+        "required": false,
+        "counts_as_question": false
+      },
+      "options": [
+        {
+          "id": 1,
+          "label": "New-client intake and onboarding",
+          "ordinal": false
+        },
+        {
+          "id": 2,
+          "label": "Chasing clients for documents and info",
+          "ordinal": false
+        },
+        {
+          "id": 3,
+          "label": "Email overload",
+          "ordinal": false
+        },
+        {
+          "id": 4,
+          "label": "Drafting routine letters and documents",
+          "ordinal": false
+        },
+        {
+          "id": 5,
+          "label": "Time tracking and billing",
+          "ordinal": false
+        },
+        {
+          "id": 6,
+          "label": "Scheduling and reminders",
+          "ordinal": false
+        },
+        {
+          "id": 7,
+          "label": "Reading and summarizing long documents",
+          "ordinal": false
+        },
+        {
+          "id": 8,
+          "label": "Seasonal crunch (e.g., tax season)",
+          "ordinal": false
+        },
+        {
+          "id": 9,
+          "label": "Other (describe)",
+          "ordinal": false,
+          "free_text": true
+        }
+      ],
+      "goal": "G6",
+      "required": true,
+      "industry_tags": [
+        "professional_services"
+      ],
+      "followups": [
+        {
+          "rule_id": "PRO-R2",
+          "priority": 2,
+          "condition": {
+            "q": "PRO_PAIN",
+            "op": "includes_any",
+            "value": [
+              2
+            ]
+          },
+          "then": "PRO_FU_DOCS"
+        },
+        {
+          "rule_id": "PRO-R3",
+          "priority": 2,
+          "condition": {
+            "q": "PRO_PAIN",
+            "op": "includes_any",
+            "value": [
+              1
+            ]
+          },
+          "then": "PRO_FU_INTAKE"
+        },
+        {
+          "rule_id": "PRO-R4",
+          "priority": 2,
+          "condition": {
+            "any": [
+              {
+                "q": "PRO_PAIN",
+                "op": "includes_any",
+                "value": [
+                  3
+                ]
+              },
+              {
+                "q": "PRO_EMAIL",
+                "op": "option_gte",
+                "value": 4
+              }
+            ]
+          },
+          "then": "GEN_FU_EMAIL_TYPES"
+        },
+        {
+          "rule_id": "PRO-R5",
+          "priority": 3,
+          "condition": {
+            "q": "PRO_PAIN",
+            "op": "includes_any",
+            "value": [
+              8
+            ]
+          },
+          "then": "PRO_FU_SEASON"
+        }
+      ]
+    },
+    {
+      "id": "PRO_PROFESSIONALS",
+      "text": "How many people are on the team in total, and roughly how many are billable professionals (attorneys, CPAs, consultants)?",
+      "replaces": "GEN_HEADCOUNT",
+      "slot": 4,
+      "slot_class": "core",
+      "drop_priority": null,
+      "type": "number",
+      "number_fields": [
+        {
+          "key": "total",
+          "integer": true,
+          "min": 0
+        },
+        {
+          "key": "billable",
+          "integer": true,
+          "min": 0
+        }
+      ],
+      "counts_as_one_question": true,
+      "options": [],
+      "goal": "G3",
+      "required": true,
+      "industry_tags": [
+        "professional_services"
+      ],
+      "followups": []
+    },
+    {
+      "id": "PRO_TOOLS",
+      "text": "Which tools does the firm use day to day? Pick all that apply.",
+      "replaces": "GEN_TOOLS",
+      "slot": 5,
+      "slot_class": "core",
+      "drop_priority": null,
+      "type": "multi_choice",
+      "options": [
+        {
+          "id": 1,
+          "label": "Practice management (Clio, MyCase, PracticePanther, Karbon, TaxDome, Canopy, etc.)",
+          "ordinal": false
+        },
+        {
+          "id": 2,
+          "label": "Accounting or tax software (QuickBooks, Xero, Drake, Lacerte, UltraTax, etc.)",
+          "ordinal": false
+        },
+        {
+          "id": 3,
+          "label": "Document storage (SharePoint, Google Drive, Dropbox, NetDocuments, etc.)",
+          "ordinal": false
+        },
+        {
+          "id": 4,
+          "label": "E-signature (DocuSign, Adobe Sign)",
+          "ordinal": false
+        },
+        {
+          "id": 5,
+          "label": "Client portal",
+          "ordinal": false
+        },
+        {
+          "id": 6,
+          "label": "CRM or intake tool",
+          "ordinal": false
+        },
+        {
+          "id": 7,
+          "label": "Time tracking and billing",
+          "ordinal": false
+        },
+        {
+          "id": 8,
+          "label": "Microsoft 365 or Google Workspace",
+          "ordinal": false
+        },
+        {
+          "id": 9,
+          "label": "Mostly spreadsheets, email and paper",
+          "ordinal": false
+        },
+        {
+          "id": 10,
+          "label": "Other",
+          "ordinal": false,
+          "free_text": true
+        }
+      ],
+      "goal": "G4",
+      "required": true,
+      "industry_tags": [
+        "professional_services"
+      ],
+      "followups": [
+        {
+          "rule_id": "PRO-R6",
+          "priority": 3,
+          "condition": {
+            "all": [
+              {
+                "q": "PRO_TOOLS",
+                "op": "includes_any",
+                "value": [
+                  9
+                ]
+              },
+              {
+                "not": {
+                  "q": "PRO_TOOLS",
+                  "op": "includes_any",
+                  "value": [
+                    1
+                  ]
+                }
+              }
+            ]
+          },
+          "then": "PRO_FU_TRACKING"
+        }
+      ]
+    },
+    {
+      "id": "PRO_EMAIL",
+      "text": "On a typical weekday, about how many emails does each professional on your team get?",
+      "replaces": "GEN_EMAIL_LOAD",
+      "slot": 7,
+      "slot_class": "flex",
+      "drop_priority": 3,
+      "type": "single_choice",
+      "options": [
+        {
+          "id": 1,
+          "label": "Fewer than 25",
+          "ordinal": true
+        },
+        {
+          "id": 2,
+          "label": "25–50",
+          "ordinal": true
+        },
+        {
+          "id": 3,
+          "label": "50–100",
+          "ordinal": true
+        },
+        {
+          "id": 4,
+          "label": "100–200",
+          "ordinal": true
+        },
+        {
+          "id": 5,
+          "label": "More than 200",
+          "ordinal": true
+        },
+        {
+          "id": 6,
+          "label": "Not sure",
+          "ordinal": false
+        }
+      ],
+      "goal": "G5",
+      "required": true,
+      "industry_tags": [
+        "professional_services"
+      ],
+      "followups": []
+    },
+    {
+      "id": "PRO_ROLES",
+      "text": "Which roles do you have? Pick all that apply.",
+      "replaces": "GEN_ROLES",
+      "slot": 9,
+      "slot_class": "flex",
+      "drop_priority": 1,
+      "type": "multi_choice",
+      "options": [
+        {
+          "id": 1,
+          "label": "Partners / owners",
+          "ordinal": false
+        },
+        {
+          "id": 2,
+          "label": "Attorneys, CPAs or consultants",
+          "ordinal": false
+        },
+        {
+          "id": 3,
+          "label": "Paralegals, associates or staff accountants",
+          "ordinal": false
+        },
+        {
+          "id": 4,
+          "label": "Reception / admin",
+          "ordinal": false
+        },
+        {
+          "id": 5,
+          "label": "Billing / bookkeeping",
+          "ordinal": false
+        },
+        {
+          "id": 6,
+          "label": "Intake / marketing",
+          "ordinal": false
+        },
+        {
+          "id": 7,
+          "label": "IT",
+          "ordinal": false
+        },
+        {
+          "id": 8,
+          "label": "Other",
+          "ordinal": false
+        }
+      ],
+      "goal": "G3",
+      "required": false,
+      "industry_tags": [
+        "professional_services"
+      ],
+      "followups": []
+    },
+    {
+      "id": "HOME_PAIN",
+      "text": "What eats up the most time right now? Pick up to two.",
+      "replaces": "GEN_PAIN",
+      "slot": 2,
+      "slot_class": "core",
+      "drop_priority": null,
+      "type": "multi_choice",
+      "max_selections": 2,
+      "comment_field": {
+        "label": "Anything else?",
+        "type": "long_text",
+        "required": false,
+        "counts_as_question": false
+      },
+      "options": [
+        {
+          "id": 1,
+          "label": "Missed calls and after-hours leads",
+          "ordinal": false
+        },
+        {
+          "id": 2,
+          "label": "Scheduling and dispatch",
+          "ordinal": false
+        },
+        {
+          "id": 3,
+          "label": "Following up on quotes and estimates",
+          "ordinal": false
+        },
+        {
+          "id": 4,
+          "label": "Invoicing and getting paid",
+          "ordinal": false
+        },
+        {
+          "id": 5,
+          "label": "Reviews and reputation",
+          "ordinal": false
+        },
+        {
+          "id": 6,
+          "label": "Hiring and training techs",
+          "ordinal": false
+        },
+        {
+          "id": 7,
+          "label": "Job paperwork, photos and notes",
+          "ordinal": false
+        },
+        {
+          "id": 8,
+          "label": "Seasonal ups and downs",
+          "ordinal": false
+        },
+        {
+          "id": 9,
+          "label": "Other (describe)",
+          "ordinal": false,
+          "free_text": true
+        }
+      ],
+      "goal": "G6",
+      "required": true,
+      "industry_tags": [
+        "home_services"
+      ],
+      "followups": [
+        {
+          "rule_id": "HOME-R2",
+          "priority": 1,
+          "condition": {
+            "any": [
+              {
+                "q": "HOME_PAIN",
+                "op": "includes_any",
+                "value": [
+                  1
+                ]
+              },
+              {
+                "q": "HOME_LEADS",
+                "op": "option_gte",
+                "value": 4
+              }
+            ]
+          },
+          "then": "HOME_FU_MISSED"
+        },
+        {
+          "rule_id": "HOME-R3",
+          "priority": 2,
+          "condition": {
+            "q": "HOME_PAIN",
+            "op": "includes_any",
+            "value": [
+              3
+            ]
+          },
+          "then": "HOME_FU_QUOTES"
+        },
+        {
+          "rule_id": "HOME-R4",
+          "priority": 3,
+          "condition": {
+            "q": "HOME_PAIN",
+            "op": "includes_any",
+            "value": [
+              4
+            ]
+          },
+          "then": "HOME_FU_PAY"
+        },
+        {
+          "rule_id": "HOME-R6",
+          "priority": 3,
+          "condition": {
+            "all": [
+              {
+                "q": "HOME_PAIN",
+                "op": "includes_any",
+                "value": [
+                  2
+                ]
+              },
+              {
+                "q": "HOME_TECHS",
+                "op": "gte",
+                "value": 5,
+                "field": "field"
+              }
+            ]
+          },
+          "then": "HOME_FU_JOBS"
+        }
+      ]
+    },
+    {
+      "id": "HOME_TECHS",
+      "text": "How many techs or crew members are out in the field on a typical day? And how many people work in the office?",
+      "replaces": "GEN_HEADCOUNT",
+      "slot": 4,
+      "slot_class": "core",
+      "drop_priority": null,
+      "type": "number",
+      "number_fields": [
+        {
+          "key": "field",
+          "integer": true,
+          "min": 0
+        },
+        {
+          "key": "office",
+          "integer": true,
+          "min": 0
+        }
+      ],
+      "counts_as_one_question": true,
+      "options": [],
+      "goal": "G3",
+      "required": true,
+      "industry_tags": [
+        "home_services"
+      ],
+      "followups": []
+    },
+    {
+      "id": "HOME_TOOLS",
+      "text": "Which tools do you use to run jobs and the office? Pick all that apply.",
+      "replaces": "GEN_TOOLS",
+      "slot": 5,
+      "slot_class": "core",
+      "drop_priority": null,
+      "type": "multi_choice",
+      "options": [
+        {
+          "id": 1,
+          "label": "Field service software (ServiceTitan, Housecall Pro, Jobber, Workiz, etc.)",
+          "ordinal": false
+        },
+        {
+          "id": 2,
+          "label": "Accounting (QuickBooks, Xero)",
+          "ordinal": false
+        },
+        {
+          "id": 3,
+          "label": "Phone system or answering service",
+          "ordinal": false
+        },
+        {
+          "id": 4,
+          "label": "Online booking on our website",
+          "ordinal": false
+        },
+        {
+          "id": 5,
+          "label": "Lead sites (Angi, Thumbtack, Yelp, Google Local Services)",
+          "ordinal": false
+        },
+        {
+          "id": 6,
+          "label": "Google Business Profile",
+          "ordinal": false
+        },
+        {
+          "id": 7,
+          "label": "Google Workspace or Microsoft 365",
+          "ordinal": false
+        },
+        {
+          "id": 8,
+          "label": "Paper tickets, whiteboard or spreadsheets",
+          "ordinal": false
+        },
+        {
+          "id": 9,
+          "label": "Other",
+          "ordinal": false,
+          "free_text": true
+        }
+      ],
+      "goal": "G4",
+      "required": true,
+      "industry_tags": [
+        "home_services"
+      ],
+      "followups": [
+        {
+          "rule_id": "HOME-R5",
+          "priority": 3,
+          "condition": {
+            "all": [
+              {
+                "q": "HOME_TOOLS",
+                "op": "includes_any",
+                "value": [
+                  8
+                ]
+              },
+              {
+                "not": {
+                  "q": "HOME_TOOLS",
+                  "op": "includes_any",
+                  "value": [
+                    1
+                  ]
+                }
+              }
+            ]
+          },
+          "then": "HOME_FU_DISPATCH"
+        }
+      ]
+    },
+    {
+      "id": "HOME_LEADS",
+      "text": "On a typical weekday, about how many calls, texts, emails and web leads come in?",
+      "replaces": "GEN_EMAIL_LOAD",
+      "slot": 7,
+      "slot_class": "flex",
+      "drop_priority": 3,
+      "type": "single_choice",
+      "options": [
+        {
+          "id": 1,
+          "label": "Fewer than 10",
+          "ordinal": true
+        },
+        {
+          "id": 2,
+          "label": "10–25",
+          "ordinal": true
+        },
+        {
+          "id": 3,
+          "label": "25–50",
+          "ordinal": true
+        },
+        {
+          "id": 4,
+          "label": "50–100",
           "ordinal": true
         },
         {
@@ -887,54 +1888,469 @@
         }
       ],
       "goal": "G5",
-      "industry_tags": [
-        "restaurant"
-      ],
-      "slot": 7,
-      "slot_class": "flex",
-      "replaces": "GEN_EMAIL_LOAD",
-      "provenance": "spec-partial",
-      "provenance_note": "RST-R2 keys off RST_INBOUND option_gte 4, so this cannot be slot 8 or 9. The worked example defers G5 (RST_INBOUND) when flex slots are spent at slot 2. Labels reconstructed.",
       "required": true,
+      "industry_tags": [
+        "home_services"
+      ],
       "followups": []
     },
     {
-      "id": "RST_ROLES",
-      "text": "Who covers the phones and the floor when it gets busy?",
-      "type": "single_choice",
+      "id": "HOME_BOOKING",
+      "text": "Who answers calls and books jobs today? Pick all that apply.",
+      "replaces": "GEN_ROLES",
+      "slot": 9,
+      "slot_class": "flex",
+      "drop_priority": 1,
+      "type": "multi_choice",
       "options": [
         {
           "id": 1,
-          "label": "A manager",
+          "label": "Owner",
           "ordinal": false
         },
         {
           "id": 2,
-          "label": "The host or front desk",
+          "label": "Office staff or dispatcher",
           "ordinal": false
         },
         {
           "id": 3,
-          "label": "Whoever is closest",
+          "label": "Techs, between jobs",
           "ordinal": false
         },
         {
           "id": 4,
-          "label": "It changes by shift",
+          "label": "Answering service",
+          "ordinal": false
+        },
+        {
+          "id": 5,
+          "label": "Nobody consistently",
           "ordinal": false
         }
       ],
       "goal": "G3",
+      "required": false,
       "industry_tags": [
-        "restaurant"
+        "home_services"
       ],
+      "followups": []
+    },
+    {
+      "id": "MED_PAIN",
+      "text": "What eats up the most time at the practice right now? Pick up to two.",
+      "replaces": "GEN_PAIN",
+      "slot": 2,
+      "slot_class": "core",
+      "drop_priority": null,
+      "type": "multi_choice",
+      "max_selections": 2,
+      "comment_field": {
+        "label": "Anything else?",
+        "type": "long_text",
+        "required": false,
+        "counts_as_question": false
+      },
+      "options": [
+        {
+          "id": 1,
+          "label": "Phone volume and hold times",
+          "ordinal": false
+        },
+        {
+          "id": 2,
+          "label": "Scheduling, no-shows and cancellations",
+          "ordinal": false
+        },
+        {
+          "id": 3,
+          "label": "Insurance verification and prior authorizations",
+          "ordinal": false
+        },
+        {
+          "id": 4,
+          "label": "New-patient intake and paperwork",
+          "ordinal": false
+        },
+        {
+          "id": 5,
+          "label": "Billing and collections",
+          "ordinal": false
+        },
+        {
+          "id": 6,
+          "label": "Recalls and reactivating patients",
+          "ordinal": false
+        },
+        {
+          "id": 7,
+          "label": "Faxes and referrals",
+          "ordinal": false
+        },
+        {
+          "id": 8,
+          "label": "Front-desk turnover and training",
+          "ordinal": false
+        },
+        {
+          "id": 9,
+          "label": "Other (describe)",
+          "ordinal": false,
+          "free_text": true
+        }
+      ],
+      "goal": "G6",
+      "required": true,
+      "industry_tags": [
+        "medical_dental"
+      ],
+      "followups": [
+        {
+          "rule_id": "MED-R2",
+          "priority": 2,
+          "condition": {
+            "q": "MED_PAIN",
+            "op": "includes_any",
+            "value": [
+              2
+            ]
+          },
+          "then": "MED_FU_NOSHOW"
+        },
+        {
+          "rule_id": "MED-R3",
+          "priority": 2,
+          "condition": {
+            "any": [
+              {
+                "q": "MED_PAIN",
+                "op": "includes_any",
+                "value": [
+                  1
+                ]
+              },
+              {
+                "q": "MED_COMMS",
+                "op": "option_gte",
+                "value": 4
+              }
+            ]
+          },
+          "then": "MED_FU_PHONES"
+        },
+        {
+          "rule_id": "MED-R4",
+          "priority": 2,
+          "condition": {
+            "q": "MED_PAIN",
+            "op": "includes_any",
+            "value": [
+              3
+            ]
+          },
+          "then": "MED_FU_VERIFY"
+        },
+        {
+          "rule_id": "MED-R5",
+          "priority": 3,
+          "condition": {
+            "q": "MED_PAIN",
+            "op": "includes_any",
+            "value": [
+              4
+            ]
+          },
+          "then": "MED_FU_INTAKE"
+        },
+        {
+          "rule_id": "MED-R6",
+          "priority": 3,
+          "condition": {
+            "q": "MED_PAIN",
+            "op": "includes_any",
+            "value": [
+              7
+            ]
+          },
+          "then": "MED_FU_FAX"
+        }
+      ]
+    },
+    {
+      "id": "MED_PROVIDERS",
+      "text": "How many providers see patients (doctors, dentists, hygienists, therapists, NPs/PAs), and how many support staff do you have?",
+      "replaces": "GEN_HEADCOUNT",
+      "slot": 4,
+      "slot_class": "core",
+      "drop_priority": null,
+      "type": "number",
+      "number_fields": [
+        {
+          "key": "providers",
+          "integer": true,
+          "min": 0
+        },
+        {
+          "key": "support",
+          "integer": true,
+          "min": 0
+        }
+      ],
+      "counts_as_one_question": true,
+      "options": [],
+      "goal": "G3",
+      "required": true,
+      "industry_tags": [
+        "medical_dental"
+      ],
+      "followups": []
+    },
+    {
+      "id": "MED_TOOLS",
+      "text": "Which systems does the practice use? Pick all that apply.",
+      "replaces": "GEN_TOOLS",
+      "slot": 5,
+      "slot_class": "core",
+      "drop_priority": null,
+      "type": "multi_choice",
+      "options": [
+        {
+          "id": 1,
+          "label": "EHR/EMR or practice management (Epic, athenahealth, eClinicalWorks, Dentrix, Eaglesoft, Open Dental, etc.)",
+          "ordinal": false
+        },
+        {
+          "id": 2,
+          "label": "Patient reminders or texting (Weave, RevenueWell, Solutionreach, etc.)",
+          "ordinal": false
+        },
+        {
+          "id": 3,
+          "label": "Online booking (Zocdoc, NexHealth, our website, etc.)",
+          "ordinal": false
+        },
+        {
+          "id": 4,
+          "label": "Billing service or clearinghouse",
+          "ordinal": false
+        },
+        {
+          "id": 5,
+          "label": "Phone system or answering service",
+          "ordinal": false
+        },
+        {
+          "id": 6,
+          "label": "eFax",
+          "ordinal": false
+        },
+        {
+          "id": 7,
+          "label": "Microsoft 365 or Google Workspace",
+          "ordinal": false
+        },
+        {
+          "id": 8,
+          "label": "Paper forms and spreadsheets",
+          "ordinal": false
+        },
+        {
+          "id": 9,
+          "label": "Other",
+          "ordinal": false,
+          "free_text": true
+        }
+      ],
+      "goal": "G4",
+      "required": true,
+      "industry_tags": [
+        "medical_dental"
+      ],
+      "followups": []
+    },
+    {
+      "id": "MED_COMMS",
+      "text": "On a typical day, about how many calls, texts and emails does your front desk handle?",
+      "replaces": "GEN_EMAIL_LOAD",
+      "slot": 7,
+      "slot_class": "flex",
+      "drop_priority": 3,
+      "type": "single_choice",
+      "options": [
+        {
+          "id": 1,
+          "label": "Fewer than 25",
+          "ordinal": true
+        },
+        {
+          "id": 2,
+          "label": "25–75",
+          "ordinal": true
+        },
+        {
+          "id": 3,
+          "label": "75–150",
+          "ordinal": true
+        },
+        {
+          "id": 4,
+          "label": "150–300",
+          "ordinal": true
+        },
+        {
+          "id": 5,
+          "label": "More than 300",
+          "ordinal": true
+        },
+        {
+          "id": 6,
+          "label": "Not sure",
+          "ordinal": false
+        }
+      ],
+      "goal": "G5",
+      "required": true,
+      "industry_tags": [
+        "medical_dental"
+      ],
+      "followups": []
+    },
+    {
+      "id": "MED_STAFF",
+      "text": "Which roles keep the front office running? Pick all that apply.",
+      "replaces": "GEN_ROLES",
       "slot": 9,
       "slot_class": "flex",
-      "replaces": "GEN_ROLES",
-      "provenance": "reconstructed",
-      "provenance_note": "Restaurant slot 9. The worked example defers a G3 roles part. No rule keys off this slot.",
-      "required": true,
+      "drop_priority": 1,
+      "type": "multi_choice",
+      "options": [
+        {
+          "id": 1,
+          "label": "Front desk / reception",
+          "ordinal": false
+        },
+        {
+          "id": 2,
+          "label": "Scheduling coordinator",
+          "ordinal": false
+        },
+        {
+          "id": 3,
+          "label": "Billing / insurance specialist",
+          "ordinal": false
+        },
+        {
+          "id": 4,
+          "label": "Medical or dental assistants",
+          "ordinal": false
+        },
+        {
+          "id": 5,
+          "label": "Office or practice manager",
+          "ordinal": false
+        },
+        {
+          "id": 6,
+          "label": "Outsourced call center or answering service",
+          "ordinal": false
+        },
+        {
+          "id": 7,
+          "label": "Other",
+          "ordinal": false
+        }
+      ],
+      "goal": "G3",
+      "required": false,
+      "industry_tags": [
+        "medical_dental"
+      ],
       "followups": []
+    },
+    {
+      "id": "GEN_FU_EMAIL_TYPES",
+      "text": "Which kinds of email take the most time?",
+      "type": "multi_choice",
+      "max_selections": 3,
+      "options": [
+        {
+          "id": 1,
+          "label": "Customer or client questions",
+          "ordinal": false
+        },
+        {
+          "id": 2,
+          "label": "Scheduling and booking",
+          "ordinal": false
+        },
+        {
+          "id": 3,
+          "label": "Quotes, orders or document requests",
+          "ordinal": false
+        },
+        {
+          "id": 4,
+          "label": "Internal back-and-forth",
+          "ordinal": false
+        },
+        {
+          "id": 5,
+          "label": "Billing and payments",
+          "ordinal": false
+        },
+        {
+          "id": 6,
+          "label": "Vendor and sales emails",
+          "ordinal": false
+        },
+        {
+          "id": 7,
+          "label": "Other",
+          "ordinal": false
+        }
+      ],
+      "slot": null,
+      "slot_class": "followup",
+      "drop_priority": null,
+      "followups": [],
+      "goal": "G5",
+      "required": true,
+      "industry_tags": [
+        "generic",
+        "professional_services"
+      ]
+    },
+    {
+      "id": "GEN_FU_TECH_COMFORT",
+      "text": "How does your team feel about trying new tools?",
+      "type": "single_choice",
+      "options": [
+        {
+          "id": 1,
+          "label": "Excited",
+          "ordinal": false
+        },
+        {
+          "id": 2,
+          "label": "Open, if it's simple",
+          "ordinal": false
+        },
+        {
+          "id": 3,
+          "label": "Prefer as little change as possible",
+          "ordinal": false
+        }
+      ],
+      "slot": null,
+      "slot_class": "followup",
+      "drop_priority": null,
+      "followups": [],
+      "goal": "G4",
+      "required": true,
+      "industry_tags": [
+        "generic",
+        "restaurant"
+      ]
     },
     {
       "id": "RST_FU_CALLS",
@@ -944,22 +2360,22 @@
         {
           "id": 1,
           "label": "During service rushes",
-          "ordinal": true
+          "ordinal": false
         },
         {
           "id": 2,
           "label": "Before we open",
-          "ordinal": true
+          "ordinal": false
         },
         {
           "id": 3,
           "label": "After we close",
-          "ordinal": true
+          "ordinal": false
         },
         {
           "id": 4,
           "label": "All day",
-          "ordinal": true
+          "ordinal": false
         },
         {
           "id": 5,
@@ -967,19 +2383,13 @@
           "ordinal": false
         }
       ],
-      "goal": "G6",
-      "industry_tags": [
-        "restaurant"
-      ],
       "slot": null,
       "slot_class": "followup",
-      "provenance": "spec",
+      "drop_priority": null,
       "followups": [
         {
-          "rule_id": "RST-R2b",
+          "rule_id": "RST-R2a",
           "priority": 2,
-          "depth": 2,
-          "doc_order": 41,
           "condition": {
             "q": "RST_FU_CALLS",
             "op": "in",
@@ -991,7 +2401,11 @@
           "then": "RST_FU_MISSED"
         }
       ],
-      "required": true
+      "goal": "G6",
+      "required": true,
+      "industry_tags": [
+        "restaurant"
+      ]
     },
     {
       "id": "RST_FU_MISSED",
@@ -1019,15 +2433,15 @@
           "ordinal": false
         }
       ],
-      "goal": "G6",
-      "industry_tags": [
-        "restaurant"
-      ],
       "slot": null,
       "slot_class": "followup",
-      "provenance": "spec",
+      "drop_priority": null,
+      "followups": [],
+      "goal": "G6",
       "required": true,
-      "followups": []
+      "industry_tags": [
+        "restaurant"
+      ]
     },
     {
       "id": "RST_FU_EVENTS",
@@ -1038,19 +2452,14 @@
         "min": 0,
         "max": 9999
       },
-      "goal": "G6",
-      "industry_tags": [
-        "restaurant"
-      ],
+      "options": [],
       "slot": null,
       "slot_class": "followup",
-      "provenance": "spec",
+      "drop_priority": null,
       "followups": [
         {
-          "rule_id": "RST-R3b",
+          "rule_id": "RST-R3a",
           "priority": 2,
-          "depth": 2,
-          "doc_order": 51,
           "condition": {
             "q": "RST_FU_EVENTS",
             "op": "gte",
@@ -1059,23 +2468,26 @@
           "then": "RST_FU_EVENT_FLOW"
         }
       ],
-      "options": [],
-      "required": true
+      "goal": "G6",
+      "required": true,
+      "industry_tags": [
+        "restaurant"
+      ]
     },
     {
       "id": "RST_FU_EVENT_FLOW",
       "text": "Walk us through how an inquiry turns into a booked event today.",
       "type": "long_text",
-      "goal": "G6",
-      "industry_tags": [
-        "restaurant"
-      ],
+      "options": [],
       "slot": null,
       "slot_class": "followup",
-      "provenance": "spec",
-      "options": [],
+      "drop_priority": null,
+      "followups": [],
+      "goal": "G6",
       "required": true,
-      "followups": []
+      "industry_tags": [
+        "restaurant"
+      ]
     },
     {
       "id": "RST_FU_SCHED",
@@ -1103,15 +2515,15 @@
           "ordinal": false
         }
       ],
-      "goal": "G6",
-      "industry_tags": [
-        "restaurant"
-      ],
       "slot": null,
       "slot_class": "followup",
-      "provenance": "spec",
+      "drop_priority": null,
+      "followups": [],
+      "goal": "G6",
       "required": true,
-      "followups": []
+      "industry_tags": [
+        "restaurant"
+      ]
     },
     {
       "id": "RST_FU_INV",
@@ -1139,312 +2551,15 @@
           "ordinal": false
         }
       ],
-      "goal": "G6",
-      "industry_tags": [
-        "restaurant"
-      ],
       "slot": null,
       "slot_class": "followup",
-      "provenance": "spec",
-      "required": true,
-      "followups": []
-    },
-    {
-      "id": "PRO_PAIN",
-      "text": "What eats up the most time in the practice right now? Pick up to two.",
-      "type": "multi_choice",
-      "max_selections": 2,
-      "comment_field": {
-        "label": "Anything else?",
-        "type": "long_text",
-        "required": false,
-        "counts_as_question": false
-      },
-      "options": [
-        {
-          "id": 1,
-          "label": "New-client inquiries and intake",
-          "ordinal": false
-        },
-        {
-          "id": 2,
-          "label": "Collecting documents from clients",
-          "ordinal": false
-        },
-        {
-          "id": 3,
-          "label": "Email and inbox overload",
-          "ordinal": false
-        },
-        {
-          "id": 4,
-          "label": "Billing and collections",
-          "ordinal": false
-        },
-        {
-          "id": 5,
-          "label": "Scheduling meetings",
-          "ordinal": false
-        },
-        {
-          "id": 6,
-          "label": "Drafting and revisions",
-          "ordinal": false
-        },
-        {
-          "id": 7,
-          "label": "Reporting",
-          "ordinal": false
-        },
-        {
-          "id": 8,
-          "label": "Seasonal rushes",
-          "ordinal": false
-        },
-        {
-          "id": 9,
-          "label": "Other (describe)",
-          "ordinal": false,
-          "free_text": true
-        }
-      ],
+      "drop_priority": null,
+      "followups": [],
       "goal": "G6",
-      "industry_tags": [
-        "professional_services"
-      ],
-      "slot": 2,
-      "slot_class": "core",
-      "replaces": "GEN_PAIN",
-      "provenance": "spec-partial",
-      "provenance_note": "Options 1, 2, 3, and 8 are required by PRO-R2, PRO-R3, PRO-R4, and PRO-R5. Other labels reconstructed.",
-      "followups": [
-        {
-          "rule_id": "PRO-R2",
-          "priority": 2,
-          "depth": 1,
-          "doc_order": 100,
-          "condition": {
-            "q": "PRO_PAIN",
-            "op": "includes_any",
-            "value": [
-              2
-            ]
-          },
-          "then": "PRO_FU_DOCS"
-        },
-        {
-          "rule_id": "PRO-R3",
-          "priority": 2,
-          "depth": 1,
-          "doc_order": 110,
-          "condition": {
-            "q": "PRO_PAIN",
-            "op": "includes_any",
-            "value": [
-              1
-            ]
-          },
-          "then": "PRO_FU_INTAKE"
-        },
-        {
-          "rule_id": "PRO-R4",
-          "priority": 2,
-          "depth": 1,
-          "doc_order": 120,
-          "condition": {
-            "any": [
-              {
-                "q": "PRO_PAIN",
-                "op": "includes_any",
-                "value": [
-                  3
-                ]
-              },
-              {
-                "q": "PRO_EMAIL",
-                "op": "option_gte",
-                "value": 4
-              }
-            ]
-          },
-          "then": "GEN_FU_EMAIL_TYPES"
-        },
-        {
-          "rule_id": "PRO-R5",
-          "priority": 3,
-          "depth": 1,
-          "doc_order": 130,
-          "condition": {
-            "q": "PRO_PAIN",
-            "op": "includes_any",
-            "value": [
-              8
-            ]
-          },
-          "then": "PRO_FU_SEASON"
-        }
-      ],
-      "required": true
-    },
-    {
-      "id": "PRO_TEAM",
-      "text": "About how many people work in the firm or practice, including you?",
-      "type": "number",
-      "validation": {
-        "integer": true,
-        "min": 1,
-        "max": 9999
-      },
-      "goal": "G3",
-      "industry_tags": [
-        "professional_services"
-      ],
-      "slot": 4,
-      "slot_class": "core",
-      "replaces": "GEN_TEAM",
-      "provenance": "reconstructed",
-      "options": [],
       "required": true,
-      "followups": []
-    },
-    {
-      "id": "PRO_TOOLS",
-      "text": "Which tools does the team actually use? Pick any that apply.",
-      "type": "multi_choice",
-      "options": [
-        {
-          "id": 1,
-          "label": "Practice management or matter-tracking software",
-          "ordinal": false
-        },
-        {
-          "id": 2,
-          "label": "Email",
-          "ordinal": false
-        },
-        {
-          "id": 3,
-          "label": "Spreadsheets",
-          "ordinal": false
-        },
-        {
-          "id": 4,
-          "label": "A client portal",
-          "ordinal": false
-        },
-        {
-          "id": 5,
-          "label": "Accounting software",
-          "ordinal": false
-        },
-        {
-          "id": 6,
-          "label": "E-signature",
-          "ordinal": false
-        },
-        {
-          "id": 7,
-          "label": "Document storage",
-          "ordinal": false
-        },
-        {
-          "id": 8,
-          "label": "Shared calendar",
-          "ordinal": false
-        },
-        {
-          "id": 9,
-          "label": "Mostly email, paper, or memory",
-          "ordinal": false
-        }
-      ],
-      "goal": "G4",
       "industry_tags": [
-        "professional_services"
-      ],
-      "slot": 5,
-      "slot_class": "core",
-      "replaces": "GEN_TOOLS",
-      "provenance": "spec-partial",
-      "provenance_note": "PRO-R6 fires when option 9 is included and option 1 is not. Option 1 is the system of record. Other labels reconstructed.",
-      "followups": [
-        {
-          "rule_id": "PRO-R6",
-          "priority": 3,
-          "depth": 1,
-          "doc_order": 140,
-          "condition": {
-            "all": [
-              {
-                "q": "PRO_TOOLS",
-                "op": "includes_any",
-                "value": [
-                  9
-                ]
-              },
-              {
-                "not": {
-                  "q": "PRO_TOOLS",
-                  "op": "includes_any",
-                  "value": [
-                    1
-                  ]
-                }
-              }
-            ]
-          },
-          "then": "PRO_FU_TRACKING"
-        }
-      ],
-      "required": true
-    },
-    {
-      "id": "PRO_EMAIL",
-      "text": "About how many client emails does the team handle on a busy day?",
-      "type": "single_choice",
-      "options": [
-        {
-          "id": 1,
-          "label": "Under 20",
-          "ordinal": true
-        },
-        {
-          "id": 2,
-          "label": "20 to 50",
-          "ordinal": true
-        },
-        {
-          "id": 3,
-          "label": "50 to 100",
-          "ordinal": true
-        },
-        {
-          "id": 4,
-          "label": "100 to 250",
-          "ordinal": true
-        },
-        {
-          "id": 5,
-          "label": "More than 250",
-          "ordinal": true
-        },
-        {
-          "id": 6,
-          "label": "Not sure",
-          "ordinal": false
-        }
-      ],
-      "goal": "G5",
-      "industry_tags": [
-        "professional_services"
-      ],
-      "slot": 7,
-      "slot_class": "flex",
-      "replaces": "GEN_EMAIL_LOAD",
-      "provenance": "spec-partial",
-      "provenance_note": "PRO-R4 uses option_gte 4. Slot 7 so the rule can fire.",
-      "required": true,
-      "followups": []
+        "restaurant"
+      ]
     },
     {
       "id": "PRO_FU_DOCS",
@@ -1472,19 +2587,13 @@
           "ordinal": false
         }
       ],
-      "goal": "G6",
-      "industry_tags": [
-        "professional_services"
-      ],
       "slot": null,
       "slot_class": "followup",
-      "provenance": "spec",
+      "drop_priority": null,
       "followups": [
         {
-          "rule_id": "PRO-R2b",
+          "rule_id": "PRO-R2a",
           "priority": 2,
-          "depth": 2,
-          "doc_order": 101,
           "condition": {
             "q": "PRO_FU_DOCS",
             "op": "in",
@@ -1497,7 +2606,11 @@
           "then": "PRO_FU_DOC_HOURS"
         }
       ],
-      "required": true
+      "goal": "G6",
+      "required": true,
+      "industry_tags": [
+        "professional_services"
+      ]
     },
     {
       "id": "PRO_FU_DOC_HOURS",
@@ -1508,16 +2621,16 @@
         "min": 0,
         "max": 200
       },
-      "goal": "G6",
-      "industry_tags": [
-        "professional_services"
-      ],
+      "options": [],
       "slot": null,
       "slot_class": "followup",
-      "provenance": "spec",
-      "options": [],
+      "drop_priority": null,
+      "followups": [],
+      "goal": "G6",
       "required": true,
-      "followups": []
+      "industry_tags": [
+        "professional_services"
+      ]
     },
     {
       "id": "PRO_FU_INTAKE",
@@ -1528,19 +2641,14 @@
         "min": 0,
         "max": 9999
       },
-      "goal": "G5",
-      "industry_tags": [
-        "professional_services"
-      ],
+      "options": [],
       "slot": null,
       "slot_class": "followup",
-      "provenance": "spec",
+      "drop_priority": null,
       "followups": [
         {
-          "rule_id": "PRO-R3b",
+          "rule_id": "PRO-R3a",
           "priority": 2,
-          "depth": 2,
-          "doc_order": 111,
           "condition": {
             "q": "PRO_FU_INTAKE",
             "op": "gte",
@@ -1549,38 +2657,41 @@
           "then": "PRO_FU_INTAKE_STEPS"
         }
       ],
-      "options": [],
-      "required": true
+      "goal": "G6",
+      "required": true,
+      "industry_tags": [
+        "professional_services"
+      ]
     },
     {
       "id": "PRO_FU_INTAKE_STEPS",
       "text": "What happens between first contact and a signed engagement today?",
       "type": "long_text",
-      "goal": "G5",
-      "industry_tags": [
-        "professional_services"
-      ],
+      "options": [],
       "slot": null,
       "slot_class": "followup",
-      "provenance": "spec",
-      "options": [],
+      "drop_priority": null,
+      "followups": [],
+      "goal": "G6",
       "required": true,
-      "followups": []
+      "industry_tags": [
+        "professional_services"
+      ]
     },
     {
       "id": "PRO_FU_SEASON",
       "text": "Which months are busiest, and do you bring on extra help?",
       "type": "short_text",
-      "goal": "G6",
-      "industry_tags": [
-        "professional_services"
-      ],
+      "options": [],
       "slot": null,
       "slot_class": "followup",
-      "provenance": "spec",
-      "options": [],
+      "drop_priority": null,
+      "followups": [],
+      "goal": "G6",
       "required": true,
-      "followups": []
+      "industry_tags": [
+        "professional_services"
+      ]
     },
     {
       "id": "PRO_FU_TRACKING",
@@ -1608,362 +2719,15 @@
           "ordinal": false
         }
       ],
-      "goal": "G4",
-      "industry_tags": [
-        "professional_services"
-      ],
       "slot": null,
       "slot_class": "followup",
-      "provenance": "spec",
-      "required": true,
-      "followups": []
-    },
-    {
-      "id": "HOME_PAIN",
-      "text": "What eats up the most time running the company right now? Pick up to two.",
-      "type": "multi_choice",
-      "max_selections": 2,
-      "comment_field": {
-        "label": "Anything else?",
-        "type": "long_text",
-        "required": false,
-        "counts_as_question": false
-      },
-      "options": [
-        {
-          "id": 1,
-          "label": "Missed calls, especially after hours",
-          "ordinal": false
-        },
-        {
-          "id": 2,
-          "label": "Scheduling techs and jobs",
-          "ordinal": false
-        },
-        {
-          "id": 3,
-          "label": "Writing and following up on estimates",
-          "ordinal": false
-        },
-        {
-          "id": 4,
-          "label": "Getting paid after the job",
-          "ordinal": false
-        },
-        {
-          "id": 5,
-          "label": "Parts and inventory",
-          "ordinal": false
-        },
-        {
-          "id": 6,
-          "label": "Hiring and training",
-          "ordinal": false
-        },
-        {
-          "id": 7,
-          "label": "Marketing and reviews",
-          "ordinal": false
-        },
-        {
-          "id": 8,
-          "label": "Other (describe)",
-          "ordinal": false,
-          "free_text": true
-        }
-      ],
-      "goal": "G6",
-      "industry_tags": [
-        "home_services"
-      ],
-      "slot": 2,
-      "slot_class": "core",
-      "replaces": "GEN_PAIN",
-      "provenance": "spec-partial",
-      "provenance_note": "Options 1-4 are required by HOME-R2 through HOME-R6. Other labels reconstructed.",
-      "followups": [
-        {
-          "rule_id": "HOME-R2",
-          "priority": 1,
-          "depth": 1,
-          "doc_order": 200,
-          "condition": {
-            "any": [
-              {
-                "q": "HOME_PAIN",
-                "op": "includes_any",
-                "value": [
-                  1
-                ]
-              },
-              {
-                "q": "HOME_LEADS",
-                "op": "option_gte",
-                "value": 4
-              }
-            ]
-          },
-          "then": "HOME_FU_MISSED"
-        },
-        {
-          "rule_id": "HOME-R3",
-          "priority": 2,
-          "depth": 1,
-          "doc_order": 210,
-          "condition": {
-            "q": "HOME_PAIN",
-            "op": "includes_any",
-            "value": [
-              3
-            ]
-          },
-          "then": "HOME_FU_QUOTES"
-        },
-        {
-          "rule_id": "HOME-R4",
-          "priority": 3,
-          "depth": 1,
-          "doc_order": 220,
-          "condition": {
-            "q": "HOME_PAIN",
-            "op": "includes_any",
-            "value": [
-              4
-            ]
-          },
-          "then": "HOME_FU_PAY"
-        },
-        {
-          "rule_id": "HOME-R6",
-          "priority": 3,
-          "depth": 1,
-          "doc_order": 240,
-          "condition": {
-            "all": [
-              {
-                "q": "HOME_PAIN",
-                "op": "includes_any",
-                "value": [
-                  2
-                ]
-              },
-              {
-                "q": "HOME_TECHS",
-                "op": "gte",
-                "value": 5,
-                "field": "field"
-              }
-            ]
-          },
-          "then": "HOME_FU_JOBS"
-        }
-      ],
-      "required": true
-    },
-    {
-      "id": "HOME_TECHS",
-      "text": "About how many techs are in the field on a typical day?",
-      "type": "number",
-      "validation": {
-        "integer": true,
-        "min": 0,
-        "max": 999
-      },
-      "answer_field": "field",
-      "goal": "G3",
-      "industry_tags": [
-        "home_services"
-      ],
-      "slot": 4,
-      "slot_class": "core",
-      "replaces": "GEN_TEAM",
-      "provenance": "spec-partial",
-      "provenance_note": "HOME-R6 compares HOME_TECHS.field to 5. The number answer is that field.",
-      "options": [],
-      "required": true,
-      "followups": []
-    },
-    {
-      "id": "HOME_TOOLS",
-      "text": "Which tools does the team actually use? Pick any that apply.",
-      "type": "multi_choice",
-      "options": [
-        {
-          "id": 1,
-          "label": "Field-service or dispatch software",
-          "ordinal": false
-        },
-        {
-          "id": 2,
-          "label": "Spreadsheets",
-          "ordinal": false
-        },
-        {
-          "id": 3,
-          "label": "Accounting software",
-          "ordinal": false
-        },
-        {
-          "id": 4,
-          "label": "Email",
-          "ordinal": false
-        },
-        {
-          "id": 5,
-          "label": "Text messages",
-          "ordinal": false
-        },
-        {
-          "id": 6,
-          "label": "Paper tickets or a whiteboard",
-          "ordinal": false
-        },
-        {
-          "id": 7,
-          "label": "A shared calendar",
-          "ordinal": false
-        },
-        {
-          "id": 8,
-          "label": "Phone calls and texts only",
-          "ordinal": false
-        },
-        {
-          "id": 9,
-          "label": "Something else",
-          "ordinal": false
-        }
-      ],
+      "drop_priority": null,
+      "followups": [],
       "goal": "G4",
-      "industry_tags": [
-        "home_services"
-      ],
-      "slot": 5,
-      "slot_class": "core",
-      "replaces": "GEN_TOOLS",
-      "provenance": "spec-partial",
-      "provenance_note": "HOME-R5 fires when option 8 is included and option 1 is not.",
-      "followups": [
-        {
-          "rule_id": "HOME-R5",
-          "priority": 3,
-          "depth": 1,
-          "doc_order": 230,
-          "condition": {
-            "all": [
-              {
-                "q": "HOME_TOOLS",
-                "op": "includes_any",
-                "value": [
-                  8
-                ]
-              },
-              {
-                "not": {
-                  "q": "HOME_TOOLS",
-                  "op": "includes_any",
-                  "value": [
-                    1
-                  ]
-                }
-              }
-            ]
-          },
-          "then": "HOME_FU_DISPATCH"
-        }
-      ],
-      "required": true
-    },
-    {
-      "id": "HOME_LEADS",
-      "text": "About how many new leads or inbound calls come in on a busy day?",
-      "type": "single_choice",
-      "options": [
-        {
-          "id": 1,
-          "label": "Under 5",
-          "ordinal": true
-        },
-        {
-          "id": 2,
-          "label": "5 to 15",
-          "ordinal": true
-        },
-        {
-          "id": 3,
-          "label": "15 to 30",
-          "ordinal": true
-        },
-        {
-          "id": 4,
-          "label": "30 to 60",
-          "ordinal": true
-        },
-        {
-          "id": 5,
-          "label": "More than 60",
-          "ordinal": true
-        },
-        {
-          "id": 6,
-          "label": "Not sure",
-          "ordinal": false
-        }
-      ],
-      "goal": "G5",
-      "industry_tags": [
-        "home_services"
-      ],
-      "slot": 7,
-      "slot_class": "flex",
-      "replaces": "GEN_EMAIL_LOAD",
-      "provenance": "spec-partial",
-      "provenance_note": "HOME-R2 uses option_gte 4, so this sits on slot 7.",
       "required": true,
-      "followups": []
-    },
-    {
-      "id": "HOME_BOOKING",
-      "text": "How do customers book a job today?",
-      "type": "single_choice",
-      "options": [
-        {
-          "id": 1,
-          "label": "They call and someone writes it down",
-          "ordinal": false
-        },
-        {
-          "id": 2,
-          "label": "A form on the website",
-          "ordinal": false
-        },
-        {
-          "id": 3,
-          "label": "A booking app",
-          "ordinal": false
-        },
-        {
-          "id": 4,
-          "label": "Text message",
-          "ordinal": false
-        },
-        {
-          "id": 5,
-          "label": "It varies",
-          "ordinal": false
-        }
-      ],
-      "goal": "G5",
       "industry_tags": [
-        "home_services"
-      ],
-      "slot": 9,
-      "slot_class": "flex",
-      "replaces": "GEN_ROLES",
-      "provenance": "spec-partial",
-      "provenance_note": "Spec says HOME_BOOKING is slot 9 and no rule keys off it.",
-      "required": true,
-      "followups": []
+        "professional_services"
+      ]
     },
     {
       "id": "HOME_FU_MISSED",
@@ -1973,22 +2737,22 @@
         {
           "id": 1,
           "label": "Under 10%",
-          "ordinal": true
+          "ordinal": false
         },
         {
           "id": 2,
-          "label": "10\u201325%",
-          "ordinal": true
+          "label": "10–25%",
+          "ordinal": false
         },
         {
           "id": 3,
-          "label": "25\u201350%",
-          "ordinal": true
+          "label": "25–50%",
+          "ordinal": false
         },
         {
           "id": 4,
           "label": "Over 50%",
-          "ordinal": true
+          "ordinal": false
         },
         {
           "id": 5,
@@ -1996,19 +2760,13 @@
           "ordinal": false
         }
       ],
-      "goal": "G5",
-      "industry_tags": [
-        "home_services"
-      ],
       "slot": null,
       "slot_class": "followup",
-      "provenance": "spec",
+      "drop_priority": null,
       "followups": [
         {
-          "rule_id": "HOME-R2b",
+          "rule_id": "HOME-R2a",
           "priority": 1,
-          "depth": 2,
-          "doc_order": 201,
           "condition": {
             "q": "HOME_FU_MISSED",
             "op": "in",
@@ -2021,7 +2779,11 @@
           "then": "HOME_FU_AFTERHOURS"
         }
       ],
-      "required": true
+      "goal": "G6",
+      "required": true,
+      "industry_tags": [
+        "home_services"
+      ]
     },
     {
       "id": "HOME_FU_AFTERHOURS",
@@ -2049,15 +2811,15 @@
           "ordinal": false
         }
       ],
-      "goal": "G5",
-      "industry_tags": [
-        "home_services"
-      ],
       "slot": null,
       "slot_class": "followup",
-      "provenance": "spec",
+      "drop_priority": null,
+      "followups": [],
+      "goal": "G6",
       "required": true,
-      "followups": []
+      "industry_tags": [
+        "home_services"
+      ]
     },
     {
       "id": "HOME_FU_QUOTES",
@@ -2068,19 +2830,14 @@
         "min": 0,
         "max": 9999
       },
-      "goal": "G6",
-      "industry_tags": [
-        "home_services"
-      ],
+      "options": [],
       "slot": null,
       "slot_class": "followup",
-      "provenance": "spec",
+      "drop_priority": null,
       "followups": [
         {
-          "rule_id": "HOME-R3b",
+          "rule_id": "HOME-R3a",
           "priority": 2,
-          "depth": 2,
-          "doc_order": 211,
           "condition": {
             "q": "HOME_FU_QUOTES",
             "op": "gte",
@@ -2089,8 +2846,11 @@
           "then": "HOME_FU_QUOTE_CHASE"
         }
       ],
-      "options": [],
-      "required": true
+      "goal": "G6",
+      "required": true,
+      "industry_tags": [
+        "home_services"
+      ]
     },
     {
       "id": "HOME_FU_QUOTE_CHASE",
@@ -2118,15 +2878,15 @@
           "ordinal": false
         }
       ],
-      "goal": "G6",
-      "industry_tags": [
-        "home_services"
-      ],
       "slot": null,
       "slot_class": "followup",
-      "provenance": "spec",
+      "drop_priority": null,
+      "followups": [],
+      "goal": "G6",
       "required": true,
-      "followups": []
+      "industry_tags": [
+        "home_services"
+      ]
     },
     {
       "id": "HOME_FU_PAY",
@@ -2145,7 +2905,7 @@
         },
         {
           "id": 3,
-          "label": "2\u20134 weeks",
+          "label": "2–4 weeks",
           "ordinal": false
         },
         {
@@ -2154,15 +2914,15 @@
           "ordinal": false
         }
       ],
-      "goal": "G6",
-      "industry_tags": [
-        "home_services"
-      ],
       "slot": null,
       "slot_class": "followup",
-      "provenance": "spec",
+      "drop_priority": null,
+      "followups": [],
+      "goal": "G6",
       "required": true,
-      "followups": []
+      "industry_tags": [
+        "home_services"
+      ]
     },
     {
       "id": "HOME_FU_DISPATCH",
@@ -2190,15 +2950,15 @@
           "ordinal": false
         }
       ],
-      "goal": "G4",
-      "industry_tags": [
-        "home_services"
-      ],
       "slot": null,
       "slot_class": "followup",
-      "provenance": "spec",
+      "drop_priority": null,
+      "followups": [],
+      "goal": "G4",
       "required": true,
-      "followups": []
+      "industry_tags": [
+        "home_services"
+      ]
     },
     {
       "id": "HOME_FU_JOBS",
@@ -2209,333 +2969,16 @@
         "min": 0,
         "max": 999
       },
-      "goal": "G3",
-      "industry_tags": [
-        "home_services"
-      ],
+      "options": [],
       "slot": null,
       "slot_class": "followup",
-      "provenance": "spec",
-      "options": [],
-      "required": true,
-      "followups": []
-    },
-    {
-      "id": "MED_PAIN",
-      "text": "What eats up the most time in the clinic right now? Pick up to two. Describe the process only.",
-      "type": "multi_choice",
-      "max_selections": 2,
-      "comment_field": {
-        "label": "Anything else?",
-        "type": "long_text",
-        "required": false,
-        "counts_as_question": false
-      },
-      "free_text_notice": "Please describe how things work. No patient names or health details.",
-      "options": [
-        {
-          "id": 1,
-          "label": "Phones and messages to the clinic",
-          "ordinal": false
-        },
-        {
-          "id": 2,
-          "label": "No-shows and late cancellations",
-          "ordinal": false
-        },
-        {
-          "id": 3,
-          "label": "Insurance verification and prior authorizations",
-          "ordinal": false
-        },
-        {
-          "id": 4,
-          "label": "New-patient intake forms",
-          "ordinal": false
-        },
-        {
-          "id": 5,
-          "label": "Recall and rebooking",
-          "ordinal": false
-        },
-        {
-          "id": 6,
-          "label": "Billing follow-up",
-          "ordinal": false
-        },
-        {
-          "id": 7,
-          "label": "Faxes and referral documents",
-          "ordinal": false
-        },
-        {
-          "id": 8,
-          "label": "Other (describe)",
-          "ordinal": false,
-          "free_text": true
-        }
-      ],
+      "drop_priority": null,
+      "followups": [],
       "goal": "G6",
-      "industry_tags": [
-        "medical_dental"
-      ],
-      "slot": 2,
-      "slot_class": "core",
-      "replaces": "GEN_PAIN",
-      "provenance": "spec-partial",
-      "provenance_note": "Options 1, 2, 3, 4, and 7 are required by MED-R2 through MED-R6. Processes only; no patient health information.",
-      "followups": [
-        {
-          "rule_id": "MED-R2",
-          "priority": 2,
-          "depth": 1,
-          "doc_order": 300,
-          "condition": {
-            "q": "MED_PAIN",
-            "op": "includes_any",
-            "value": [
-              2
-            ]
-          },
-          "then": "MED_FU_NOSHOW"
-        },
-        {
-          "rule_id": "MED-R3",
-          "priority": 2,
-          "depth": 1,
-          "doc_order": 310,
-          "condition": {
-            "any": [
-              {
-                "q": "MED_PAIN",
-                "op": "includes_any",
-                "value": [
-                  1
-                ]
-              },
-              {
-                "q": "MED_COMMS",
-                "op": "option_gte",
-                "value": 4
-              }
-            ]
-          },
-          "then": "MED_FU_PHONES"
-        },
-        {
-          "rule_id": "MED-R4",
-          "priority": 2,
-          "depth": 1,
-          "doc_order": 320,
-          "condition": {
-            "q": "MED_PAIN",
-            "op": "includes_any",
-            "value": [
-              3
-            ]
-          },
-          "then": "MED_FU_VERIFY"
-        },
-        {
-          "rule_id": "MED-R5",
-          "priority": 3,
-          "depth": 1,
-          "doc_order": 330,
-          "condition": {
-            "q": "MED_PAIN",
-            "op": "includes_any",
-            "value": [
-              4
-            ]
-          },
-          "then": "MED_FU_INTAKE"
-        },
-        {
-          "rule_id": "MED-R6",
-          "priority": 3,
-          "depth": 1,
-          "doc_order": 340,
-          "condition": {
-            "q": "MED_PAIN",
-            "op": "includes_any",
-            "value": [
-              7
-            ]
-          },
-          "then": "MED_FU_FAX"
-        }
-      ],
-      "required": true
-    },
-    {
-      "id": "MED_TEAM",
-      "text": "About how many people work in the clinic, including providers and the front desk?",
-      "type": "number",
-      "validation": {
-        "integer": true,
-        "min": 1,
-        "max": 9999
-      },
-      "goal": "G3",
-      "industry_tags": [
-        "medical_dental"
-      ],
-      "slot": 4,
-      "slot_class": "core",
-      "replaces": "GEN_TEAM",
-      "provenance": "reconstructed",
-      "options": [],
       "required": true,
-      "followups": []
-    },
-    {
-      "id": "MED_TOOLS",
-      "text": "Which systems does the clinic use to run the day? Pick any that apply. No patient details.",
-      "type": "multi_choice",
-      "free_text_notice": "Please describe how things work. No patient names or health details.",
-      "options": [
-        {
-          "id": 1,
-          "label": "Practice management or scheduling system",
-          "ordinal": false
-        },
-        {
-          "id": 2,
-          "label": "Email",
-          "ordinal": false
-        },
-        {
-          "id": 3,
-          "label": "Spreadsheets",
-          "ordinal": false
-        },
-        {
-          "id": 4,
-          "label": "Phone system",
-          "ordinal": false
-        },
-        {
-          "id": 5,
-          "label": "Online forms",
-          "ordinal": false
-        },
-        {
-          "id": 6,
-          "label": "Billing software",
-          "ordinal": false
-        },
-        {
-          "id": 7,
-          "label": "A fax or document inbox",
-          "ordinal": false
-        },
-        {
-          "id": 8,
-          "label": "Text reminders",
-          "ordinal": false
-        },
-        {
-          "id": 9,
-          "label": "Mostly paper",
-          "ordinal": false
-        }
-      ],
-      "goal": "G4",
       "industry_tags": [
-        "medical_dental"
-      ],
-      "slot": 5,
-      "slot_class": "core",
-      "replaces": "GEN_TOOLS",
-      "provenance": "reconstructed",
-      "required": true,
-      "followups": []
-    },
-    {
-      "id": "MED_COMMS",
-      "text": "About how many calls and portal messages does the front desk handle on a busy day?",
-      "type": "single_choice",
-      "options": [
-        {
-          "id": 1,
-          "label": "Under 20",
-          "ordinal": true
-        },
-        {
-          "id": 2,
-          "label": "20 to 40",
-          "ordinal": true
-        },
-        {
-          "id": 3,
-          "label": "40 to 80",
-          "ordinal": true
-        },
-        {
-          "id": 4,
-          "label": "80 to 150",
-          "ordinal": true
-        },
-        {
-          "id": 5,
-          "label": "More than 150",
-          "ordinal": true
-        },
-        {
-          "id": 6,
-          "label": "Not sure",
-          "ordinal": false
-        }
-      ],
-      "goal": "G5",
-      "industry_tags": [
-        "medical_dental"
-      ],
-      "slot": 7,
-      "slot_class": "flex",
-      "replaces": "GEN_EMAIL_LOAD",
-      "provenance": "spec-partial",
-      "provenance_note": "MED-R3 uses option_gte 4, so this sits on slot 7.",
-      "required": true,
-      "followups": []
-    },
-    {
-      "id": "MED_FRONT_DESK",
-      "text": "Who usually answers the clinic phones?",
-      "type": "single_choice",
-      "options": [
-        {
-          "id": 1,
-          "label": "Front desk staff",
-          "ordinal": false
-        },
-        {
-          "id": 2,
-          "label": "A call center or answering service",
-          "ordinal": false
-        },
-        {
-          "id": 3,
-          "label": "Providers between visits",
-          "ordinal": false
-        },
-        {
-          "id": 4,
-          "label": "Whoever is free",
-          "ordinal": false
-        }
-      ],
-      "goal": "G3",
-      "industry_tags": [
-        "medical_dental"
-      ],
-      "slot": 9,
-      "slot_class": "flex",
-      "replaces": "GEN_ROLES",
-      "provenance": "reconstructed",
-      "provenance_note": "Slot 9 flex. No rule keys off it. Process only.",
-      "required": true,
-      "followups": []
+        "home_services"
+      ]
     },
     {
       "id": "MED_FU_NOSHOW",
@@ -2545,22 +2988,22 @@
         {
           "id": 1,
           "label": "Under 5%",
-          "ordinal": true
+          "ordinal": false
         },
         {
           "id": 2,
-          "label": "5\u201310%",
-          "ordinal": true
+          "label": "5–10%",
+          "ordinal": false
         },
         {
           "id": 3,
-          "label": "10\u201320%",
-          "ordinal": true
+          "label": "10–20%",
+          "ordinal": false
         },
         {
           "id": 4,
           "label": "Over 20%",
-          "ordinal": true
+          "ordinal": false
         },
         {
           "id": 5,
@@ -2568,19 +3011,13 @@
           "ordinal": false
         }
       ],
-      "goal": "G6",
-      "industry_tags": [
-        "medical_dental"
-      ],
       "slot": null,
       "slot_class": "followup",
-      "provenance": "spec",
+      "drop_priority": null,
       "followups": [
         {
-          "rule_id": "MED-R2b",
+          "rule_id": "MED-R2a",
           "priority": 2,
-          "depth": 2,
-          "doc_order": 301,
           "condition": {
             "q": "MED_FU_NOSHOW",
             "op": "in",
@@ -2593,7 +3030,11 @@
           "then": "MED_FU_REMIND"
         }
       ],
-      "required": true
+      "goal": "G6",
+      "required": true,
+      "industry_tags": [
+        "medical_dental"
+      ]
     },
     {
       "id": "MED_FU_REMIND",
@@ -2621,15 +3062,15 @@
           "ordinal": false
         }
       ],
-      "goal": "G6",
-      "industry_tags": [
-        "medical_dental"
-      ],
       "slot": null,
       "slot_class": "followup",
-      "provenance": "spec",
+      "drop_priority": null,
+      "followups": [],
+      "goal": "G6",
       "required": true,
-      "followups": []
+      "industry_tags": [
+        "medical_dental"
+      ]
     },
     {
       "id": "MED_FU_PHONES",
@@ -2639,22 +3080,22 @@
         {
           "id": 1,
           "label": "First thing in the morning",
-          "ordinal": true
+          "ordinal": false
         },
         {
           "id": 2,
           "label": "Lunch hour",
-          "ordinal": true
+          "ordinal": false
         },
         {
           "id": 3,
           "label": "End of day",
-          "ordinal": true
+          "ordinal": false
         },
         {
           "id": 4,
           "label": "All day",
-          "ordinal": true
+          "ordinal": false
         },
         {
           "id": 5,
@@ -2662,19 +3103,13 @@
           "ordinal": false
         }
       ],
-      "goal": "G6",
-      "industry_tags": [
-        "medical_dental"
-      ],
       "slot": null,
       "slot_class": "followup",
-      "provenance": "spec",
+      "drop_priority": null,
       "followups": [
         {
-          "rule_id": "MED-R3b",
+          "rule_id": "MED-R3a",
           "priority": 2,
-          "depth": 2,
-          "doc_order": 311,
           "condition": {
             "q": "MED_FU_PHONES",
             "op": "in",
@@ -2688,7 +3123,11 @@
           "then": "MED_FU_OVERFLOW"
         }
       ],
-      "required": true
+      "goal": "G6",
+      "required": true,
+      "industry_tags": [
+        "medical_dental"
+      ]
     },
     {
       "id": "MED_FU_OVERFLOW",
@@ -2716,15 +3155,15 @@
           "ordinal": false
         }
       ],
-      "goal": "G6",
-      "industry_tags": [
-        "medical_dental"
-      ],
       "slot": null,
       "slot_class": "followup",
-      "provenance": "spec",
+      "drop_priority": null,
+      "followups": [],
+      "goal": "G6",
       "required": true,
-      "followups": []
+      "industry_tags": [
+        "medical_dental"
+      ]
     },
     {
       "id": "MED_FU_VERIFY",
@@ -2735,16 +3174,16 @@
         "min": 0,
         "max": 9999
       },
-      "goal": "G6",
-      "industry_tags": [
-        "medical_dental"
-      ],
+      "options": [],
       "slot": null,
       "slot_class": "followup",
-      "provenance": "spec",
-      "options": [],
+      "drop_priority": null,
+      "followups": [],
+      "goal": "G6",
       "required": true,
-      "followups": []
+      "industry_tags": [
+        "medical_dental"
+      ]
     },
     {
       "id": "MED_FU_INTAKE",
@@ -2772,15 +3211,15 @@
           "ordinal": false
         }
       ],
-      "goal": "G6",
-      "industry_tags": [
-        "medical_dental"
-      ],
       "slot": null,
       "slot_class": "followup",
-      "provenance": "spec",
+      "drop_priority": null,
+      "followups": [],
+      "goal": "G6",
       "required": true,
-      "followups": []
+      "industry_tags": [
+        "medical_dental"
+      ]
     },
     {
       "id": "MED_FU_FAX",
@@ -2794,12 +3233,12 @@
         },
         {
           "id": 2,
-          "label": "10\u201330",
+          "label": "10–30",
           "ordinal": false
         },
         {
           "id": 3,
-          "label": "30\u201375",
+          "label": "30–75",
           "ordinal": false
         },
         {
@@ -2808,33 +3247,659 @@
           "ordinal": false
         }
       ],
+      "slot": null,
+      "slot_class": "followup",
+      "drop_priority": null,
+      "followups": [],
       "goal": "G6",
+      "required": true,
       "industry_tags": [
         "medical_dental"
+      ]
+    }
+  ],
+  "rules_index": [
+    {
+      "rule_id": "GEN-R2",
+      "industry": "generic",
+      "priority": 2,
+      "attached_to": "GEN_EMAIL_LOAD",
+      "trigger_questions": [
+        "GEN_EMAIL_LOAD",
+        "GEN_PAIN"
       ],
-      "slot": null,
-      "slot_class": "followup",
-      "provenance": "spec",
-      "required": true,
-      "followups": []
+      "condition": {
+        "any": [
+          {
+            "q": "GEN_EMAIL_LOAD",
+            "op": "in",
+            "value": [
+              4,
+              5
+            ]
+          },
+          {
+            "q": "GEN_PAIN",
+            "op": "includes_any",
+            "value": [
+              1
+            ]
+          }
+        ]
+      },
+      "then": "GEN_FU_EMAIL_TYPES",
+      "depth": 1
     },
     {
-      "id": "SAFE_TIME",
-      "text": "What is the one part of the workday you would most like to take less time?",
-      "type": "short_text",
-      "goal": "G6",
-      "industry_tags": [
-        "generic"
+      "rule_id": "GEN-R3",
+      "industry": "generic",
+      "priority": 3,
+      "attached_to": "GEN_TOOLS",
+      "trigger_questions": [
+        "GEN_TOOLS"
       ],
-      "slot": null,
-      "slot_class": "followup",
-      "required": true,
-      "pool": true,
-      "fallback": true,
-      "provenance": "guardrail",
-      "provenance_note": "Fixed fallback when an outgoing question hits the blocklist. Maps to goal G6.",
-      "options": [],
-      "followups": []
+      "condition": {
+        "q": "GEN_TOOLS",
+        "op": "includes_any",
+        "value": [
+          9
+        ]
+      },
+      "then": "GEN_FU_TECH_COMFORT",
+      "depth": 1
+    },
+    {
+      "rule_id": "RST-R2",
+      "industry": "restaurant",
+      "priority": 2,
+      "attached_to": "RST_PAIN",
+      "trigger_questions": [
+        "RST_INBOUND",
+        "RST_PAIN"
+      ],
+      "condition": {
+        "any": [
+          {
+            "q": "RST_PAIN",
+            "op": "includes_any",
+            "value": [
+              1
+            ]
+          },
+          {
+            "q": "RST_INBOUND",
+            "op": "option_gte",
+            "value": 4
+          }
+        ]
+      },
+      "then": "RST_FU_CALLS",
+      "depth": 1
+    },
+    {
+      "rule_id": "RST-R2a",
+      "industry": "restaurant",
+      "priority": 2,
+      "attached_to": "RST_FU_CALLS",
+      "trigger_questions": [
+        "RST_FU_CALLS"
+      ],
+      "condition": {
+        "q": "RST_FU_CALLS",
+        "op": "in",
+        "value": [
+          1,
+          3
+        ]
+      },
+      "then": "RST_FU_MISSED",
+      "depth": 2,
+      "parent_rule": "RST-R2"
+    },
+    {
+      "rule_id": "RST-R3",
+      "industry": "restaurant",
+      "priority": 2,
+      "attached_to": "RST_PAIN",
+      "trigger_questions": [
+        "RST_PAIN"
+      ],
+      "condition": {
+        "q": "RST_PAIN",
+        "op": "includes_any",
+        "value": [
+          2
+        ]
+      },
+      "then": "RST_FU_EVENTS",
+      "depth": 1
+    },
+    {
+      "rule_id": "RST-R3a",
+      "industry": "restaurant",
+      "priority": 2,
+      "attached_to": "RST_FU_EVENTS",
+      "trigger_questions": [
+        "RST_FU_EVENTS"
+      ],
+      "condition": {
+        "q": "RST_FU_EVENTS",
+        "op": "gte",
+        "value": 10
+      },
+      "then": "RST_FU_EVENT_FLOW",
+      "depth": 2,
+      "parent_rule": "RST-R3"
+    },
+    {
+      "rule_id": "RST-R4",
+      "industry": "restaurant",
+      "priority": 3,
+      "attached_to": "RST_PAIN",
+      "trigger_questions": [
+        "RST_PAIN"
+      ],
+      "condition": {
+        "q": "RST_PAIN",
+        "op": "includes_any",
+        "value": [
+          3
+        ]
+      },
+      "then": "RST_FU_SCHED",
+      "depth": 1
+    },
+    {
+      "rule_id": "RST-R5",
+      "industry": "restaurant",
+      "priority": 3,
+      "attached_to": "RST_PAIN",
+      "trigger_questions": [
+        "RST_PAIN"
+      ],
+      "condition": {
+        "q": "RST_PAIN",
+        "op": "includes_any",
+        "value": [
+          4
+        ]
+      },
+      "then": "RST_FU_INV",
+      "depth": 1
+    },
+    {
+      "rule_id": "RST-R6",
+      "industry": "restaurant",
+      "priority": 4,
+      "attached_to": "RST_TOOLS",
+      "trigger_questions": [
+        "RST_TOOLS"
+      ],
+      "condition": {
+        "q": "RST_TOOLS",
+        "op": "includes_any",
+        "value": [
+          9
+        ]
+      },
+      "then": "GEN_FU_TECH_COMFORT",
+      "depth": 1
+    },
+    {
+      "rule_id": "PRO-R2",
+      "industry": "professional_services",
+      "priority": 2,
+      "attached_to": "PRO_PAIN",
+      "trigger_questions": [
+        "PRO_PAIN"
+      ],
+      "condition": {
+        "q": "PRO_PAIN",
+        "op": "includes_any",
+        "value": [
+          2
+        ]
+      },
+      "then": "PRO_FU_DOCS",
+      "depth": 1
+    },
+    {
+      "rule_id": "PRO-R2a",
+      "industry": "professional_services",
+      "priority": 2,
+      "attached_to": "PRO_FU_DOCS",
+      "trigger_questions": [
+        "PRO_FU_DOCS"
+      ],
+      "condition": {
+        "q": "PRO_FU_DOCS",
+        "op": "in",
+        "value": [
+          1,
+          3,
+          4
+        ]
+      },
+      "then": "PRO_FU_DOC_HOURS",
+      "depth": 2,
+      "parent_rule": "PRO-R2"
+    },
+    {
+      "rule_id": "PRO-R3",
+      "industry": "professional_services",
+      "priority": 2,
+      "attached_to": "PRO_PAIN",
+      "trigger_questions": [
+        "PRO_PAIN"
+      ],
+      "condition": {
+        "q": "PRO_PAIN",
+        "op": "includes_any",
+        "value": [
+          1
+        ]
+      },
+      "then": "PRO_FU_INTAKE",
+      "depth": 1
+    },
+    {
+      "rule_id": "PRO-R3a",
+      "industry": "professional_services",
+      "priority": 2,
+      "attached_to": "PRO_FU_INTAKE",
+      "trigger_questions": [
+        "PRO_FU_INTAKE"
+      ],
+      "condition": {
+        "q": "PRO_FU_INTAKE",
+        "op": "gte",
+        "value": 20
+      },
+      "then": "PRO_FU_INTAKE_STEPS",
+      "depth": 2,
+      "parent_rule": "PRO-R3"
+    },
+    {
+      "rule_id": "PRO-R4",
+      "industry": "professional_services",
+      "priority": 2,
+      "attached_to": "PRO_PAIN",
+      "trigger_questions": [
+        "PRO_EMAIL",
+        "PRO_PAIN"
+      ],
+      "condition": {
+        "any": [
+          {
+            "q": "PRO_PAIN",
+            "op": "includes_any",
+            "value": [
+              3
+            ]
+          },
+          {
+            "q": "PRO_EMAIL",
+            "op": "option_gte",
+            "value": 4
+          }
+        ]
+      },
+      "then": "GEN_FU_EMAIL_TYPES",
+      "depth": 1
+    },
+    {
+      "rule_id": "PRO-R5",
+      "industry": "professional_services",
+      "priority": 3,
+      "attached_to": "PRO_PAIN",
+      "trigger_questions": [
+        "PRO_PAIN"
+      ],
+      "condition": {
+        "q": "PRO_PAIN",
+        "op": "includes_any",
+        "value": [
+          8
+        ]
+      },
+      "then": "PRO_FU_SEASON",
+      "depth": 1
+    },
+    {
+      "rule_id": "PRO-R6",
+      "industry": "professional_services",
+      "priority": 3,
+      "attached_to": "PRO_TOOLS",
+      "trigger_questions": [
+        "PRO_TOOLS"
+      ],
+      "condition": {
+        "all": [
+          {
+            "q": "PRO_TOOLS",
+            "op": "includes_any",
+            "value": [
+              9
+            ]
+          },
+          {
+            "not": {
+              "q": "PRO_TOOLS",
+              "op": "includes_any",
+              "value": [
+                1
+              ]
+            }
+          }
+        ]
+      },
+      "then": "PRO_FU_TRACKING",
+      "depth": 1
+    },
+    {
+      "rule_id": "HOME-R2",
+      "industry": "home_services",
+      "priority": 1,
+      "attached_to": "HOME_PAIN",
+      "trigger_questions": [
+        "HOME_LEADS",
+        "HOME_PAIN"
+      ],
+      "condition": {
+        "any": [
+          {
+            "q": "HOME_PAIN",
+            "op": "includes_any",
+            "value": [
+              1
+            ]
+          },
+          {
+            "q": "HOME_LEADS",
+            "op": "option_gte",
+            "value": 4
+          }
+        ]
+      },
+      "then": "HOME_FU_MISSED",
+      "depth": 1
+    },
+    {
+      "rule_id": "HOME-R2a",
+      "industry": "home_services",
+      "priority": 1,
+      "attached_to": "HOME_FU_MISSED",
+      "trigger_questions": [
+        "HOME_FU_MISSED"
+      ],
+      "condition": {
+        "q": "HOME_FU_MISSED",
+        "op": "in",
+        "value": [
+          3,
+          4,
+          5
+        ]
+      },
+      "then": "HOME_FU_AFTERHOURS",
+      "depth": 2,
+      "parent_rule": "HOME-R2"
+    },
+    {
+      "rule_id": "HOME-R3",
+      "industry": "home_services",
+      "priority": 2,
+      "attached_to": "HOME_PAIN",
+      "trigger_questions": [
+        "HOME_PAIN"
+      ],
+      "condition": {
+        "q": "HOME_PAIN",
+        "op": "includes_any",
+        "value": [
+          3
+        ]
+      },
+      "then": "HOME_FU_QUOTES",
+      "depth": 1
+    },
+    {
+      "rule_id": "HOME-R3a",
+      "industry": "home_services",
+      "priority": 2,
+      "attached_to": "HOME_FU_QUOTES",
+      "trigger_questions": [
+        "HOME_FU_QUOTES"
+      ],
+      "condition": {
+        "q": "HOME_FU_QUOTES",
+        "op": "gte",
+        "value": 20
+      },
+      "then": "HOME_FU_QUOTE_CHASE",
+      "depth": 2,
+      "parent_rule": "HOME-R3"
+    },
+    {
+      "rule_id": "HOME-R4",
+      "industry": "home_services",
+      "priority": 3,
+      "attached_to": "HOME_PAIN",
+      "trigger_questions": [
+        "HOME_PAIN"
+      ],
+      "condition": {
+        "q": "HOME_PAIN",
+        "op": "includes_any",
+        "value": [
+          4
+        ]
+      },
+      "then": "HOME_FU_PAY",
+      "depth": 1
+    },
+    {
+      "rule_id": "HOME-R5",
+      "industry": "home_services",
+      "priority": 3,
+      "attached_to": "HOME_TOOLS",
+      "trigger_questions": [
+        "HOME_TOOLS"
+      ],
+      "condition": {
+        "all": [
+          {
+            "q": "HOME_TOOLS",
+            "op": "includes_any",
+            "value": [
+              8
+            ]
+          },
+          {
+            "not": {
+              "q": "HOME_TOOLS",
+              "op": "includes_any",
+              "value": [
+                1
+              ]
+            }
+          }
+        ]
+      },
+      "then": "HOME_FU_DISPATCH",
+      "depth": 1
+    },
+    {
+      "rule_id": "HOME-R6",
+      "industry": "home_services",
+      "priority": 3,
+      "attached_to": "HOME_PAIN",
+      "trigger_questions": [
+        "HOME_PAIN",
+        "HOME_TECHS"
+      ],
+      "condition": {
+        "all": [
+          {
+            "q": "HOME_PAIN",
+            "op": "includes_any",
+            "value": [
+              2
+            ]
+          },
+          {
+            "q": "HOME_TECHS",
+            "op": "gte",
+            "value": 5,
+            "field": "field"
+          }
+        ]
+      },
+      "then": "HOME_FU_JOBS",
+      "depth": 1
+    },
+    {
+      "rule_id": "MED-R2",
+      "industry": "medical_dental",
+      "priority": 2,
+      "attached_to": "MED_PAIN",
+      "trigger_questions": [
+        "MED_PAIN"
+      ],
+      "condition": {
+        "q": "MED_PAIN",
+        "op": "includes_any",
+        "value": [
+          2
+        ]
+      },
+      "then": "MED_FU_NOSHOW",
+      "depth": 1
+    },
+    {
+      "rule_id": "MED-R2a",
+      "industry": "medical_dental",
+      "priority": 2,
+      "attached_to": "MED_FU_NOSHOW",
+      "trigger_questions": [
+        "MED_FU_NOSHOW"
+      ],
+      "condition": {
+        "q": "MED_FU_NOSHOW",
+        "op": "in",
+        "value": [
+          3,
+          4,
+          5
+        ]
+      },
+      "then": "MED_FU_REMIND",
+      "depth": 2,
+      "parent_rule": "MED-R2"
+    },
+    {
+      "rule_id": "MED-R3",
+      "industry": "medical_dental",
+      "priority": 2,
+      "attached_to": "MED_PAIN",
+      "trigger_questions": [
+        "MED_COMMS",
+        "MED_PAIN"
+      ],
+      "condition": {
+        "any": [
+          {
+            "q": "MED_PAIN",
+            "op": "includes_any",
+            "value": [
+              1
+            ]
+          },
+          {
+            "q": "MED_COMMS",
+            "op": "option_gte",
+            "value": 4
+          }
+        ]
+      },
+      "then": "MED_FU_PHONES",
+      "depth": 1
+    },
+    {
+      "rule_id": "MED-R3a",
+      "industry": "medical_dental",
+      "priority": 2,
+      "attached_to": "MED_FU_PHONES",
+      "trigger_questions": [
+        "MED_FU_PHONES"
+      ],
+      "condition": {
+        "q": "MED_FU_PHONES",
+        "op": "in",
+        "value": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "then": "MED_FU_OVERFLOW",
+      "depth": 2,
+      "parent_rule": "MED-R3"
+    },
+    {
+      "rule_id": "MED-R4",
+      "industry": "medical_dental",
+      "priority": 2,
+      "attached_to": "MED_PAIN",
+      "trigger_questions": [
+        "MED_PAIN"
+      ],
+      "condition": {
+        "q": "MED_PAIN",
+        "op": "includes_any",
+        "value": [
+          3
+        ]
+      },
+      "then": "MED_FU_VERIFY",
+      "depth": 1
+    },
+    {
+      "rule_id": "MED-R5",
+      "industry": "medical_dental",
+      "priority": 3,
+      "attached_to": "MED_PAIN",
+      "trigger_questions": [
+        "MED_PAIN"
+      ],
+      "condition": {
+        "q": "MED_PAIN",
+        "op": "includes_any",
+        "value": [
+          4
+        ]
+      },
+      "then": "MED_FU_INTAKE",
+      "depth": 1
+    },
+    {
+      "rule_id": "MED-R6",
+      "industry": "medical_dental",
+      "priority": 3,
+      "attached_to": "MED_PAIN",
+      "trigger_questions": [
+        "MED_PAIN"
+      ],
+      "condition": {
+        "q": "MED_PAIN",
+        "op": "includes_any",
+        "value": [
+          7
+        ]
+      },
+      "then": "MED_FU_FAX",
+      "depth": 1
     }
   ]
 }

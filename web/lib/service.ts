@@ -11,12 +11,13 @@ export interface PublicQuestion {
   text: string
   type: string
   goal: string
-  options: { id: number; label: string }[]
+  options: { id: number; label: string; freeText?: boolean }[]
   maxSelections?: number
+  required: boolean
   commentLabel?: string
   notice?: string
-  contactFields?: string[]
-  number?: { min?: number; max?: number; integer?: boolean }
+  numberFields?: { key: string; min?: number; max?: number; integer?: boolean }[]
+  number?: { min?: number; max?: number; integer?: boolean; min_chars?: number; max_chars?: number }
   index: number
   cap: number
   source: Source
@@ -67,8 +68,15 @@ function labelAnswer(question: Question, answer: unknown): string {
       .join(", ")
   }
   if (question.type === "contact_block" && answer && typeof answer === "object") {
-    const contact = answer as { first_name?: string; email?: string; phone?: string; business_name?: string }
-    return [contact.first_name, contact.business_name, contact.email, contact.phone].filter(Boolean).join(" · ")
+    const contact = answer as { full_name?: string; business_name?: string; email?: string; phone?: string }
+    return [contact.full_name, contact.business_name, contact.email, contact.phone].filter(Boolean).join(" · ")
+  }
+  if (answer && typeof answer === "object" && !Array.isArray(answer)) {
+    const record = answer as { skipped?: boolean }
+    if (record.skipped) return "Skipped"
+    return Object.entries(record)
+      .map(([key, value]) => `${key}: ${String(value)}`)
+      .join(", ")
   }
   return String(answer ?? "")
 }
@@ -82,11 +90,12 @@ function viewQuestion(state: InterviewState, question: Question): PublicQuestion
     text: outgoing.text,
     type: shown.type,
     goal: shown.goal,
-    options: shown.options.map((option) => ({ id: option.id, label: option.label })),
+    options: shown.options.map((option) => ({ id: option.id, label: option.label, freeText: option.free_text })),
     maxSelections: shown.max_selections,
+    required: shown.required !== false,
     commentLabel: shown.comment_field?.label,
     notice: freeTextNotice(shown, state.industry),
-    contactFields: shown.contact_fields,
+    numberFields: shown.number_fields,
     number: shown.validation,
     index: Math.max(1, state.askedOrder.indexOf(question.id) + 1),
     cap: 10,
@@ -97,7 +106,7 @@ function viewQuestion(state: InterviewState, question: Question): PublicQuestion
 export function toPublic(row: StoredSession, deps: ServiceDeps): PublicView {
   const state = row.state
   if (state.completed || !state.currentQuestionId) {
-    const contact = state.answers.GEN_CONTACT as { first_name?: string } | undefined
+    const contact = state.answers.GEN_CONTACT as { full_name?: string } | undefined
     const items = state.askedOrder.flatMap((id) => {
       const question = questionById(id)
       if (!question || state.answers[id] === undefined) return []
@@ -108,7 +117,7 @@ export function toPublic(row: StoredSession, deps: ServiceDeps): PublicView {
       phase: "done",
       bookingUrl: booking(deps),
       summary: {
-        confirmation: confirmationCopy(contact?.first_name ?? ""),
+        confirmation: confirmationCopy(contact?.full_name ?? ""),
         bookingUrl: booking(deps),
         interviewPath: "/interview",
         industry: state.industry,

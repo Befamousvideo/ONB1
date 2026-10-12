@@ -40,9 +40,11 @@ export function scrubText(text: string): { ok: boolean; text: string } {
 export function personalize(text: string, state: InterviewState): string {
   const contact = state.answers.GEN_CONTACT
   let name = ""
-  if (contact && typeof contact === "object" && "first_name" in contact) {
-    const value = (contact as { first_name?: unknown }).first_name
-    if (typeof value === "string") name = value.trim()
+  if (contact && typeof contact === "object") {
+    const record = contact as { full_name?: unknown; first_name?: unknown }
+    const full = typeof record.full_name === "string" ? record.full_name.trim() : ""
+    const first = typeof record.first_name === "string" ? record.first_name.trim() : ""
+    name = (full || first).split(/\s+/)[0] ?? ""
   }
   return text.replaceAll("{first_name}", name || "there")
 }

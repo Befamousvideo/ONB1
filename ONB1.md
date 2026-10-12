@@ -202,7 +202,7 @@ Prospect: "...how did you know that?"
 ## Public interview (ONB1 step 1)
 
 - The public app is the generic prospect interview in `web/` (`/` choice screen, `/interview` standalone URL). It is the Vercel deploy. Root Directory is `web`.
-- Question bank: `docs/ONB1-spec-v1.1.md` and `web/data/onb1-qbank.v1.1.json` (`onb1.qbank.v1.1`).
+- Question bank: Diggler's `docs/onb1-qbank.v1.1.json` (plain text in `docs/onb1-qbank.v1.1.md`), copied into `web/data/` for the Vercel app. 58 questions, 30 rules, goals G1–G8. The loader stamps rule depth and document order from `rules_index`. `SAFE_TIME` is a code fallback for the blocklist, not a bank question. The 10-minute cap is an app guardrail (`time_cap_ms`), not a field in Diggler's budget.
 - Selection order: follow-up rules, then industry or core starters, then a prefetched AI choice for generic flex slots, then the generic pool. The answer request never waits on the model.
 - xAI is called only from the server (`XAI_API_KEY`, `XAI_MODEL`, default `grok-4-fast-non-reasoning`, base `https://api.x.ai/v1`). No key means rules + pool.
 - Transcripts: Postgres via `DATABASE_URL`, otherwise SQLite, otherwise a JSON file.
@@ -210,6 +210,7 @@ Prospect: "...how did you know that?"
 
 ## Changelog
 
+- 2026-10-12: Replaced the reconstructed question bank with Diggler's v1.1 JSON (58 questions, 30 rules, child rules named parent + `a`). Conventions in that file are Diggler's assumptions and stay in the bank.
 - 2026-10-12: Public interview is the generic ONB1 step 1 flow (10-question cap, four industry packs, rules then pool, server-side xAI). Staff packs moved to `private/legacy/` so they are not served or bundled with the public app.
 - 2026-09-21: PR3 encodes Red O staff packs **v1.2.0** (Vince locks). Pack JSON walker on the staff path; FOH/BOH `work_phone` soft-optional; `staff_ceo` exec-only; named-default quotes; staff links always carry client/invoice id; Nora exportContract; `doNotSend`. Exploring dual-mode from PR2 is unchanged.
 - 2026-09-21: PR2 employee/ROIA discovery copy (Tony v1–v3) plus durable staff identity. Staff vs exploring modes, role chips including Owner/CEO, role-aware staff `STATE_PROMPTS`, prospect-only budget/timeline, default `mode=staff`. Postgres persistence for staff name/email/`work_phone`/answers; smoke proves restart resume.

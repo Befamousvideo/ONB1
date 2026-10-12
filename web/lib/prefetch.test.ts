@@ -8,11 +8,15 @@ import { prefetchNext, startSession, submitAnswer } from "./service"
 import type { InterviewState } from "./types"
 
 const contact = {
-  first_name: "Ada",
+  full_name: "Ada Lovelace",
+  business_name: "Harbor Cafe",
   email: "ada@example.com",
   phone: "9495550100",
-  business_name: "Harbor Cafe",
+  best_time: 1,
+  timezone: "America/Los_Angeles",
 }
+
+const goals = "We stop answering the same questions twice."
 
 function answer(state: InterviewState, value: unknown): InterviewState {
   const id = state.currentQuestionId
@@ -68,13 +72,13 @@ test("prefetch uses a ready AI choice and the answer path does not call the mode
   }
   assert.equal(view.question?.id, "GEN_GOALS_90D")
   assert.equal(calls, 0)
-  const warmed = await prefetchNext(deps, view.sessionId, 1)
+  const warmed = await prefetchNext(deps, view.sessionId, goals)
   assert.equal(calls, 1)
   assert.equal(warmed.source, "ai")
-  assert.equal(warmed.questionId, "GEN_REVENUE")
-  view = await submitAnswer(deps, view.sessionId, "GEN_GOALS_90D", 1)
+  assert.equal(warmed.questionId, "GEN_REVENUE_BAND")
+  view = await submitAnswer(deps, view.sessionId, "GEN_GOALS_90D", goals)
   assert.equal(calls, 1)
-  assert.equal(view.question?.id, "GEN_REVENUE")
+  assert.equal(view.question?.id, "GEN_REVENUE_BAND")
   assert.equal(view.question?.source, "ai")
 })
 
@@ -103,7 +107,7 @@ test("without a key the interview finishes on rules and the pool", async () => {
     },
   }
   let view = await startSession(deps)
-  const script: unknown[] = [8, [2], 1, 4, [1], 1, 2, 1, 1, contact]
+  const script: unknown[] = [8, [2], 1, 4, [1], goals, 2, 1, [1], contact]
   const sources: string[] = []
   for (const step of script) {
     assert.ok(view.question)
@@ -121,10 +125,10 @@ test("without a key the interview finishes on rules and the pool", async () => {
 
 test("an AI miss falls back to the pool question without waiting", () => {
   const state = walkToGoals()
-  const prediction = predictNext(state, 1, state.startedAt + 1000)
+  const prediction = predictNext(state, goals, state.startedAt + 1000)
   assert.equal(prediction.source, "pool")
   assert.equal(prediction.questionId, "GEN_EMAIL_LOAD")
-  const issued = answerQuestion(state, "GEN_GOALS_90D", 1, { now: state.startedAt + 1000, aiQuestionId: null })
+  const issued = answerQuestion(state, "GEN_GOALS_90D", goals, { now: state.startedAt + 1000, aiQuestionId: null })
   assert.equal(issued.state.currentQuestionId, "GEN_EMAIL_LOAD")
   assert.equal(issued.state.trace.at(-1)?.source, "pool")
 })

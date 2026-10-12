@@ -12,9 +12,44 @@ interface Props {
   turnstileSiteKey: string
 }
 
-type ContactDraft = { first_name: string; email: string; phone: string; business_name: string }
+type ContactDraft = {
+  full_name: string
+  business_name: string
+  role: string
+  email: string
+  phone: string
+  website: string
+  best_time: number | null
+  timezone: string
+}
 
-const emptyContact = (): ContactDraft => ({ first_name: "", email: "", phone: "", business_name: "" })
+const NUMBER_LABELS: Record<string, string> = {
+  field: "Techs or crew in the field",
+  office: "People in the office",
+  total: "Total people",
+  billable: "Billable professionals",
+  providers: "Providers",
+  support: "Support staff",
+}
+
+function detectedZone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || ""
+  } catch {
+    return ""
+  }
+}
+
+const emptyContact = (): ContactDraft => ({
+  full_name: "",
+  business_name: "",
+  role: "",
+  email: "",
+  phone: "",
+  website: "",
+  best_time: null,
+  timezone: detectedZone(),
+})
 
 export default function InterviewApp({ privacyUrl, turnstileSiteKey }: Props) {
   const [phase, setPhase] = useState<"intro" | "question" | "done">("intro")
@@ -27,6 +62,7 @@ export default function InterviewApp({ privacyUrl, turnstileSiteKey }: Props) {
   const [multi, setMulti] = useState<number[]>([])
   const [text, setText] = useState("")
   const [number, setNumber] = useState("")
+  const [numbers, setNumbers] = useState<Record<string, string>>({})
   const [contact, setContact] = useState<ContactDraft>(emptyContact())
   const [comment, setComment] = useState("")
   const [seen, setSeen] = useState<PublicQuestion[]>([])
@@ -44,7 +80,10 @@ export default function InterviewApp({ privacyUrl, turnstileSiteKey }: Props) {
     }
   }, [turnstileSiteKey])
 
-  const draft = useMemo(() => currentDraft(question, { single, multi, text, number, contact }), [question, single, multi, text, number, contact])
+  const draft = useMemo(
+    () => currentDraft(question, { single, multi, text, number, numbers, contact }),
+    [question, single, multi, text, number, numbers, contact],
+  )
 
   const prefetch = useMemo(
     () =>
@@ -88,6 +127,7 @@ export default function InterviewApp({ privacyUrl, turnstileSiteKey }: Props) {
     setMulti([])
     setText("")
     setNumber("")
+    setNumbers({})
     setContact(emptyContact())
     setComment("")
   }
@@ -115,12 +155,12 @@ export default function InterviewApp({ privacyUrl, turnstileSiteKey }: Props) {
     }
   }
 
-  async function submit() {
+  async function submit(skip = false) {
     const active = question
     if (!active || !sessionId) return
     setBusy(true)
     setError("")
-    const answer = draft
+    const answer = skip ? null : draft
     setSaved((current) => ({ ...current, [active.id]: { answer, comment } }))
     try {
       const response = await fetch("/api/interview/answer", {
@@ -181,12 +221,14 @@ export default function InterviewApp({ privacyUrl, turnstileSiteKey }: Props) {
               multi={multi}
               text={text}
               number={number}
+              numbers={numbers}
               contact={contact}
               comment={comment}
               onSingle={setSingle}
               onMulti={setMulti}
               onText={setText}
               onNumber={setNumber}
+              onNumbers={(patch) => setNumbers((current) => ({ ...current, ...patch }))}
               onContact={setContact}
               onComment={setComment}
             />
@@ -206,6 +248,11 @@ export default function InterviewApp({ privacyUrl, turnstileSiteKey }: Props) {
                   Back
                 </button>
               ) : null}
+              {question.required ? null : (
+                <button className="secondary-button" type="button" onClick={() => submit(true)} disabled={busy}>
+                  Skip this one
+                </button>
+              )}
               <button className="primary-button" type="button" onClick={() => submit()} disabled={busy}>
                 Next
               </button>
@@ -239,7 +286,9 @@ export default function InterviewApp({ privacyUrl, turnstileSiteKey }: Props) {
     setComment(note)
     if (item.type === "single_choice" && typeof answer === "number") setSingle(answer)
     else if (item.type === "multi_choice" && Array.isArray(answer)) setMulti(answer.filter((id): id is number => typeof id === "number"))
-    else if (item.type === "number" && (typeof answer === "number" || typeof answer === "string")) setNumber(String(answer))
+    else if (item.type === "number" && answer && typeof answer === "object" && !Array.isArray(answer)) {
+      setNumbers(Object.fromEntries(Object.entries(answer as Record<string, unknown>).map(([key, value]) => [key, String(value)])))
+    } else if (item.type === "number" && (typeof answer === "number" || typeof answer === "string")) setNumber(String(answer))
     else if (item.type === "contact_block" && answer && typeof answer === "object") setContact({ ...emptyContact(), ...(answer as ContactDraft) })
     else if (typeof answer === "string") setText(answer)
   }
@@ -253,14 +302,30 @@ function readTurnstile(): string | undefined {
 
 function currentDraft(
   question: PublicQuestion | null,
-  draft: { single: number | null; multi: number[]; text: string; number: string; contact: ContactDraft },
+  draft: {
+    single: number | null
+    multi: number[]
+    text: string
+    number: string
+    numbers: Record<string, string>
+    contact: ContactDraft
+  },
 ): unknown {
   if (!question) return null
   if (question.type === "single_choice") return draft.single
   if (question.type === "multi_choice") return draft.multi
+  if (question.type === "number" && question.numberFields?.length) {
+    return Object.fromEntries(
+      question.numberFields.map((field) => [field.key, draft.numbers[field.key] === undefined || draft.numbers[field.key] === "" ? null : Number(draft.numbers[field.key])]),
+    )
+  }
   if (question.type === "number") return draft.number === "" ? null : Number(draft.number)
   if (question.type === "contact_block") return draft.contact
   return draft.text
+}
+
+function needsDetail(question: PublicQuestion, single: number | null, multi: number[]): boolean {
+  return question.options.some((option) => option.freeText && (option.id === single || multi.includes(option.id)))
 }
 
 function QuestionFields(props: {
@@ -269,16 +334,20 @@ function QuestionFields(props: {
   multi: number[]
   text: string
   number: string
+  numbers: Record<string, string>
   contact: ContactDraft
   comment: string
   onSingle: (value: number) => void
   onMulti: (value: number[]) => void
   onText: (value: string) => void
   onNumber: (value: string) => void
+  onNumbers: (patch: Record<string, string>) => void
   onContact: (value: ContactDraft) => void
   onComment: (value: string) => void
 }) {
   const { question } = props
+  const detail = needsDetail(question, props.single, props.multi)
+  const commentLabel = detail ? "Add a few words" : question.commentLabel
   if (question.type === "single_choice") {
     return (
       <div className="option-grid">
@@ -292,7 +361,7 @@ function QuestionFields(props: {
             {option.label}
           </button>
         ))}
-        {question.commentLabel ? <Comment value={props.comment} label={question.commentLabel} onChange={props.onComment} /> : null}
+        {commentLabel ? <Comment value={props.comment} label={commentLabel} onChange={props.onComment} /> : null}
       </div>
     )
   }
@@ -316,7 +385,21 @@ function QuestionFields(props: {
             </button>
           )
         })}
-        {question.commentLabel ? <Comment value={props.comment} label={question.commentLabel} onChange={props.onComment} /> : null}
+        {commentLabel ? <Comment value={props.comment} label={commentLabel} onChange={props.onComment} /> : null}
+      </div>
+    )
+  }
+  if (question.type === "number" && question.numberFields?.length) {
+    return (
+      <div className="field-grid">
+        {question.numberFields.map((field) => (
+          <Field
+            key={field.key}
+            label={NUMBER_LABELS[field.key] ?? field.key}
+            value={props.numbers[field.key] ?? ""}
+            onChange={(value) => props.onNumbers({ [field.key]: value })}
+          />
+        ))}
       </div>
     )
   }
@@ -337,10 +420,26 @@ function QuestionFields(props: {
   if (question.type === "contact_block") {
     return (
       <div className="field-grid">
-        <Field label="First name" value={props.contact.first_name} onChange={(value) => props.onContact({ ...props.contact, first_name: value })} />
-        <Field label="Work email" value={props.contact.email} onChange={(value) => props.onContact({ ...props.contact, email: value })} />
-        <Field label="Phone" value={props.contact.phone} onChange={(value) => props.onContact({ ...props.contact, phone: value })} />
+        <Field label="Full name" value={props.contact.full_name} onChange={(value) => props.onContact({ ...props.contact, full_name: value })} />
         <Field label="Business name" value={props.contact.business_name} onChange={(value) => props.onContact({ ...props.contact, business_name: value })} />
+        <Field label="Role / title (optional)" value={props.contact.role} onChange={(value) => props.onContact({ ...props.contact, role: value })} />
+        <Field label="Work email" value={props.contact.email} onChange={(value) => props.onContact({ ...props.contact, email: value })} />
+        <Field label="Phone (optional)" value={props.contact.phone} onChange={(value) => props.onContact({ ...props.contact, phone: value })} />
+        <Field label="Website (optional)" value={props.contact.website} onChange={(value) => props.onContact({ ...props.contact, website: value })} />
+        <p className="muted-copy">Best time to reach you</p>
+        <div className="option-grid">
+          {question.options.map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              className={props.contact.best_time === option.id ? "chip chip-selected" : "chip"}
+              onClick={() => props.onContact({ ...props.contact, best_time: option.id })}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+        <Field label="Time zone" value={props.contact.timezone} onChange={(value) => props.onContact({ ...props.contact, timezone: value })} />
       </div>
     )
   }

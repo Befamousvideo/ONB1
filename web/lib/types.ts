@@ -51,6 +51,13 @@ export interface CommentField {
   counts_as_question?: boolean
 }
 
+export interface NumberField {
+  key: string
+  integer?: boolean
+  min?: number
+  max?: number
+}
+
 export interface Question {
   id: string
   text: string
@@ -64,16 +71,14 @@ export interface Question {
   replaces?: string
   followups: Rule[]
   max_selections?: number
-  validation?: { integer?: boolean; min?: number; max?: number }
+  validation?: { integer?: boolean; min?: number; max?: number; min_chars?: number; max_chars?: number }
   comment_field?: CommentField
-  contact_fields?: string[]
+  number_fields?: NumberField[]
   sizing_only?: boolean
   pool?: boolean
   fallback?: boolean
   free_text_notice?: string
-  answer_field?: string
-  provenance?: string
-  provenance_note?: string
+  options_apply_to?: string
 }
 
 export interface QBank {
@@ -126,10 +131,14 @@ export interface InterviewState {
 }
 
 export interface ContactAnswer {
-  first_name: string
-  email: string
-  phone: string
+  full_name: string
   business_name: string
+  role?: string
+  email: string
+  phone?: string
+  website?: string
+  best_time: number
+  timezone?: string
 }
 
 export interface OutputRecord {

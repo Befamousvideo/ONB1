@@ -244,58 +244,100 @@ function asNumber(answer: unknown): number | null {
   return null
 }
 
-export function validateAnswer(question: Question, answer: unknown): string | null {
+export function isSkipped(answer: unknown): boolean {
+  return answer == null || (typeof answer === "object" && !Array.isArray(answer) && (answer as { skipped?: unknown }).skipped === true)
+}
+
+function checkNumber(value: number | null, rules: { integer?: boolean; min?: number; max?: number }): string | null {
+  if (value == null) return "Enter a number."
+  if (rules.integer && !Number.isInteger(value)) return "Enter a whole number."
+  if (rules.min != null && value < rules.min) return `Enter at least ${rules.min}.`
+  if (rules.max != null && value > rules.max) return `Enter at most ${rules.max}.`
+  return null
+}
+
+function selectedIds(question: Question, answer: unknown): number[] {
+  if (question.type === "single_choice") {
+    const id = asNumber(answer)
+    return id == null ? [] : [id]
+  }
+  if (question.type === "multi_choice" && Array.isArray(answer)) {
+    return answer.map(asNumber).filter((id): id is number => id != null)
+  }
+  return []
+}
+
+export function validateAnswer(question: Question, answer: unknown, comment?: string): string | null {
+  if (question.required === false && isSkipped(answer)) return null
   if (question.type === "single_choice") {
     const id = asNumber(answer)
     if (id == null || !question.options.some((option) => option.id === id)) return "Pick one of the options."
-    return null
-  }
-  if (question.type === "multi_choice") {
+  } else if (question.type === "multi_choice") {
     if (!Array.isArray(answer) || answer.length === 0) return "Pick at least one."
     const ids = answer.map(asNumber)
     if (ids.some((id) => id == null)) return "Pick from the options."
     const max = question.max_selections ?? question.options.length
     if (ids.length > max) return `Pick up to ${max}.`
     if (ids.some((id) => !question.options.some((option) => option.id === id))) return "Pick from the options."
-    return null
-  }
-  if (question.type === "number") {
-    const value = asNumber(answer)
-    if (value == null) return "Enter a number."
-    const rules = question.validation ?? {}
-    if (rules.integer && !Number.isInteger(value)) return "Enter a whole number."
-    if (rules.min != null && value < rules.min) return `Enter at least ${rules.min}.`
-    if (rules.max != null && value > rules.max) return `Enter at most ${rules.max}.`
-    return null
-  }
-  if (question.type === "short_text" || question.type === "long_text") {
-    if (typeof answer !== "string" || answer.trim().length === 0) return "Add a short answer."
-    return null
-  }
-  if (question.type === "contact_block") {
+  } else if (question.type === "number" && question.number_fields?.length) {
+    if (!answer || typeof answer !== "object" || Array.isArray(answer)) return "Enter a number for each field."
+    const record = answer as Record<string, unknown>
+    for (const field of question.number_fields) {
+      const error = checkNumber(asNumber(record[field.key]), field)
+      if (error) return error
+    }
+  } else if (question.type === "number") {
+    const error = checkNumber(asNumber(answer), question.validation ?? {})
+    if (error) return error
+  } else if (question.type === "short_text" || question.type === "long_text") {
+    if (typeof answer !== "string") return "Add a short answer."
+    const text = answer.trim()
+    const min = question.validation?.min_chars ?? 1
+    const max = question.validation?.max_chars
+    if (text.length < min) return `Add at least ${min} characters.`
+    if (max != null && text.length > max) return `Keep it under ${max} characters.`
+  } else if (question.type === "contact_block") {
     if (!answer || typeof answer !== "object") return "Add your contact details."
     const contact = answer as Partial<ContactAnswer>
-    if (!contact.first_name || !String(contact.first_name).trim()) return "Add your first name."
+    if (!String(contact.full_name ?? "").trim()) return "Add your name."
+    if (!String(contact.business_name ?? "").trim()) return "Add the business name."
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(contact.email ?? "").trim())) return "Enter a work email like name@company.com."
-    const digits = String(contact.phone ?? "").replace(/\D/g, "")
-    if (digits.length < 7 || digits.length > 15) return "Enter a phone number."
-    if (!contact.business_name || !String(contact.business_name).trim()) return "Add the business name."
-    return null
+    const phone = String(contact.phone ?? "").trim()
+    if (phone) {
+      const digits = phone.replace(/\D/g, "")
+      if (digits.length < 7 || digits.length > 15) return "Enter a phone number, or leave it blank."
+    }
+    const best = asNumber(contact.best_time)
+    if (best == null || !question.options.some((option) => option.id === best)) return "Pick the best time to reach you."
+  } else {
+    return "Unsupported question."
   }
-  return "Unsupported question."
+  const picked = selectedIds(question, answer)
+  const needsDetail = question.options.some((option) => option.free_text && picked.includes(option.id))
+  if (needsDetail && !comment?.trim()) return "Add a few words for the option you described."
+  return null
 }
 
 function normalizeAnswer(question: Question, answer: unknown): unknown {
+  if (question.required === false && isSkipped(answer)) return { skipped: true }
+  if (question.type === "number" && question.number_fields?.length && answer && typeof answer === "object") {
+    const record = answer as Record<string, unknown>
+    return Object.fromEntries(question.number_fields.map((field) => [field.key, asNumber(record[field.key])]))
+  }
   if (question.type === "single_choice" || question.type === "number") return asNumber(answer)
   if (question.type === "multi_choice" && Array.isArray(answer)) return answer.map((item) => asNumber(item))
   if (question.type === "short_text" || question.type === "long_text") return String(answer).trim()
   if (question.type === "contact_block" && answer && typeof answer === "object") {
     const contact = answer as ContactAnswer
     return {
-      first_name: String(contact.first_name).trim(),
-      email: String(contact.email).trim(),
-      phone: String(contact.phone).trim(),
+      full_name: String(contact.full_name).trim(),
       business_name: String(contact.business_name).trim(),
+      role: String(contact.role ?? "").trim(),
+      email: String(contact.email).trim(),
+      phone: String(contact.phone ?? "").trim(),
+      website: String(contact.website ?? "").trim(),
+      best_time: asNumber(contact.best_time),
+      timezone: String(contact.timezone ?? "").trim(),
     }
   }
   return answer
@@ -314,7 +356,7 @@ export function answerQuestion(
   const question = questionById(questionId)
   if (!question) return { state, error: "Unknown question." }
   if (!state.askedOrder.includes(questionId)) return { state, error: "That question is not part of this interview." }
-  const error = validateAnswer(question, answer)
+  const error = validateAnswer(question, answer, options.comment)
   if (error) return { state, error }
   const next = clone(state)
   if (valueHasSensitive(answer) || (options.comment && valueHasSensitive(options.comment))) {
@@ -354,20 +396,26 @@ export function predictNext(state: InterviewState, partial: unknown, now = Date.
   return { source: look.trace.at(-1)?.source ?? "pool", questionId: added }
 }
 
+function substantive(answer: unknown): boolean {
+  return answer !== undefined && !isSkipped(answer)
+}
+
 export function computeGoalStatus(state: InterviewState): Record<string, GoalStatus> {
   const plan = planFor(state.industry)
   const followups = bank.questions.filter(
-    (question) => question.slot_class === "followup" && !question.fallback && state.answers[question.id] !== undefined,
+    (question) => question.slot_class === "followup" && !question.fallback && substantive(state.answers[question.id]),
   )
   const status: Record<string, GoalStatus> = {}
   for (const goal of Object.keys(bank.goals)) {
     const planned = plan.filter((question) => question.goal === goal)
-    const dropped = planned.filter(
-      (question) => question.slot != null && state.droppedSlots.includes(question.slot) && state.answers[question.id] === undefined,
-    )
-    const answered = planned.filter((question) => state.answers[question.id] !== undefined).length
+    const missing = planned.filter((question) => {
+      if (substantive(state.answers[question.id])) return false
+      const dropped = question.slot != null && state.droppedSlots.includes(question.slot)
+      return dropped || isSkipped(state.answers[question.id])
+    })
+    const answered = planned.filter((question) => substantive(state.answers[question.id])).length
     const followAnswered = followups.filter((question) => question.goal === goal).length
-    if (answered + followAnswered > 0 && dropped.length > 0) status[goal] = "partial"
+    if (answered + followAnswered > 0 && missing.length > 0) status[goal] = "partial"
     else if (answered + followAnswered > 0) status[goal] = "answered"
     else status[goal] = "deferred"
   }

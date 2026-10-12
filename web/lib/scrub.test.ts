@@ -22,6 +22,15 @@ test("blocklist and prices are scrubbed to the fixed fallback", () => {
   assert.equal(hasDisallowedPrice("no money here"), false)
 })
 
+test("published revenue bands stay on the bank question", () => {
+  const question = questionById("GEN_REVENUE_BAND")
+  assert.ok(question)
+  const outgoing = outgoingQuestion(question, createInterview())
+  assert.equal(outgoing.replaced, false)
+  assert.equal(outgoing.question.id, "GEN_REVENUE_BAND")
+  assert.ok(question.options.some((option) => option.label.includes("$500K")))
+})
+
 test("a poisoned outgoing question is replaced before it is shown", () => {
   const question = questionById("GEN_GOALS_90D")
   assert.ok(question)
