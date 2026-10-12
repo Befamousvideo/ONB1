@@ -11,6 +11,9 @@ __pycache__/
 
 # Env
 .env
+web/data/*.sqlite
+web/data/interviews.json
+web/tsconfig.tsbuildinfo
 
 # OS
 .DS_Store
